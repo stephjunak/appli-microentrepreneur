@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MicroCompte v2 · Gestion micro-entreprise 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   MicroCompte — outil de gestion micro-entreprise
+   Design sobre & professionnel
+   ============================================================ */
+:root{
+  --bg:#e9e7df;
+  --card:#ffffff;
+  --ink:#2a2922;
+  --soft:#5d5b4d;
+  --faint:#9a9783;
+  --line:#e3e1d6;
+  --line-2:#d2cfc1;
+  --primary:#57563f;
+  --primary-d:#403f30;
+  --primary-soft:#ecebe1;
+  --pos:#4f6138;
+  --pos-soft:#e9ecdd;
+  --neg:#94614e;
+  --neg-soft:#f1e8e2;
+  --prov:#8a7733;
+  --prov-soft:#f1ecd7;
+  --shadow:0 1px 2px rgba(45,43,30,.05), 0 2px 8px rgba(45,43,30,.05);
+  --radius:12px;
+  --font:"Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font);
+  font-size:14.5px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums;
+}
+.num{font-variant-numeric:tabular-nums;}
+button{font-family:inherit;}
+input,select{font-family:inherit;font-size:14px;color:var(--ink);}
+
+/* ---------- shell ---------- */
+.app{max-width:1080px;margin:0 auto;padding:22px 24px 80px;}
+
+.appbar{
+  display:flex;align-items:center;gap:14px;margin-bottom:18px;
+}
+.logo{
+  display:flex;align-items:center;gap:11px;
+}
+.logo .mk{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--primary);color:#fff;display:grid;place-items:center;
+  font-weight:700;font-size:18px;letter-spacing:-.5px;
+}
+.logo .nm{font-weight:700;font-size:17px;letter-spacing:-.2px;}
+.logo .yr{font-size:11px;color:var(--faint);font-weight:600;letter-spacing:.04em;}
+.appbar .spacer{flex:1;}
+
+.who{
+  display:flex;align-items:center;gap:9px;font-size:13px;color:var(--soft);
+  background:var(--card);border:1px solid var(--line);border-radius:999px;
+  padding:6px 8px 6px 14px;box-shadow:var(--shadow);cursor:pointer;
+}
+.who:hover{border-color:var(--line-2);}
+.who .ava{width:24px;height:24px;border-radius:50%;background:var(--primary-soft);color:var(--primary);
+  display:grid;place-items:center;font-weight:700;font-size:12px;}
+.who .gear{width:16px;height:16px;stroke:var(--soft);fill:none;stroke-width:1.7;}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:5px;box-shadow:var(--shadow);width:fit-content;margin-bottom:16px;}
+.tab{
+  border:none;background:transparent;color:var(--soft);font-weight:600;font-size:14px;
+  padding:9px 18px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;
+}
+.tab:hover{color:var(--ink);}
+.tab.on{background:var(--primary);color:#fff;box-shadow:0 1px 2px rgba(20,40,70,.2);}
+.tab .ic{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;}
+
+/* ---------- month nav ---------- */
+.monthnav{display:flex;align-items:center;gap:6px;margin-bottom:18px;}
+.monthnav .mbtn{
+  width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--card);
+  display:grid;place-items:center;cursor:pointer;color:var(--soft);box-shadow:var(--shadow);
+}
+.monthnav .mbtn:hover:not(:disabled){border-color:var(--line-2);color:var(--ink);}
+.monthnav .mbtn:disabled{opacity:.4;cursor:not-allowed;}
+.monthnav .mbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;}
+.monthnav .mlabel{
+  min-width:188px;text-align:center;font-weight:700;font-size:16px;letter-spacing:-.2px;
+  background:var(--primary-soft);color:var(--primary-d);border:1px solid var(--line-2);border-radius:9px;padding:7px 16px;box-shadow:var(--shadow);
+}
+.monthnav .today{margin-left:6px;font-size:12px;color:var(--primary);font-weight:600;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);border-radius:8px;padding:7px 11px;box-shadow:var(--shadow);}
+
+/* ---------- card ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+.card-h{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line);}
+.card-h h2{margin:0;font-size:15px;font-weight:700;}
+.card-h .sub{font-size:12.5px;color:var(--faint);margin-left:auto;}
+.card-b{padding:16px 18px;}
+
+/* ---------- table ---------- */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{
+  text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
+  font-weight:700;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap;
+}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+.tbl tbody tr:last-child td{border-bottom:none;}
+.tbl tbody tr:nth-child(even){background:#fafbfc;}
+.tbl .r{text-align:right;}
+.tbl .c{text-align:center;}
+/* numeric columns: align headers, body values & totals on the same right edge as the input numbers (td 10px + input 9px) */
+.tbl th.r{padding-right:19px;}
+.tbl td.num{text-align:right;padding-right:19px;}
+
+.cell-in{
+  width:100%;border:1px solid transparent;background:transparent;border-radius:7px;
+  padding:7px 9px;outline:none;transition:border-color .12s,background .12s;
+}
+.cell-in:hover{border-color:var(--line);}
+.cell-in:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px var(--primary-soft);}
+input.cell-in[type=number]{text-align:right;}
+input.cell-in[type=date]{color:var(--soft);}
+select.cell-in{appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238c97a6' stroke-width='2.2'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;background-position:right 8px center;padding-right:26px;}
+
+.del{
+  width:28px;height:28px;border-radius:7px;border:1px solid transparent;background:transparent;
+  color:var(--faint);cursor:pointer;display:grid;place-items:center;
+}
+.del:hover{background:var(--neg-soft);color:var(--neg);}
+.del svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;}
+
+.addrow{
+  display:inline-flex;align-items:center;gap:8px;margin-top:12px;
+  border:1px dashed var(--line-2);background:#fff;color:var(--soft);font-weight:600;font-size:13.5px;
+  padding:9px 15px;border-radius:9px;cursor:pointer;
+}
+.addrow:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-soft);}
+.addrow svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;}
+
+.addrow.accent{
+  border:1px solid var(--primary);background:var(--primary);color:#fff;
+  box-shadow:0 1px 2px rgba(20,40,70,.2);
+}
+.addrow.accent:hover{background:var(--primary-d);border-color:var(--primary-d);color:#fff;}
+
+/* ---------- vue tableau / calendrier ---------- */
+.viewseg{display:inline-flex;background:var(--primary-soft);border:1px solid var(--line-2);border-radius:9px;padding:3px;gap:3px;flex:none;}
+.viewseg button{border:none;background:transparent;font:inherit;font-weight:600;font-size:13px;color:var(--soft);
+  padding:6px 12px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+.viewseg button:hover{color:var(--ink);}
+.viewseg button.on{background:#fff;color:var(--primary-d);box-shadow:0 1px 2px rgba(20,40,70,.12);}
+.viewseg button svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;}
+.viewseg.sm button{padding:5px 14px;font-size:12.5px;}
+
+.cal-scope{display:flex;align-items:center;justify-content:flex-start;margin-bottom:16px;}
+
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px;}
+.cal-dow span{font-size:11px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;color:var(--faint);text-align:left;padding-left:3px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;}
+.cal-cell{height:104px;min-width:0;border:1px solid var(--line);border-radius:10px;background:#fff;padding:7px 7px 8px;
+  display:flex;flex-direction:column;gap:5px;overflow:hidden;}
+.cal-cell.empty{background:transparent;border:none;}
+.cal-cell.has{background:#fafbf7;border-color:var(--line-2);}
+.cal-cell.today{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft);}
+.cal-day{font-size:12.5px;font-weight:700;color:var(--faint);line-height:1;flex:none;}
+.cal-cell.has .cal-day{color:var(--soft);}
+.cal-cell.today .cal-day{color:var(--primary);}
+.cal-chips{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;}
+.cal-chip{font-size:11px;line-height:1.2;color:#fff;border-radius:6px;padding:3px 6px;display:flex;flex-direction:column;flex:none;}
+.cal-chip .lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;opacity:.95;min-width:0;}
+.cal-chip b{font-weight:800;font-variant-numeric:tabular-nums;}
+
+.cal-foot{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:13.5px;}
+.cal-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--soft);}
+.cal-legend span{display:inline-flex;align-items:center;gap:6px;}
+.cal-legend i{width:10px;height:10px;border-radius:3px;display:inline-block;}
+.cal-tot{display:flex;align-items:center;gap:16px;color:var(--soft);}
+.cal-tot b{color:var(--ink);font-size:16px;font-weight:800;}
+.cal-tot .prov-note{color:var(--prov);font-style:italic;font-size:12.5px;}
+
+.cal-year{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+.ym{min-width:0;border:1px solid var(--line);border-radius:11px;background:#fff;padding:12px 13px;display:flex;flex-direction:column;gap:9px;}
+.ym.cur{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft);background:#fafbf7;}
+.ym-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
+.ym-h .nm{font-weight:700;font-size:14px;color:var(--ink);text-transform:capitalize;}
+.ym-h .tt{font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;color:var(--ink);}
+.ym-bar{height:5px;border-radius:3px;background:var(--primary-soft);overflow:hidden;}
+.ym-bar i{display:block;height:100%;border-radius:3px;}
+.ym-list{display:flex;flex-direction:column;gap:6px;}
+.ym-it{display:flex;align-items:center;gap:8px;font-size:12px;min-width:0;}
+.ym-it .dd{flex:none;min-width:22px;height:19px;padding:0 4px;border-radius:5px;color:#fff;font-weight:700;
+  font-size:10.5px;display:grid;place-items:center;font-variant-numeric:tabular-nums;}
+.ym-it .ll{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--soft);}
+.ym-it .mm{flex:none;font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink);}
+.ym-empty{font-size:12px;color:var(--faint);font-style:italic;}
+
+@media(max-width:980px){
+  .cal-year{grid-template-columns:repeat(3,minmax(0,1fr));}
+}
+@media(max-width:720px){
+  .cal-year{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .cal-cell{height:88px;}
+}
+
+.empty{padding:34px 10px;text-align:center;color:var(--faint);font-size:13.5px;}
+
+/* ---------- pills / badges ---------- */
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
+  padding:3px 9px;border-radius:999px;white-space:nowrap;}
+.badge.cat{background:#eef1f5;color:var(--soft);}
+.badge.decaisse{background:var(--neg-soft);color:var(--neg);}
+.badge.provision{background:var(--prov-soft);color:var(--prov);font-style:italic;cursor:help;}
+.badge svg{width:12px;height:12px;}
+
+/* ---------- recap strip ---------- */
+.recap{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+.recap .it{flex:1;min-width:130px;border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:#fafbfc;}
+.recap .it .k{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--faint);font-weight:700;}
+.recap .it .v{font-size:18px;font-weight:700;margin-top:3px;}
+.recap .it.cats{flex-basis:100%;background:#fff;}
+.catline{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:var(--soft);}
+.catline b{color:var(--ink);}
+
+/* ---------- résumé blocks ---------- */
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+.summary .span2{grid-column:1 / -1;}
+.block .row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line);}
+.block .row:last-child{border-bottom:none;}
+.block .row .lab{color:var(--soft);font-size:13.5px;}
+.block .row .val{font-weight:700;font-size:15px;}
+.block .row.total{margin-top:4px;border-top:2px solid var(--line-2);border-bottom:none;padding-top:11px;}
+.block .row.total .lab{color:var(--ink);font-weight:700;}
+.block .row.total .val{font-size:17px;}
+.block .mini{font-size:12px;color:var(--faint);margin:2px 0 0;}
+
+.kpi{display:flex;flex-direction:column;gap:3px;}
+.kpi .big{font-size:30px;font-weight:800;letter-spacing:-.5px;line-height:1;}
+.kpi .cap{font-size:12.5px;color:var(--faint);}
+.pos{color:var(--pos);} .neg{color:var(--neg);} .prov{color:var(--prov);}
+.val.pos,.val.neg{font-weight:800;}
+
+.result-card{background:linear-gradient(180deg,#fff, #fbfcfd);}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.result-grid .box{border:1px solid var(--line);border-radius:11px;padding:16px;}
+.result-grid .box.lead{background:var(--pos-soft);border-color:#cfe6da;}
+.result-grid .box.prud{background:#fafbfc;}
+
+.tva-flag{display:flex;align-items:center;gap:10px;margin-top:14px;background:var(--primary-soft);
+  border:1px solid #cfe0ee;border-radius:10px;padding:12px 14px;color:var(--primary);font-size:13.5px;}
+.tva-flag b{font-size:16px;}
+.tva-flag .ic{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;flex:none;}
+
+.listline{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13.5px;}
+.listline:last-child{border-bottom:none;}
+.listline .lab{color:var(--soft);display:flex;align-items:center;gap:8px;}
+.listline.prov-line .lab{font-style:italic;color:var(--prov);}
+
+/* ---------- modal ---------- */
+.scrim{position:fixed;inset:0;background:rgba(20,28,40,.42);display:grid;place-items:center;z-index:60;padding:20px;}
+.modal{background:var(--card);border-radius:16px;width:min(480px,100%);box-shadow:0 24px 60px rgba(10,20,40,.3);overflow:hidden;}
+.modal-h{display:flex;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line);}
+.modal-h h3{margin:0;font-size:16px;font-weight:700;}
+.modal-h .x{margin-left:auto;width:30px;height:30px;border:none;background:transparent;border-radius:8px;cursor:pointer;color:var(--faint);display:grid;place-items:center;}
+.modal-h .x:hover{background:#f0f2f5;color:var(--ink);}
+.modal-b{padding:20px;display:flex;flex-direction:column;gap:16px;}
+.modal-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;}
+
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:12.5px;font-weight:600;color:var(--soft);}
+.field .in{border:1px solid var(--line-2);border-radius:9px;padding:10px 12px;outline:none;}
+.field .in:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0;}
+.toggle-row .t-lab{font-size:14px;}
+.toggle-row .t-lab small{display:block;color:var(--faint);font-size:12px;font-weight:400;}
+.sw{width:44px;height:25px;border-radius:999px;background:#cfd6df;border:none;cursor:pointer;position:relative;transition:background .15s;flex:none;}
+.sw.on{background:var(--primary);}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.sw.on::after{left:22px;}
+
+.btn{border:1px solid var(--line-2);background:#fff;color:var(--ink);font-weight:600;font-size:13.5px;
+  padding:9px 15px;border-radius:9px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+.btn:hover{border-color:var(--soft);}
+.btn.pri{background:var(--primary);border-color:var(--primary);color:#fff;}
+.btn.pri:hover{background:var(--primary-d);}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--soft);}
+
+.hint{font-size:12px;color:var(--faint);background:#fafbfc;border:1px solid var(--line);border-radius:9px;padding:10px 12px;line-height:1.5;}
+
+@media(max-width:720px){
+  .summary,.result-grid{grid-template-columns:1fr;}
+  .app{padding:16px 14px 70px;}
+}
+
+/* ---------- invoices (factures multi-lignes) ---------- */
+.stack{display:flex;flex-direction:column;gap:14px;}
+.invoice{overflow:hidden;}
+.inv-h{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);background:#fafbfc;}
+.inv-h .date-in{width:140px;flex:none;}
+.inv-h .client-in{flex:1;font-weight:600;}
+.inv-h .cell-in{background:#fff;border-color:var(--line-2);box-shadow:0 1px 2px rgba(45,43,30,.06);}
+.inv-h .cell-in:hover{border-color:var(--primary);}
+.inv-h input.cell-in[type=date]{color:var(--ink);}
+.field-missing{border-color:#d9534f !important;background:#fff5f5 !important;}
+.field-missing-hint{font-size:11.5px;color:#d9534f;font-weight:600;white-space:nowrap;}
+.inv-net{font-size:13px;color:var(--soft);white-space:nowrap;}
+.inv-net b{color:var(--pos);font-size:15px;margin-left:5px;}
+.inv-b{padding:6px 14px 14px;}
+.inv-foot{display:flex;flex-wrap:wrap;gap:18px;justify-content:flex-end;margin-top:10px;padding-top:11px;border-top:1px dashed var(--line);font-size:13px;color:var(--soft);}
+.inv-foot b{color:var(--ink);}
+.inv-foot .net b{color:var(--pos);}
+.ttc-cell{font-weight:600;color:var(--ink);}
+.tbl tfoot .sumrow td{border-bottom:none;border-top:2px solid var(--line-2);padding-top:11px;background:transparent;}
+.tbl tfoot .sumlab{font-weight:700;color:var(--ink);font-size:13.5px;}
+.tbl tfoot .sumrow .num b{font-size:15px;font-weight:800;}
+.tbl tfoot .sum-tva{text-align:center;font-weight:700;color:var(--soft);}
+.inv-result{margin-top:12px;display:flex;flex-direction:column;gap:2px;max-width:380px;margin-left:auto;}
+.ir-line{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:8px 0;font-size:13.5px;color:var(--soft);}
+.ir-line span em{font-style:normal;font-size:11.5px;color:var(--faint);display:block;margin-top:1px;}
+.ir-line b{font-size:15px;font-weight:700;color:var(--ink);white-space:nowrap;}
+.ir-line.net{border-top:1px solid var(--line);padding-top:10px;}
+.ir-line.net span{font-weight:600;color:var(--ink);}
+.ir-line.net b{font-size:18px;font-weight:800;color:var(--pos);}
+
+/* ---------- dashboard ---------- */
+.dash{display:flex;flex-direction:column;gap:16px;}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.stat .card-b{padding:18px 18px 16px;}
+.stat .cap{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);font-weight:700;}
+.stat .big{font-size:32px;font-weight:800;letter-spacing:-.6px;line-height:1;margin-top:9px;}
+.stat .sub{font-size:12.5px;color:var(--faint);margin-top:7px;}
+.stat.warn{background:var(--neg-soft);border-color:#e3d2c8;}
+.stat.good{background:var(--pos-soft);border-color:#d3dcc2;}
+.hero-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:stretch;}
+
+/* cascade clarity tags */
+.cas .k .ctag{
+  font-style:normal;font-size:10.5px;font-weight:600;letter-spacing:.02em;
+  padding:1px 7px;border-radius:999px;margin-left:0;white-space:nowrap;}
+.ctag.set{background:var(--prov-soft);color:#7a6a25;}
+.ctag.paid{background:var(--line);color:var(--soft);}
+.cas-key{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--faint);}
+.cas-key span{display:inline-flex;align-items:center;gap:6px;}
+.cas-key .dot{width:9px;height:9px;border-radius:3px;display:inline-block;}
+.cas-key .dot.set{background:var(--prov-soft);border:1px solid #d8ca87;}
+.cas-key .dot.paid{background:var(--line);border:1px solid var(--line-2);}
+
+/* synthèse annuelle */
+.ysum{display:flex;flex-direction:column;gap:2px;}
+.ysum .yrow{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;}
+.ysum .yrow .lab{color:var(--soft);}
+.ysum .yrow b{font-size:16px;font-weight:700;letter-spacing:-.2px;}
+.ysum .yrow.tot{border-bottom:none;padding-top:11px;}
+.ysum .yrow.tot .lab{color:var(--ink);font-weight:600;}
+.ysum .yrow.tot b{font-size:19px;font-weight:800;}
+.yproj{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;
+  background:var(--primary-soft);border:1px solid var(--line-2);border-radius:10px;padding:13px 16px;}
+.yproj .cap{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);font-weight:700;white-space:nowrap;}
+.yproj .yp-l{min-width:0;}
+.yproj .yp-val{font-size:24px;font-weight:800;letter-spacing:-.5px;color:var(--pos);margin-top:3px;}
+.yproj .yp-u{font-size:13px;font-weight:600;color:var(--faint);}
+.ydelta{text-align:right;font-size:17px;font-weight:800;line-height:1.1;}
+.ydelta.up{color:var(--pos);}
+.ydelta.down{color:var(--neg);}
+.ydelta .yd-sub{display:block;font-size:10.5px;font-weight:600;color:var(--faint);margin-top:3px;letter-spacing:0;}
+.hero .big{font-size:42px;font-weight:800;letter-spacing:-1px;line-height:1;}
+.hero .cap{font-size:13px;color:var(--faint);margin-top:5px;}
+.cascade{display:flex;flex-direction:column;gap:9px;margin-top:18px;}
+.cas{display:flex;align-items:center;gap:10px;}
+.cas .op{flex:none;width:21px;height:21px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;line-height:1;}
+.cas .op.minus{background:var(--neg-soft);color:var(--neg);}
+.cas .op.eq{background:var(--pos-soft);color:var(--pos);}
+.cas .op.start{background:transparent;border:1.5px dashed var(--line-2);}
+.cas.net{margin-top:5px;padding-top:12px;border-top:1px solid var(--line);}
+.cas .k{width:155px;font-size:13.5px;color:var(--soft);display:flex;flex-direction:column;align-items:flex-start;gap:3px;}
+.cas .track{flex:1;height:24px;border-radius:6px;background:#f0f2f5;overflow:hidden;}
+.cas .track>i{display:block;height:100%;border-radius:6px;transition:width .25s;}
+.cas .v{width:96px;text-align:right;font-weight:700;font-size:14px;}
+.chart-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;}
+.bars2{display:flex;align-items:flex-end;gap:7px;height:150px;}
+.bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end;}
+.bcol .bar{width:100%;max-width:30px;border-radius:5px 5px 0 0;background:#cdc6af;min-height:3px;transition:height .25s;}
+.bcol .bar.on{background:var(--pos);}
+.bcol .bar.neg{background:var(--neg-soft);border:1px solid var(--neg);}
+.bcol .ml{font-size:10px;color:var(--faint);text-transform:uppercase;}
+.bcol .ml.on{color:var(--pos);font-weight:800;}
+.donut2{width:200px;height:200px;border-radius:50%;position:relative;flex:none;}
+.donut2::after{content:"";position:absolute;inset:40px;border-radius:50%;background:#fff;}
+.dlegend{display:flex;flex-direction:column;gap:11px;}
+.dlegend .li{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--soft);}
+.dlegend .sw2{width:13px;height:13px;border-radius:3px;flex:none;}
+.hero-grid .card:last-child{display:flex;flex-direction:column;}
+.hero-grid .card:last-child .card-b{flex:1;display:flex;align-items:center;justify-content:center;gap:30px;min-height:236px;}
+
+/* ---------- accordion (charges & provisions) ---------- */
+.acc{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:#fff;box-shadow:var(--shadow);}
+.acc + .acc{margin-top:12px;}
+.acc-h{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;}
+.acc-h:hover{background:#fafbfc;}
+.acc-h .ttl{font-weight:700;font-size:14.5px;}
+.acc-h .amt{margin-left:auto;font-weight:800;font-size:16px;}
+.acc-h .car{display:grid;place-items:center;color:var(--faint);transition:transform .15s;}
+.acc-h .car svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
+.acc-h .car.open{transform:rotate(90deg);}
+.acc-b{padding:2px 16px 14px;}
+.totalbar{display:flex;justify-content:space-between;align-items:center;background:var(--prov-soft);
+  border:1px solid #ecd9ab;border-radius:11px;padding:15px 18px;margin-top:14px;}
+.totalbar .lab{font-weight:700;font-size:15px;}
+.totalbar .val{font-weight:800;font-size:21px;color:var(--prov);}
+
+@media(max-width:720px){
+  .hero-grid,.chart-grid,.kpi-grid{grid-template-columns:1fr;}
+}
+
+
+/* ---------- tariff history ---------- */
+.tariff-btn{
+  width:26px;height:26px;border-radius:6px;border:1px solid var(--line);background:#fff;
+  color:var(--faint);cursor:pointer;display:grid;place-items:center;flex:none;
+  transition:background .12s,border-color .12s;
+}
+.tariff-btn:hover,.tariff-btn.on{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-d);}
+.tariff-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.9;}
+.tariff-count{font-size:11px;font-weight:800;color:var(--primary-d);}
+.tariff-panel{padding:14px 0 4px;display:flex;flex-direction:column;gap:12px;}
+.tariff-title{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--soft);}
+.tariff-list{display:flex;flex-direction:column;gap:6px;}
+.tariff-entry{display:flex;align-items:center;gap:10px;font-size:13px;padding:5px 8px;border-radius:7px;}
+.tariff-entry.current{background:var(--pos-soft);}
+.tariff-entry.future{background:var(--prov-soft);}
+.tariff-entry.past{opacity:.6;}
+.tariff-status{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:999px;white-space:nowrap;}
+.tariff-status.current{background:var(--pos);color:#fff;}
+.tariff-status.future{background:var(--prov);color:#fff;}
+.tariff-status.past{background:var(--line-2);color:var(--soft);}
+.tariff-from{color:var(--soft);}
+.tariff-val{font-size:14px;font-weight:700;color:var(--ink);}
+.tariff-pct{font-size:11px;font-weight:700;padding:2px 6px;border-radius:5px;white-space:nowrap;}
+.tariff-pct.up{background:#fce8e8;color:#c0392b;}
+.tariff-pct.down{background:#e8f8ee;color:#27ae60;}
+.cat-group-hd td{background:var(--primary-soft);font-size:12px;font-weight:700;letter-spacing:.03em;color:var(--primary-d);padding:8px 12px;border-top:2px solid var(--line-2);}
+.cat-count{font-weight:400;color:var(--soft);margin-left:8px;font-size:11.5px;}
+.cat-select{font-size:11.5px !important;color:var(--soft) !important;padding:2px 6px !important;margin-top:3px;width:100%;}
+.cat-manage{margin-top:16px;padding:12px 14px;background:var(--primary-soft);border-radius:9px;border:1px solid var(--line-2);}
+.cat-manage-title{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:8px;}
+.cat-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.cat-chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;padding:3px 8px 3px 11px;border-radius:999px;background:var(--card);color:var(--primary-d);border:1px solid var(--line-2);}
+.cat-chip .xbtn{background:none;border:none;cursor:pointer;padding:0 1px;font-size:14px;line-height:1;color:var(--soft);}
+.cat-chip .xbtn:hover{color:#d9534f;}
+.cat-add-row{display:flex;gap:6px;align-items:center;}
+.cat-subtotal td{font-size:12px;color:var(--soft);text-align:right;padding:4px 12px 10px;border-bottom:2px solid var(--line-2);}
+.cat-subtotal .sub-val{font-weight:700;color:var(--ink);font-size:13px;margin-left:3px;}
+.frais-new-form{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;background:var(--prov-soft);border:1px solid #e2d9b3;border-radius:9px;margin-top:10px;}
+.frais-new-form label{font-size:13px;color:var(--primary-d);font-weight:600;white-space:nowrap;}
+.frais-new-form .cell-in{background:#fff;border-color:var(--line-2);box-shadow:0 1px 2px rgba(45,43,30,.06);}
+.cat-move-btn{background:none;border:none;cursor:pointer;padding:2px;opacity:.3;display:inline-flex;align-items:center;flex:none;}
+.cat-move-btn:hover{opacity:.9;}
+.cat-move-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;}
+.grand-total-row td{font-weight:700;font-size:13.5px;padding:10px 12px;background:var(--pos-soft);border-top:2px solid var(--pos);text-align:right;}
+.grand-total-row .total-val{color:var(--pos);font-size:15px;margin-left:6px;}
+.tariff-add{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;background:var(--prov-soft);border:1px solid #e2d9b3;border-radius:9px;}
+.tariff-add-label{font-size:13px;color:var(--primary-d);font-weight:600;white-space:nowrap;}
+.tariff-add .cell-in{background:#fff;border-color:var(--line-2);box-shadow:0 1px 2px rgba(45,43,30,.06);}
+.tariff-add .cell-in:hover{border-color:var(--primary);}
+.tariff-add input.cell-in[type=date]{color:var(--ink);}
+.next-debit{font-size:13px;font-weight:600;color:var(--ink);}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel">
+/* ============================================================
+   data.jsx — taux 2026, helpers, persistance, calculs
+   Exposé via window.MEF
+   ============================================================ */
+
+// Taux URSSAF 2026 (en dur) — cotisations sociales + versement libératoire
+const RATES = {
+  "BIC_VENTE":      { label: "BIC — Vente",            short: "BIC vente",      social: 0.123, lib: 0.010 },
+  "BIC_PRESTA":     { label: "BIC — Prestation",       short: "BIC presta.",    social: 0.212, lib: 0.017 },
+  "BNC":            { label: "BNC (régime général)",   short: "BNC",            social: 0.261, lib: 0.022 },
+  "BNC_CIPAV":      { label: "BNC CIPAV",              short: "BNC CIPAV",      social: 0.232, lib: 0.022 },
+};
+const CATS = Object.keys(RATES);
+
+const TVA_RATES = [
+  { v: 0,    label: "0 %" },
+  { v: 0.10, label: "10 %" },
+  { v: 0.20, label: "20 %" },
+];
+
+const MONTHS = ["Janvier","Février","Mars","Avril","Mai","Juin",
+  "Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+const YEAR = 2026;
+
+const pad2 = (n) => String(n + 1).padStart(2, "0");           // month index -> "01".."12"
+const monthKey = (m) => `${YEAR}-${pad2(m)}`;                  // -> "2026-04"
+const uid = () => Math.random().toString(36).slice(2, 9);
+
+const eur = (n) =>
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR",
+    minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n) || 0);
+const eur0 = (n) =>
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR",
+    minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n) || 0);
+const pct = (x) =>
+  (x * 100).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " %";
+const num = (v) => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+
+// persistance localStorage
+const load = (key, fb) => {
+  try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : fb; }
+  catch (e) { return fb; }
+};
+const save = (key, val) => {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+};
+
+// impact d'une charge sur le mois affiché (mIndex 0..11)
+// charge.jour = jour de prélèvement (1..28) ; charge.date = "à partir du" (début)
+// retourne { decaisse, provision, dueDay, dueMonth, active }
+// "aujourd'hui" ancré dans l'année de l'appli (YEAR), avec le mois/jour réels.
+// Évite que la logique casse si l'horloge système n'est pas dans YEAR.
+function appToday() {
+  const d = new Date();
+  return new Date(YEAR, d.getMonth(), d.getDate());
+}
+const TODAY = `${YEAR}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`;
+
+function tariffAt(charge, dateStr) {
+  const hist = (charge.tarifsHistory || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
+  if (!hist.length) return num(charge.montant || 0);
+  const applicable = hist.filter(t => t.from <= dateStr);
+  return applicable.length > 0 ? num(applicable[applicable.length - 1].montant) : num(hist[0].montant);
+}
+
+function tariffForMonth(charge, mIndex) {
+  return tariffAt(charge, `${YEAR}-${pad2(mIndex)}-31`);
+}
+
+function nextDebitDate(charge) {
+  const today = appToday();
+  const startDate = new Date(charge.date || `${YEAR}-01-01`);
+  const day = startDate.getDate();
+  let c;
+  if (charge.frequence === "mensuelle") {
+    c = new Date(today.getFullYear(), today.getMonth(), day);
+    if (c < today) c = new Date(today.getFullYear(), today.getMonth() + 1, day);
+  } else if (charge.frequence === "trimestrielle") {
+    c = new Date(startDate.getFullYear(), startDate.getMonth(), day);
+    while (c < today) c = new Date(c.getFullYear(), c.getMonth() + 3, day);
+  } else {
+    c = new Date(today.getFullYear(), startDate.getMonth(), day);
+    if (c < today) c = new Date(today.getFullYear() + 1, startDate.getMonth(), day);
+  }
+  return c;
+}
+
+function chargeImpact(charge, mIndex) {
+  const montant = tariffForMonth(charge, mIndex);
+  const d = charge.date || "";                          // date de début ("à partir du")
+  const startMonth = d ? (parseInt(d.slice(5, 7), 10) - 1) : 0;
+  const jour = charge.jour ? String(charge.jour).padStart(2, "0")
+                           : (d ? d.slice(8, 10) : "01");
+  const out = { decaisse: 0, provision: 0, dueDay: jour, dueMonth: mIndex, active: true };
+
+  // pas encore commencé ce mois-ci
+  if (d && mIndex < startMonth) { out.active = false; return out; }
+
+  if (charge.frequence === "mensuelle") {
+    out.decaisse = montant;                             // prélevé chaque mois, le `jour`
+    out.dueMonth = mIndex;
+  } else if (charge.frequence === "trimestrielle") {
+    const isDebit = (((mIndex - startMonth) % 3) + 3) % 3 === 0;
+    if (isDebit) { out.decaisse = montant; out.dueMonth = mIndex; }
+    else { out.provision = montant / 3; out.dueMonth = startMonth + (Math.floor((mIndex - startMonth) / 3) + 1) * 3; }
+  } else if (charge.frequence === "ponctuelle") {
+    if (mIndex !== startMonth) { out.active = false; return out; }
+    out.decaisse = montant; out.dueMonth = startMonth;
+  } else { // annuelle
+    if (mIndex === startMonth) { out.decaisse = montant; out.dueMonth = startMonth; }
+    else { out.provision = montant / 12; out.dueMonth = startMonth; }
+  }
+  return out;
+}
+
+// une facture = { id, date, client, lines:[{id,description,categorie,montant,tva}] }
+// tolère l'ancien format plat (une ligne par facture)
+function linesOf(f) {
+  if (Array.isArray(f.lines)) return f.lines;
+  return [{ id: (f.id || "x") + "-l", description: f.description || "",
+            categorie: f.categorie || "BNC", montant: f.montant || "", tva: f.tva || 0 }];
+}
+
+// totaux d'une seule facture (pour l'aperçu en direct)
+function factureTotals(f, profile) {
+  const lib = !!profile.liberatoire, assujetti = !!profile.tva;
+  let ht = 0, tva = 0, urssaf = 0;
+  linesOf(f).forEach((l) => {
+    const m = num(l.montant); ht += m;
+    if (assujetti) tva += m * num(l.tva);
+    const r = RATES[l.categorie] || RATES.BNC;
+    urssaf += m * (r.social + (lib ? r.lib : 0));
+  });
+  return { ht, tva, ttc: ht + tva, urssaf, net: ht - urssaf };
+}
+
+// calcule tout le résumé d'un mois
+function computeMonth({ factures, charges, profile, mIndex }) {
+  const assujetti = !!profile.tva;
+  const lib = !!profile.liberatoire;
+
+  // --- CA & TVA (sur toutes les lignes de toutes les factures) ---
+  let caHT = 0, tvaCollectee = 0;
+  const byCat = {};                                 // cat -> base HT
+  factures.forEach((f) => {
+    linesOf(f).forEach((l) => {
+      const ht = num(l.montant);
+      caHT += ht;
+      if (assujetti) tvaCollectee += ht * num(l.tva);
+      byCat[l.categorie] = (byCat[l.categorie] || 0) + ht;
+    });
+  });
+  const caTTC = caHT + tvaCollectee;
+
+  // --- cotisations URSSAF par catégorie ---
+  const cotisLines = [];
+  let totalCotis = 0;
+  CATS.forEach((c) => {
+    const base = byCat[c];
+    if (!base) return;
+    const r = RATES[c];
+    const social = base * r.social;
+    const liber = lib ? base * r.lib : 0;
+    cotisLines.push({ cat: c, base, social, liber, rateSocial: r.social, rateLib: r.lib });
+    totalCotis += social + liber;
+  });
+
+  // --- charges décaissées / provisions ---
+  const decaisseLines = [], provisionLines = [];
+  let totalDecaisse = 0, totalProvision = 0;
+  charges.forEach((ch) => {
+    const imp = chargeImpact(ch, mIndex);
+    if (imp.decaisse > 0) {
+      decaisseLines.push({ ...ch, montantCalc: imp.decaisse });
+      totalDecaisse += imp.decaisse;
+    }
+    if (imp.provision > 0) {
+      provisionLines.push({ ...ch, montantCalc: imp.provision, dueDay: imp.dueDay, dueMonth: imp.dueMonth });
+      totalProvision += imp.provision;
+    }
+  });
+
+  // --- résultat ---
+  const net = caHT - totalCotis - totalDecaisse;
+  const netPrudent = net - totalProvision;
+
+  return {
+    assujetti, lib, caHT, tvaCollectee, caTTC, byCat,
+    cotisLines, totalCotis,
+    decaisseLines, provisionLines, totalDecaisse, totalProvision,
+    net, netPrudent, tvaAreverser: assujetti ? tvaCollectee : 0,
+  };
+}
+
+// net (après URSSAF & charges décaissées) pour chaque mois de l'année — pour le graphe + synthèse
+function computeYear({ facturesByMonth, charges, profile }) {
+  const out = [];
+  for (let i = 0; i < 12; i++) {
+    const fs = facturesByMonth[`${YEAR}-${pad2(i)}`] || [];
+    const s = computeMonth({ factures: fs, charges, profile, mIndex: i });
+    out.push({
+      net: s.net, netPrudent: s.netPrudent, caHT: s.caHT, caTTC: s.caTTC,
+      tva: s.tvaAreverser, cotis: s.totalCotis,
+      decaisse: s.totalDecaisse, provision: s.totalProvision,
+      nbFactures: fs.length,
+    });
+  }
+  return out;
+}
+
+// totaux cumulés sur l'année (jusqu'au mois inclus) + référence N-1
+function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth }) {
+  const year = computeYear({ facturesByMonth, charges, profile });
+  const upto = uptoMonth == null ? 11 : uptoMonth;
+  const acc = { caTTC: 0, caHT: 0, tva: 0, cotis: 0, decaisse: 0, provision: 0, net: 0, netPrudent: 0, nbFactures: 0, lastActive: -1 };
+  year.forEach((y, i) => {
+    if (i > upto) return;
+    acc.caTTC += y.caTTC; acc.caHT += y.caHT; acc.tva += y.tva; acc.cotis += y.cotis;
+    acc.decaisse += y.decaisse; acc.provision += y.provision;
+    acc.net += y.net; acc.netPrudent += y.netPrudent; acc.nbFactures += y.nbFactures;
+    if (y.caTTC > 0) acc.lastActive = i;
+  });
+  acc.charges = acc.tva + acc.cotis + acc.decaisse + acc.provision;
+  acc.prev = (window.MEF_PREV_YEAR || {}); // référence N-1 (optionnelle)
+  return acc;
+}
+
+window.MEF = {
+  RATES, CATS, TVA_RATES, MONTHS, YEAR,
+  pad2, monthKey, uid, eur, eur0, pct, num,
+  load, save, appToday, TODAY, tariffAt, tariffForMonth, nextDebitDate, chargeImpact, computeMonth, computeYear, computeYearSummary,
+  linesOf, factureTotals,
+};
+
+// référence année précédente (2025) — pour l'écart annuel sur le tableau de bord
+window.MEF_PREV_YEAR = { caTTC: 71400, net: 41200, charges: 30200 };
+
+</script>
+<script type="text/babel">
+/* ============================================================
+   tabs.jsx — Dashboard, Factures (multi-lignes), Frais, Charges & provisions
+   ============================================================ */
+const { RATES, CATS, TVA_RATES, MONTHS, YEAR, eur, eur0, pct, num, uid, pad2,
+  appToday, TODAY, tariffAt, tariffForMonth, nextDebitDate, chargeImpact, computeMonth, computeYear, computeYearSummary, linesOf, factureTotals } = window.MEF;
+
+const fmtDate = (d) => d instanceof Date
+  ? d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+  : new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+const fmtDateShort = (d) => new Date(d).toLocaleDateString("fr-FR");
+
+const Icon = {
+  trash: <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7" /></svg>,
+  plus: <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>,
+  clock: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" style={{ flex: "none" }}><circle cx="12" cy="12" r="8" /><path d="M12 8v4l3 2" /></svg>,
+  info: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ flex: "none" }}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5h.01" /></svg>,
+  car: <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>,
+  rows: <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg>,
+  cal: <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 3v3M16 3v3" /></svg>,
+  tag: <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/></svg>
+};
+// couleur de pastille par fréquence dans le calendrier
+const FREQ_META = {
+  mensuelle: { color: "#8a7733", label: "Mensuel" },
+  trimestrielle: { color: "#94614e", label: "Trimestriel" },
+  annuelle: { color: "#577389", label: "Annuel" }
+};
+// Palette sémantique unique — utilisée pour les barres, l'histogramme ET le camembert
+const SEG_COLORS = { urssaf: "#94614e", tva: "#577389", decaisse: "#8a7733", provision: "#bca96a", net: "#4f6138" };
+// le camembert reprend exactement la même palette (plus de teintes séparées)
+const DONUT_COLORS = SEG_COLORS;
+
+/* ========================================================== */
+/* TABLEAU DE BORD (approche A + graphes B)                   */
+/* ========================================================== */
+function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex }) {
+  const s = computeMonth({ factures, charges, profile, mIndex });
+  const year = computeYear({ facturesByMonth, charges, profile });
+
+  const ttc = s.caTTC; // ce que j'ai encaissé
+  const aMettre = s.tvaAreverser + s.totalCotis + s.totalDecaisse + s.totalProvision; // frais & charges
+  const net = s.netPrudent; // ce qui reste (provisions déduites)
+  const base = Math.max(ttc, 1);
+  const w = (x) => Math.max(0, Math.min(100, x / base * 100)) + "%";
+
+  // donut : où part le TTC encaissé
+  const segs = [
+  { key: "net", lab: "Net pour moi", val: Math.max(0, net) },
+  { key: "urssaf", lab: "URSSAF", val: s.totalCotis },
+  { key: "tva", lab: "TVA", val: s.tvaAreverser },
+  { key: "decaisse", lab: "Frais", val: s.totalDecaisse },
+  { key: "provision", lab: "Provisions", val: s.totalProvision }].
+  filter((x) => x.val > 0.005);
+  const segTot = segs.reduce((a, x) => a + x.val, 0) || 1;
+  // positions de chaque part, puis séparateurs blancs entre les parts
+  let acc = 0;
+  const segPos = segs.map((x) => {const from = acc / segTot * 100;acc += x.val;const to = acc / segTot * 100;return { key: x.key, from, to };});
+  const GAP = 0.5,half = GAP / 2,sep = "#fff"; // épaisseur du trait de séparation (% du cercle)
+  let stopList = [];
+  if (segPos.length > 1) {
+    stopList.push(`${sep} 0% ${half}%`);
+    segPos.forEach((p, i) => {
+      const a = i === 0 ? half : p.from + half;
+      const b = i === segPos.length - 1 ? 100 - half : p.to - half;
+      stopList.push(`${DONUT_COLORS[p.key]} ${a}% ${b}%`);
+      if (i < segPos.length - 1) stopList.push(`${sep} ${p.to - half}% ${p.to + half}%`);
+    });
+    stopList.push(`${sep} ${100 - half}% 100%`);
+  } else if (segPos.length === 1) {
+    stopList.push(`${DONUT_COLORS[segPos[0].key]} 0% 100%`);
+  }
+  const donutBg = stopList.length ? `conic-gradient(${stopList.join(", ")})` : "conic-gradient(#e3e1d6 0 100%)";
+
+  const maxAbs = Math.max(1, ...year.map((y) => Math.abs(y.net)));
+
+  // synthèse annuelle (cumul jusqu'au mois affiché) + écart N-1
+  const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex });
+  const monthsElapsed = Math.max(1, (ys.lastActive < 0 ? mIndex : ys.lastActive) + 1);
+  const projNet = ys.netPrudent / monthsElapsed * 12; // projection annuelle simple
+  const prevNet = ys.prev.net || 0;
+  const deltaPct = prevNet ? Math.round((projNet - prevNet) / prevNet * 100) : null;
+
+  return (
+    <div className="dash">
+      {/* 3 chiffres clés */}
+      <div className="kpi-grid">
+        <div className="card stat">
+          <div className="card-b">
+            <div className="cap">CHIFFRE D'AFFAIRES (TTC)</div>
+            <div className="big">{eur0(ttc)}</div>
+            <div className="sub">ce que j'ai encaissé · {factures.length} facture{factures.length > 1 ? "s" : ""}</div>
+          </div>
+        </div>
+        <div className="card stat warn">
+          <div className="card-b">
+            <div className="cap">Frais &amp; charges</div>
+            <div className="big neg">{eur0(aMettre)}</div>
+            <div className="sub">ce que je dois payer{s.assujetti ? " · TVA +" : " ·"} URSSAF + frais</div>
+          </div>
+        </div>
+        <div className="card stat good">
+          <div className="card-b">
+            <div className="cap">Revenu net</div>
+            <div className="big pos">{eur0(net)}</div>
+            <div className="sub">ce qui reste dans ma poche</div>
+          </div>
+        </div>
+      </div>
+
+      {/* d'où vient le net + camembert */}
+      <div className="hero-grid">
+        <div className="card">
+          <div className="card-h"><h2>D'où vient le net</h2><span className="sub">{MONTHS[mIndex]} {YEAR}</span></div>
+          <div className="card-b">
+            <div className="cascade">
+              <div className="cas"><span className="op start" aria-hidden="true"></span><span className="k">Total encaissé (TTC)</span><div className="track"><i style={{ width: "100%", background: "var(--line-2)" }}></i></div><span className="v">{eur0(ttc)}</span></div>
+              {s.assujetti && <div className="cas"><span className="op minus" aria-hidden="true">−</span><span className="k">TVA à reverser <em className="ctag set">à mettre de côté</em></span><div className="track"><i style={{ width: w(s.tvaAreverser), background: SEG_COLORS.tva }}></i></div><span className="v neg">−{eur0(s.tvaAreverser)}</span></div>}
+              <div className="cas"><span className="op minus" aria-hidden="true">−</span><span className="k">Cotisations URSSAF <em className="ctag set">à mettre de côté</em></span><div className="track"><i style={{ width: w(s.totalCotis), background: SEG_COLORS.urssaf }}></i></div><span className="v neg">−{eur0(s.totalCotis)}</span></div>
+              <div className="cas"><span className="op minus" aria-hidden="true">−</span><span className="k">Frais <em className="ctag paid">déjà payé</em></span><div className="track"><i style={{ width: w(s.totalDecaisse), background: SEG_COLORS.decaisse }}></i></div><span className="v neg">−{eur0(s.totalDecaisse)}</span></div>
+              <div className="cas"><span className="op minus" aria-hidden="true">−</span><span className="k">Provisions <em className="ctag set">à mettre de côté</em></span><div className="track"><i style={{ width: w(s.totalProvision), background: SEG_COLORS.provision }}></i></div><span className="v" style={{ color: "var(--prov)" }}>−{eur0(s.totalProvision)}</span></div>
+              <div className="cas net"><span className="op eq" aria-hidden="true">=</span><span className="k" style={{ fontWeight: 700, color: "var(--ink)" }}>Net dans ma poche</span><div className="track"><i style={{ width: w(Math.max(0, net)), background: SEG_COLORS.net }}></i></div><span className="v pos">{eur0(net)}</span></div>
+            </div>
+            <div className="cas-key">
+              <span><i className="dot set"></i> à mettre de côté = sera prélevé plus tard</span>
+              <span><i className="dot paid"></i> déjà payé ce mois</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-h"><h2>Où part le TTC encaissé ?</h2><span className="sub">{MONTHS[mIndex]}</span></div>
+          <div className="card-b">
+            {ttc > 0 ?
+            <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
+                <div className="donut2" style={{ background: donutBg }} data-comment-anchor="3a898726ed-div-105-17"></div>
+                <div className="dlegend">
+                  {segs.map((x) =>
+                <div className="li" key={x.key}><span className="sw2" style={{ background: DONUT_COLORS[x.key] }}></span>{x.lab} · <b>{Math.round(x.val / segTot * 100)}%</b></div>
+                )}
+                </div>
+              </div> :
+            <div className="empty">Aucune facture ce mois.</div>}
+          </div>
+        </div>
+      </div>
+
+      {/* graphes + synthèse annuelle */}
+      <div className="chart-grid">
+        <div className="card">
+          <div className="card-h"><h2>Revenu net par mois</h2><span className="sub">{YEAR} · {MONTHS[mIndex]} en évidence</span></div>
+          <div className="card-b">
+            <div className="bars2">
+              {year.map((y, i) =>
+              <div className="bcol" key={i} title={`${MONTHS[i]} : ${eur(y.net)}`}>
+                  <div className={"bar" + (i === mIndex ? " on" : "") + (y.net < 0 ? " neg" : "")}
+                style={{ height: Math.max(3, Math.abs(y.net) / maxAbs * 130) + "px" }}></div>
+                  <span className={"ml" + (i === mIndex ? " on" : "")}>{MONTHS[i].slice(0, 1)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-h"><h2>Synthèse {YEAR}</h2><span className="sub">cumul jan → {MONTHS[mIndex].slice(0, 4).toLowerCase()}.</span></div>
+          <div className="card-b">
+            <div className="ysum">
+              <div className="yrow"><span className="lab">CA encaissé (TTC)</span><b>{eur0(ys.caTTC)}</b></div>
+              <div className="yrow"><span className="lab">Frais &amp; charges</span><b className="neg">−{eur0(ys.charges)}</b></div>
+              <div className="yrow tot"><span className="lab">Revenu net cumulé</span><b className="pos">{eur0(ys.netPrudent)}</b></div>
+            </div>
+            <div className="yproj">
+              <div className="yp-l">
+                <div className="cap">Projection annuelle</div>
+                <div className="yp-val">{eur0(projNet)}<span className="yp-u"> net</span></div>
+              </div>
+              {deltaPct != null &&
+              <div className={"ydelta " + (deltaPct >= 0 ? "up" : "down")}>
+                  {deltaPct >= 0 ? "▲" : "▼"} {Math.abs(deltaPct)}%
+                  <span className="yd-sub">vs {YEAR - 1} ({eur0(prevNet)})</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>);
+
+}
+
+/* ========================================================== */
+/* FACTURES — une facture, plusieurs lignes (taux différents) */
+/* ========================================================== */
+function InvoiceCard({ f, profile, onUpdateInv, onAddLine, onUpdateLine, onRemoveLine, onRemoveInv }) {
+  const assujetti = !!profile.tva;
+  const t = factureTotals(f, profile);
+  const lines = linesOf(f);
+  return (
+    <div className="card invoice">
+      <div className="inv-h">
+        <input className={"cell-in date-in" + (!f.date ? " field-missing" : "")} type="date" value={f.date} onChange={(e) => onUpdateInv(f.id, "date", e.target.value)} />
+        {!f.date && <span className="field-missing-hint">Date requise</span>}
+        <input className="cell-in client-in" placeholder="Nom du client" value={f.client} list="mef-clients" onChange={(e) => onUpdateInv(f.id, "client", e.target.value)} />
+        <div className="inv-net">Net estimé <b>{eur(t.net)}</b></div>
+        <button className="del" title="Supprimer la facture" onClick={() => onRemoveInv(f.id)}>{Icon.trash}</button>
+      </div>
+      <div className="inv-b">
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Description de la prestation</th>
+              <th style={{ width: 180 }}>Catégorie (taux URSSAF)</th>
+              <th className="r" style={{ width: 120 }}>Montant HT</th>
+              {assujetti && <th className="c" style={{ width: 96 }}>TVA</th>}
+              {assujetti && <th className="r" style={{ width: 120 }}>Montant TTC</th>}
+              <th style={{ width: 36 }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {lines.map((l) =>
+            <tr key={l.id}>
+                <td><input className="cell-in" placeholder="Ex : création de contenu" value={l.description} onChange={(e) => onUpdateLine(f.id, l.id, "description", e.target.value)} /></td>
+                <td>
+                  <select className="cell-in" value={l.categorie} onChange={(e) => onUpdateLine(f.id, l.id, "categorie", e.target.value)}>
+                    {CATS.map((c) => <option key={c} value={c}>{RATES[c].short} · {pct(RATES[c].social)}</option>)}
+                  </select>
+                </td>
+                <td><input className="cell-in num" type="number" step="0.01" placeholder="0,00" value={l.montant} onChange={(e) => onUpdateLine(f.id, l.id, "montant", e.target.value)} /></td>
+                {assujetti &&
+              <td>
+                    <select className="cell-in" value={l.tva} onChange={(e) => onUpdateLine(f.id, l.id, "tva", parseFloat(e.target.value))}>
+                      {TVA_RATES.map((tv) => <option key={tv.v} value={tv.v}>{tv.label}</option>)}
+                    </select>
+                  </td>
+              }
+                {assujetti && <td className="num ttc-cell">{eur(num(l.montant) * (1 + num(l.tva)))}</td>}
+                <td className="c">{lines.length > 1 && <button className="del" title="Supprimer la ligne" onClick={() => onRemoveLine(f.id, l.id)}>{Icon.trash}</button>}</td>
+              </tr>
+            )}
+          </tbody>
+          <tfoot>
+            <tr className="sumrow">
+              <td colSpan={2} className="sumlab">Total facture</td>
+              <td className="num"><b>{eur(t.ht)}</b></td>
+              {assujetti && <td className="c sum-tva">{eur(t.tva)}</td>}
+              {assujetti && <td className="num"><b>{eur(t.ttc)}</b></td>}
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+        <button className="addrow" style={{ marginTop: 8, padding: "7px 12px", fontSize: 12.5 }} onClick={() => onAddLine(f.id)}>{Icon.plus} Ajouter une ligne</button>
+        <div className="inv-result">
+          <div className="ir-line"><span>Cotisations URSSAF <em>calculées sur le HT</em></span><b className="neg">−{eur(t.urssaf)}</b></div>
+          <div className="ir-line net"><span>Net estimé pour vous</span><b>{eur(t.net)}</b></div>
+        </div>
+      </div>
+    </div>);
+
+}
+
+function FacturesTab({ factures, facturesByMonth, profile, onAddInv, onRemoveInv, onUpdateInv, onAddLine, onUpdateLine, onRemoveLine }) {
+  const assujetti = !!profile.tva;
+  let caHT = 0,tvaTot = 0;const byCat = {};
+  factures.forEach((f) => linesOf(f).forEach((l) => {
+    const ht = num(l.montant);caHT += ht;
+    if (assujetti) tvaTot += ht * num(l.tva);
+    byCat[l.categorie] = (byCat[l.categorie] || 0) + ht;
+  }));
+  const allClients = [...new Set(Object.values(facturesByMonth || {}).flat().map(f => f.client).filter(Boolean))].sort();
+
+  return (
+    <div>
+      <datalist id="mef-clients">{allClients.map(c => <option key={c} value={c} />)}</datalist>
+      <div className="stack">
+        {factures.length === 0 &&
+        <div className="card"><div className="empty" style={{ padding: "40px 10px" }}>Aucune facture ce mois. Créez votre première facture — elle peut contenir plusieurs lignes à taux différents.</div></div>
+        }
+        {factures.map((f) =>
+        <InvoiceCard key={f.id} f={f} profile={profile}
+        onUpdateInv={onUpdateInv} onAddLine={onAddLine} onUpdateLine={onUpdateLine}
+        onRemoveLine={onRemoveLine} onRemoveInv={onRemoveInv} />
+        )}
+      </div>
+      <button className="addrow accent" style={{ marginTop: 14 }} onClick={onAddInv}>{Icon.plus} Nouvelle facture</button>
+
+      <div className="card" style={{ marginTop: 18 }}>
+        <div className="card-h"><h2>Récapitulatif du mois</h2></div>
+        <div className="card-b">
+          <div className="recap" style={{ marginTop: 0 }}>
+            {Object.keys(byCat).length > 0 &&
+            <div className="it cats">
+                <div className="k">Total HT par catégorie</div>
+                <div style={{ marginTop: 6 }}>
+                  {CATS.filter((c) => byCat[c]).map((c) =>
+                <div className="catline" key={c}><span>{RATES[c].label}</span><b>{eur(byCat[c])}</b></div>
+                )}
+                </div>
+              </div>
+            }
+            {assujetti && <div className="it"><div className="k">TVA collectée</div><div className="v">{eur(tvaTot)}</div></div>}
+            <div className="it"><div className="k">{assujetti ? "Total TTC" : "Total HT"}</div><div className="v">{eur(assujetti ? caHT + tvaTot : caHT)}</div></div>
+          </div>
+        </div>
+      </div>
+    </div>);
+
+}
+
+/* ========================================================== */
+/* FRAIS — charges récurrentes (saisie)                       */
+/* ========================================================== */
+// chips décaissés (cash réellement débité) un mois donné, indexés par jour
+function debitsForMonth(charges, m) {
+  const byDay = {};
+  let total = 0;
+  charges.forEach((ch) => {
+    const imp = chargeImpact(ch, m);
+    if (imp.decaisse > 0) {
+      const day = parseInt(imp.dueDay, 10) || 1;
+      (byDay[day] = byDay[day] || []).push({
+        libelle: ch.libelle || "Sans libellé",
+        montant: imp.decaisse,
+        freq: ch.frequence || "mensuelle" });
+      total += imp.decaisse;
+    }
+  });
+  return { byDay, total };
+}
+
+function MonthCalendar({ charges, mIndex }) {
+  const daysInMonth = new Date(YEAR, mIndex + 1, 0).getDate();
+  const firstDow = (new Date(YEAR, mIndex, 1).getDay() + 6) % 7; // lundi en premier
+  const { byDay, total } = debitsForMonth(charges, mIndex);
+  let prov = 0;
+  charges.forEach((ch) => {const i = chargeImpact(ch, mIndex);if (i.provision > 0) prov += i.provision;});
+
+  const now = new Date();
+  const isThisMonth = now.getFullYear() === YEAR && now.getMonth() === mIndex;
+  const todayDate = now.getDate();
+
+  const cells = [];
+  for (let i = 0; i < firstDow; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  return (
+    <div className="cal">
+      <div className="cal-dow">
+        {["lun", "mar", "mer", "jeu", "ven", "sam", "dim"].map((d) => <span key={d}>{d}</span>)}
+      </div>
+      <div className="cal-grid">
+        {cells.map((d, i) => {
+          if (d === null) return <div key={"e" + i} className="cal-cell empty" />;
+          const items = byDay[d] || [];
+          const today = isThisMonth && d === todayDate;
+          return (
+            <div key={d} className={"cal-cell" + (items.length ? " has" : "") + (today ? " today" : "")}>
+              <span className="cal-day">{d}</span>
+              <div className="cal-chips">
+                {items.map((it, k) =>
+                <div key={k} className="cal-chip" title={`${it.libelle} · ${FREQ_META[it.freq].label} · ${eur0(it.montant)}`}
+                style={{ background: FREQ_META[it.freq].color }}>
+                    <span className="lab">{it.libelle}</span>
+                    <b>{eur0(it.montant)}</b>
+                  </div>)}
+              </div>
+            </div>);
+        })}
+      </div>
+      <div className="cal-foot">
+        <div className="cal-legend">
+          {Object.entries(FREQ_META).map(([k, v]) =>
+          <span key={k}><i style={{ background: v.color }} />{v.label}</span>)}
+        </div>
+        <div className="cal-tot">
+          {prov > 0 && <span className="prov-note">+ {eur0(prov)} à provisionner</span>}
+          <span>Décaissé en {MONTHS[mIndex]} · <b>{eur0(total)}</b></span>
+        </div>
+      </div>
+    </div>);
+}
+
+function YearCalendar({ charges, mIndex }) {
+  const now = new Date();
+  const months = MONTHS.map((name, m) => {
+    const { byDay, total } = debitsForMonth(charges, m);
+    const items = [];
+    Object.keys(byDay).forEach((day) => byDay[day].forEach((it) => items.push({ ...it, day: parseInt(day, 10) })));
+    items.sort((a, b) => a.day - b.day);
+    return { name, m, total, items };
+  });
+  const yearTotal = months.reduce((s, x) => s + x.total, 0);
+  const maxTotal = Math.max(1, ...months.map((x) => x.total));
+
+  return (
+    <div className="cal">
+      <div className="cal-year">
+        {months.map((mo) =>
+        <div key={mo.m} className={"ym" + (mo.m === mIndex ? " cur" : "")}>
+            <div className="ym-h">
+              <span className="nm">{mo.name}</span>
+              <span className="tt">{mo.total > 0 ? eur0(mo.total) : "—"}</span>
+            </div>
+            <div className="ym-bar"><i style={{ width: mo.total / maxTotal * 100 + "%", background: "var(--primary)" }} /></div>
+            <div className="ym-list">
+              {mo.items.length === 0 && <span className="ym-empty">aucun prélèvement</span>}
+              {mo.items.map((it, k) =>
+            <div key={k} className="ym-it" title={FREQ_META[it.freq].label}>
+                  <span className="dd" style={{ background: FREQ_META[it.freq].color }}>{it.day}</span>
+                  <span className="ll">{it.libelle}</span>
+                  <span className="mm">{eur0(it.montant)}</span>
+                </div>)}
+            </div>
+          </div>)}
+      </div>
+      <div className="cal-foot">
+        <div className="cal-legend">
+          {Object.entries(FREQ_META).map(([k, v]) =>
+          <span key={k}><i style={{ background: v.color }} />{v.label}</span>)}
+        </div>
+        <div className="cal-tot"><span>Décaissé sur {YEAR} · <b>{eur0(yearTotal)}</b></span></div>
+      </div>
+    </div>);
+}
+
+function TariffHistory({ charge, onAddTariff, onRemoveTariff }) {
+  const hist = (charge.tarifsHistory || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
+  const currentIdx = hist.reduce((best, t, i) => t.from <= TODAY ? i : best, -1);
+  const currentFrom = currentIdx >= 0 ? hist[currentIdx].from : (hist[0] || {}).from;
+  const currentMontant = currentIdx >= 0 ? num(hist[currentIdx].montant) : (hist[0] ? num(hist[0].montant) : 0);
+
+  const defaultNewFrom = () => { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toISOString().slice(0, 10); };
+  const [newFrom, setNewFrom] = React.useState(defaultNewFrom);
+  const [newMontant, setNewMontant] = React.useState("");
+
+  const dayBefore = (dateStr) => { const d = new Date(dateStr); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); };
+
+  const statusOf = (from) => {
+    if (from === currentFrom) return { label: "Actuel", cls: "current" };
+    if (from > TODAY) return { label: "À venir", cls: "future" };
+    return { label: "Passé", cls: "past" };
+  };
+
+  const pctVsPrev = (prevMontant, montant) => {
+    const base = num(prevMontant);
+    if (!base) return null;
+    const diff = num(montant) - base;
+    if (diff === 0) return null;
+    const pct = Math.round(diff / base * 100);
+    return { label: pct > 0 ? `+${pct}%` : `${pct}%`, cls: pct > 0 ? "up" : "down" };
+  };
+
+  return (
+    <div className="tariff-panel">
+      <div className="tariff-title">Historique des tarifs</div>
+      <div className="tariff-list">
+        {hist.map((t, i) => {
+          const st = statusOf(t.from);
+          const to = i + 1 < hist.length ? dayBefore(hist[i + 1].from) : null;
+          const pct = (st.cls === "future" && i > 0) ? pctVsPrev(hist[i - 1].montant, t.montant) : null;
+          let rangeLabel;
+          if (st.cls === "past") {
+            rangeLabel = `du ${fmtDateShort(t.from)} au ${fmtDateShort(to)}`;
+          } else if (st.cls === "current") {
+            rangeLabel = to ? `du ${fmtDateShort(t.from)} au ${fmtDateShort(to)}` : `depuis le ${fmtDateShort(t.from)}`;
+          } else {
+            rangeLabel = to ? `du ${fmtDateShort(t.from)} au ${fmtDateShort(to)}` : `à partir du ${fmtDateShort(t.from)}`;
+          }
+          return (
+            <div key={t.from} className={"tariff-entry " + st.cls}>
+              <span className={"tariff-status " + st.cls}>{st.label}</span>
+              <span className="tariff-from">{rangeLabel}</span>
+              <b className="tariff-val">{eur(t.montant)}</b>
+              {pct && <span className={"tariff-pct " + pct.cls}>{pct.label}</span>}
+              {i > 0 && <button className="del" title="Supprimer ce tarif" onClick={() => onRemoveTariff(charge.id, t.from)}>{Icon.trash}</button>}
+            </div>
+          );
+        })}
+      </div>
+      <div className="tariff-add">
+        <span className="tariff-add-label">Nouveau tarif à partir du</span>
+        <input type="date" className="cell-in" value={newFrom} onChange={e => setNewFrom(e.target.value)} style={{ width: 155 }} />
+        <input className="cell-in num" type="number" step="0.01" placeholder="Nouveau montant"
+          value={newMontant} onChange={e => setNewMontant(e.target.value)} style={{ width: 140 }} />
+        <button className="btn" style={{ flex: "none" }} onClick={() => {
+          if (newMontant && newFrom) { onAddTariff(charge.id, newFrom, newMontant); setNewMontant(""); }
+        }}>Ajouter</button>
+      </div>
+    </div>
+  );
+}
+
+function FraisTab({ charges, mIndex, categories, onAdd, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory }) {
+  const [view, setView] = React.useState("table");
+  const [scope, setScope] = React.useState("month");
+  const [tarifsOpen, setTarifsOpen] = React.useState({});
+  const [movingId, setMovingId] = React.useState(null);
+  const [adding, setAdding] = React.useState(false);
+  const [newLibelle, setNewLibelle] = React.useState("");
+  const [newCatSel, setNewCatSel] = React.useState("");
+  const [newCat, setNewCat] = React.useState("");
+  const toggleTarifs = (id) => setTarifsOpen(o => ({ ...o, [id]: !o[id] }));
+
+  const openAdd = () => { setNewLibelle(""); setNewCatSel(categories[0] || ""); setAdding(true); };
+  const isPonctuelCat = (cat) => cat.toLowerCase().includes("ponctuel");
+  const confirmAdd = () => { if (newCatSel) { onAdd(newCatSel, newLibelle, isPonctuelCat(newCatSel)); setAdding(false); } };
+
+  const libelleCell = (ch) => (
+    <td>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <input className="cell-in" placeholder="Ex : Assurance RC pro" value={ch.libelle}
+          onChange={(e) => onUpdate(ch.id, "libelle", e.target.value)} style={{ flex: 1 }} />
+        {movingId === ch.id
+          ? <select className="cell-in" style={{ width: 160, fontSize: 11.5 }} value={ch.categorie || ""}
+              onChange={e => { onUpdate(ch.id, "categorie", e.target.value); setMovingId(null); }}
+              onBlur={() => setMovingId(null)} autoFocus>
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          : <button className="cat-move-btn" title="Changer de catégorie" onClick={() => setMovingId(ch.id)}>{Icon.tag}</button>}
+      </div>
+    </td>
+  );
+
+  const montantCell = (ch) => (
+    <td>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <input className="cell-in num" type="number" step="0.01" placeholder="0,00"
+          style={{ flex: 1, minWidth: 0 }} value={tariffAt(ch, TODAY)}
+          onChange={(e) => {
+            const sorted = (ch.tarifsHistory || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
+            let appIdx = sorted.reduce((best, t, i) => t.from <= TODAY ? i : best, -1);
+            if (appIdx < 0) appIdx = 0;
+            onUpdate(ch.id, "tarifsHistory", sorted.map((t, i) => i === appIdx ? { ...t, montant: e.target.value } : t));
+          }} />
+        <button className={"tariff-btn" + (tarifsOpen[ch.id] ? " on" : "")}
+          title={ch.tarifsHistory && ch.tarifsHistory.length > 1 ? `${ch.tarifsHistory.length} tarifs` : "Gérer les variations de tarif"}
+          onClick={() => toggleTarifs(ch.id)}>
+          {ch.tarifsHistory && ch.tarifsHistory.length > 1 ? <span className="tariff-count">{ch.tarifsHistory.length}</span> : Icon.clock}
+        </button>
+      </div>
+    </td>
+  );
+
+  const renderRow = (ch) => {
+    const imp = chargeImpact(ch, mIndex);
+    const isPonctuel = ch.frequence === "ponctuelle";
+    return (
+      <React.Fragment key={ch.id}>
+        <tr style={imp.active ? null : { opacity: .55 }}>
+          {libelleCell(ch)}
+          {isPonctuel
+            ? <td><input className="cell-in num" type="number" step="0.01" placeholder="0,00"
+                value={tariffAt(ch, TODAY)}
+                onChange={(e) => {
+                  const sorted = (ch.tarifsHistory || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
+                  let appIdx = sorted.reduce((best, t, i) => t.from <= TODAY ? i : best, -1);
+                  if (appIdx < 0) appIdx = 0;
+                  onUpdate(ch.id, "tarifsHistory", sorted.map((t, i) => i === appIdx ? { ...t, montant: e.target.value } : t));
+                }} /></td>
+            : montantCell(ch)}
+          {isPonctuel
+            ? <td><span className="badge cat" style={{ fontSize: 11 }}>Achat ponctuel</span></td>
+            : <td><select className="cell-in" value={ch.frequence} onChange={(e) => onUpdate(ch.id, "frequence", e.target.value)}>
+                <option value="mensuelle">Mensuelle</option>
+                <option value="trimestrielle">Trimestrielle</option>
+                <option value="annuelle">Annuelle</option>
+              </select></td>}
+          <td><input className="cell-in" type="date" value={ch.date}
+            onChange={(e) => onUpdate(ch.id, "date", e.target.value)}
+            title={isPonctuel ? "Date de l'achat" : "Depuis le"} /></td>
+          <td>
+            {isPonctuel ? <span style={{ color: "var(--soft)", fontSize: 12 }}>—</span>
+              : imp.active ? <span className="next-debit">{fmtDate(nextDebitDate(ch))}</span>
+              : <span className="badge cat">Pas encore actif</span>}
+          </td>
+          <td>
+            {!imp.active ? <span className="badge cat">—</span>
+              : imp.decaisse > 0 ? <span className="badge decaisse">Décaissé{isPonctuel ? "" : "e"} · {eur0(imp.decaisse)}</span>
+              : <span className="badge provision">{Icon.clock} Provision · {eur0(imp.provision)}</span>}
+          </td>
+          <td className="c"><button className="del" title="Supprimer" onClick={() => onRemove(ch.id)}>{Icon.trash}</button></td>
+        </tr>
+        {!isPonctuel && tarifsOpen[ch.id] && (
+          <tr key={ch.id + "-t"}>
+            <td colSpan={7} style={{ padding: "0 14px 14px", background: "var(--primary-soft)", borderBottom: "1px solid var(--line)" }}>
+              <TariffHistory charge={ch} onAddTariff={onAddTariff} onRemoveTariff={onRemoveTariff} />
+            </td>
+          </tr>
+        )}
+      </React.Fragment>
+    );
+  };
+
+  const grandTotal = charges.reduce((sum, ch) => {
+    const imp = chargeImpact(ch, mIndex);
+    return sum + (imp.active ? imp.decaisse + imp.provision : 0);
+  }, 0);
+  const uncategorized = charges.filter(ch => !categories.includes(ch.categorie));
+
+  return (
+    <div className="card">
+      <div className="card-h">
+        <h2>Frais récurrents</h2>
+        <span className="sub">
+          {view === "table" ? `impact sur ${MONTHS[mIndex]} à droite` :
+          scope === "month" ? `prélèvements de ${MONTHS[mIndex]}` : `prélèvements de l'année ${YEAR}`}
+        </span>
+        <div className="viewseg" role="tablist" style={{ marginLeft: 16 }}>
+          <button className={view === "table" ? "on" : ""} onClick={() => setView("table")}>{Icon.rows} Tableau</button>
+          <button className={view === "cal" ? "on" : ""} onClick={() => setView("cal")}>{Icon.cal} Calendrier</button>
+        </div>
+      </div>
+      <div className="card-b">
+        {view === "cal" ?
+        <React.Fragment>
+          <div className="cal-scope">
+            <div className="viewseg sm">
+              <button className={scope === "month" ? "on" : ""} onClick={() => setScope("month")}>Mois</button>
+              <button className={scope === "year" ? "on" : ""} onClick={() => setScope("year")}>Année</button>
+            </div>
+          </div>
+          {charges.length === 0 ?
+            <div className="empty">Aucun frais. Ajoutez vos abonnements, assurances, loyers…</div> :
+            scope === "month" ? <MonthCalendar charges={charges} mIndex={mIndex} /> : <YearCalendar charges={charges} mIndex={mIndex} />}
+          <button className="addrow accent" onClick={openAdd} style={{ marginTop: 16 }}>{Icon.plus} Ajouter un frais</button>
+        </React.Fragment> :
+
+        <React.Fragment>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Libellé</th>
+                <th className="r" style={{ width: 130 }}>Montant</th>
+                <th style={{ width: 138 }}>Fréquence</th>
+                <th style={{ width: 150 }}>Depuis le / Date</th>
+                <th style={{ width: 170 }}>Prochain prélèvement</th>
+                <th style={{ width: 150 }}>Sur {MONTHS[mIndex].slice(0, 4)}.</th>
+                <th style={{ width: 36 }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map(cat => {
+                const catCharges = charges.filter(ch => ch.categorie === cat);
+                const catTotal = catCharges.reduce((sum, ch) => {
+                  const imp = chargeImpact(ch, mIndex);
+                  return sum + (imp.active ? imp.decaisse + imp.provision : 0);
+                }, 0);
+                return (
+                  <React.Fragment key={cat}>
+                    <tr className="cat-group-hd"><td colSpan={7}>{cat}</td></tr>
+                    {catCharges.length === 0 && (
+                      <tr><td colSpan={7} style={{ padding: "6px 14px" }}><span style={{ color: "var(--soft)", fontSize: 12.5 }}>Aucun frais dans cette catégorie</span></td></tr>
+                    )}
+                    {catCharges.map(renderRow)}
+                    <tr className="cat-subtotal">
+                      <td colSpan={7}>{catCharges.length} frais · sous-total <span className="sub-val">{eur(catTotal)}</span></td>
+                    </tr>
+                  </React.Fragment>
+                );
+              })}
+              {uncategorized.length > 0 && (
+                <React.Fragment>
+                  <tr className="cat-group-hd"><td colSpan={7}>Sans catégorie</td></tr>
+                  {uncategorized.map(renderRow)}
+                  <tr className="cat-subtotal"><td colSpan={7}>{uncategorized.length} frais · sous-total <span className="sub-val">{eur(uncategorized.reduce((s, ch) => { const i = chargeImpact(ch, mIndex); return s + (i.active ? i.decaisse + i.provision : 0); }, 0))}</span></td></tr>
+                </React.Fragment>
+              )}
+              <tr className="grand-total-row">
+                <td colSpan={7}>Total frais — {MONTHS[mIndex]} <span className="total-val">{eur(grandTotal)}</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          {adding ? (
+            <div className="frais-new-form">
+              <label>Nouveau frais :</label>
+              <input className="cell-in" placeholder="Libellé" value={newLibelle}
+                onChange={e => setNewLibelle(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && confirmAdd()}
+                style={{ width: 200 }} autoFocus />
+              <select className="cell-in" value={newCatSel}
+                onChange={e => setNewCatSel(e.target.value)} style={{ width: 200 }}>
+                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              {isPonctuelCat(newCatSel) && <span className="badge cat" style={{ fontSize: 11 }}>Sans récurrence</span>}
+              <button className="btn pri" onClick={confirmAdd}>Créer</button>
+              <button className="btn ghost" onClick={() => setAdding(false)}>Annuler</button>
+            </div>
+          ) : (
+            <button className="addrow accent" onClick={openAdd} style={{ marginTop: 10 }}>{Icon.plus} Ajouter un frais</button>
+          )}
+
+          <div className="cat-manage">
+            <div className="cat-manage-title">Gérer les catégories</div>
+            <div className="cat-chips">
+              {categories.map(c => (
+                <span key={c} className="cat-chip">
+                  {c}
+                  {categories.length > 1 && <button className="xbtn" title="Supprimer" onClick={() => onRemoveCategory(c)}>×</button>}
+                </span>
+              ))}
+            </div>
+            <div className="cat-add-row">
+              <input className="cell-in" placeholder="Nouvelle catégorie…" value={newCat}
+                onChange={e => setNewCat(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && newCat.trim()) { onAddCategory(newCat.trim()); setNewCat(""); } }}
+                style={{ width: 220 }} />
+              <button className="btn" onClick={() => { if (newCat.trim()) { onAddCategory(newCat.trim()); setNewCat(""); } }}>Ajouter</button>
+            </div>
+          </div>
+
+          <div className="hint" style={{ marginTop: 14 }}>
+            <b>Depuis le / Date</b> = date de début (récurrents) ou date d'achat (ponctuels). Cliquez sur la petite icône de catégorie à droite du libellé pour déplacer un frais.
+            Une charge <b>trimestrielle</b> / <b>annuelle</b> est <i>décaissée</i> le mois de son échéance ; les autres mois, une <i>provision</i> est mise de côté.
+            Utilisez le bouton <b>horloge</b> pour enregistrer un changement de tarif futur.
+          </div>
+        </React.Fragment>
+        }
+      </div>
+    </div>);
+
+}
+
+/* ========================================================== */
+/* CHARGES & PROVISIONS (approche A — accordéon)              */
+/* ========================================================== */
+function Section({ title, amount, color, open, onToggle, children }) {
+  return (
+    <div className="acc">
+      <div className="acc-h" onClick={onToggle}>
+        <span className={"car" + (open ? " open" : "")}>{Icon.car}</span>
+        <span className="ttl">{title}</span>
+        <span className="amt" style={{ color }}>{eur(amount)}</span>
+      </div>
+      {open && <div className="acc-b">{children}</div>}
+    </div>);
+
+}
+
+function ChargesProvisionsTab({ factures, charges, profile, mIndex }) {
+  const s = computeMonth({ factures, charges, profile, mIndex });
+  const [open, setOpen] = React.useState({ urssaf: true, tva: true, prov: true });
+  const tog = (k) => setOpen((o) => ({ ...o, [k]: !o[k] }));
+  const grandTotal = s.totalCotis + s.totalProvision + s.tvaAreverser;
+
+  return (
+    <div>
+      <Section title="Cotisations URSSAF" amount={s.totalCotis} color={SEG_COLORS.urssaf} open={open.urssaf} onToggle={() => tog("urssaf")}>
+        {s.cotisLines.length === 0 && <p className="mini">Aucun chiffre d'affaires ce mois.</p>}
+        {s.cotisLines.map((l) =>
+        <div className="listline" key={l.cat}>
+            <span className="lab">{RATES[l.cat].label}<span style={{ color: "var(--faint)" }}> — base {eur0(l.base)} × {pct(l.rateSocial)}{s.lib ? ` + ${pct(l.rateLib)} (libér.)` : ""}</span></span>
+            <b>{eur(l.social + l.liber)}</b>
+          </div>
+        )}
+        <p className="mini" style={{ marginTop: 8 }}>{s.lib ? "Versement libératoire de l'impôt inclus." : "Cotisations sociales seules (impôt sur le revenu hors de ce calcul)."}</p>
+      </Section>
+
+      {s.assujetti &&
+      <Section title="TVA à reverser" amount={s.tvaAreverser} color={SEG_COLORS.tva} open={open.tva} onToggle={() => tog("tva")}>
+          <div className="listline"><span className="lab">TVA collectée sur les factures du mois</span><b>{eur(s.tvaCollectee)}</b></div>
+          <p className="mini" style={{ marginTop: 8 }}>À reverser à l'État — ce n'est pas votre revenu.</p>
+        </Section>
+      }
+
+      <Section title="Provisions sur frais" amount={s.totalProvision} color={SEG_COLORS.provision} open={open.prov} onToggle={() => tog("prov")}>
+        {s.provisionLines.length === 0 && <p className="mini">Aucune provision à constituer ce mois.</p>}
+        {s.provisionLines.map((l) =>
+        <div className="listline prov-line" key={l.id} title={`Sera prélevé le ${l.dueDay}/${String(l.dueMonth + 1).padStart(2, "0")}`}>
+            <span className="lab">{Icon.clock} {l.libelle || "—"} <span style={{ color: "var(--faint)", fontStyle: "normal" }}>(éch. {l.dueDay}/{String(l.dueMonth + 1).padStart(2, "0")})</span></span>
+            <b className="prov">{eur(l.montantCalc)}</b>
+          </div>
+        )}
+        {s.decaisseLines.length > 0 && <p className="mini" style={{ marginTop: 8 }}>Note : {s.decaisseLines.length} frais réellement décaissé(s) ce mois ({eur(s.totalDecaisse)}) — déjà déduits du net, pas à provisionner.</p>}
+      </Section>
+
+      <div className="totalbar">
+        <span className="lab">Total à mettre de côté ce mois</span>
+        <span className="val">{eur(grandTotal)}</span>
+      </div>
+    </div>);
+
+}
+
+Object.assign(window, { DashboardTab, FacturesTab, FraisTab, ChargesProvisionsTab });
+</script>
+<script type="text/babel">
+/* ============================================================
+   app.jsx — App, profil, navigation, persistance, export/import
+   ============================================================ */
+const { MONTHS, YEAR, monthKey, uid, load, save } = window.MEF;
+const { DashboardTab, FacturesTab, FraisTab, ChargesProvisionsTab } = window;
+
+const DEFAULT_PROFILE = { nom: "Camille Martin", tva: true, liberatoire: false };
+
+// ---- données de démonstration (au premier lancement de la v2) ----
+const SEED_FACTURES = {
+  "2026-01": [
+    { id: uid(), date: "2026-01-19", client: "Kova SAS", lines: [
+      { id: uid(), description: "Maintenance site — janvier", categorie: "BNC", montant: 1400, tva: 0.20 },
+    ] },
+    { id: uid(), date: "2026-01-27", client: "Studio Lumen", lines: [
+      { id: uid(), description: "Direction artistique", categorie: "BNC", montant: 2200, tva: 0.20 },
+    ] },
+  ],
+  "2026-02": [
+    { id: uid(), date: "2026-02-12", client: "Maison Far", lines: [
+      { id: uid(), description: "Identité visuelle — phase 1", categorie: "BNC", montant: 2600, tva: 0.20 },
+    ] },
+    { id: uid(), date: "2026-02-24", client: "Atelier Roy", lines: [
+      { id: uid(), description: "Illustrations série", categorie: "BNC", montant: 900, tva: 0.20 },
+    ] },
+  ],
+  "2026-03": [
+    { id: uid(), date: "2026-03-10", client: "Kova SAS", lines: [
+      { id: uid(), description: "Refonte UX — sprint", categorie: "BNC", montant: 2400, tva: 0.20 },
+      { id: uid(), description: "Cession de droits", categorie: "BNC", montant: 400, tva: 0.20 },
+    ] },
+    { id: uid(), date: "2026-03-21", client: "Studio Nord", lines: [
+      { id: uid(), description: "Atelier formation — 2 jours", categorie: "BNC", montant: 1600, tva: 0.20 },
+    ] },
+  ],
+  "2026-04": [
+    { id: uid(), date: "2026-04-14", client: "Studio Lumen", lines: [
+      { id: uid(), description: "Design produit — sprint avril", categorie: "BNC", montant: 2000, tva: 0.20 },
+      { id: uid(), description: "Cession de droits d'usage", categorie: "BNC", montant: 500, tva: 0.20 },
+    ] },
+    { id: uid(), date: "2026-04-09", client: "Kova SAS", lines: [
+      { id: uid(), description: "Landing page — refonte", categorie: "BNC", montant: 1800, tva: 0.20 },
+    ] },
+    { id: uid(), date: "2026-04-22", client: "Atelier Roy", lines: [
+      { id: uid(), description: "Illustration éditoriale", categorie: "BNC", montant: 1700, tva: 0.20 },
+    ] },
+    { id: uid(), date: "2026-04-05", client: "Studio Nord", lines: [
+      { id: uid(), description: "Atelier formation — 1 jour", categorie: "BNC", montant: 800, tva: 0.20 },
+    ] },
+  ],
+};
+const SEED_CHARGES = [
+  { id: uid(), libelle: "Coworking — pass mensuel", montant: 199, frequence: "mensuelle", jour: 3, date: "2026-01-03" },
+  { id: uid(), libelle: "Adobe Creative Cloud", montant: 60, frequence: "mensuelle", jour: 9, date: "2026-01-09" },
+  { id: uid(), libelle: "Hébergement + domaines", montant: 32, frequence: "mensuelle", jour: 12, date: "2026-01-12" },
+  { id: uid(), libelle: "Forfait mobile pro", montant: 25, frequence: "mensuelle", jour: 15, date: "2026-01-15" },
+  { id: uid(), libelle: "Assurance RC pro", montant: 18, frequence: "mensuelle", jour: 20, date: "2026-01-20" },
+  { id: uid(), libelle: "Assurance auto pro (annuelle)", montant: 480, frequence: "annuelle", jour: 6, date: "2026-01-06" },
+  { id: uid(), libelle: "Expert-comptable (trim.)", montant: 270, frequence: "trimestrielle", jour: 10, date: "2026-02-10" },
+];
+
+const TabIcon = {
+  dashboard: <svg className="ic" viewBox="0 0 24 24"><path d="M3 13a9 9 0 0 1 18 0"/><path d="M12 13l4-3"/><circle cx="12" cy="13" r="1.3"/></svg>,
+  factures:  <svg className="ic" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>,
+  frais:     <svg className="ic" viewBox="0 0 24 24"><path d="M3 10h18M5 6h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/></svg>,
+  prov:      <svg className="ic" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>,
+};
+const Chev = (d) => <svg viewBox="0 0 24 24"><path d={d} /></svg>;
+const newLine = (tva) => ({ id: uid(), description: "", categorie: "BNC", montant: "", tva: tva ? 0.20 : 0 });
+
+function migrateCharges(charges) {
+  const fix = (f) => (typeof f === "string" && f.length === 7) ? f + "-01" : f; // "2026-07" -> "2026-07-01"
+  return charges.map(c => {
+    let r = c;
+    if (!r.tarifsHistory || r.tarifsHistory.length === 0) {
+      const from = r.date || `${YEAR}-01-01`;
+      r = { ...r, tarifsHistory: [{ montant: r.montant, from }] };
+    } else {
+      r = { ...r, tarifsHistory: r.tarifsHistory.map(t => ({ ...t, from: fix(t.from) })) };
+    }
+    if (!r.categorie) r = { ...r, categorie: "Charges de fonctionnement" };
+    return r;
+  });
+}
+
+function App() {
+  const [profile, setProfile] = React.useState(() => load("mef2:profile", DEFAULT_PROFILE));
+  const [facturesByMonth, setFB] = React.useState(() => load("mef2:factures", SEED_FACTURES));
+  const [charges, setCharges] = React.useState(() => migrateCharges(load("mef2:charges", SEED_CHARGES)));
+  const [ui, setUi] = React.useState(() => load("mef2:ui", { tab: "dashboard", month: 3 }));
+  const [profileOpen, setProfileOpen] = React.useState(false);
+
+  React.useEffect(() => save("mef2:profile", profile), [profile]);
+  React.useEffect(() => save("mef2:factures", facturesByMonth), [facturesByMonth]);
+  React.useEffect(() => save("mef2:charges", charges), [charges]);
+  React.useEffect(() => save("mef2:ui", ui), [ui]);
+
+  const DEFAULT_CATEGORIES = ["Charges de fonctionnement", "Abonnements", "Achats ponctuels"];
+  const [categories, setCategories] = React.useState(() => load("mef2:categories", DEFAULT_CATEGORIES));
+  React.useEffect(() => save("mef2:categories", categories), [categories]);
+  const addCategory = (name) => { const n = name.trim(); if (n && !categories.includes(n)) setCategories(c => [...c, n]); };
+  const removeCategory = (name) => {
+    if (categories.length <= 1) return;
+    const fallback = categories.find(c => c !== name) || "";
+    setCategories(c => c.filter(x => x !== name));
+    setCharges(prev => prev.map(ch => ch.categorie === name ? { ...ch, categorie: fallback } : ch));
+  };
+
+  const m = ui.month;
+  const key = monthKey(m);
+  const factures = facturesByMonth[key] || [];
+  const setList = (list) => setFB((p) => ({ ...p, [key]: list }));
+
+  // ----- factures (invoices w/ lines) -----
+  const addInv = () => setList([...factures, { id: uid(), date: "", client: "", lines: [newLine(profile.tva)] }]);
+  const removeInv = (id) => setList(factures.filter((f) => f.id !== id));
+  const updateInv = (id, field, val) => setList(factures.map((f) => (f.id === id ? { ...f, [field]: val } : f)));
+  const addLine = (id) => setList(factures.map((f) => (f.id === id ? { ...f, lines: [...(f.lines || []), newLine(profile.tva)] } : f)));
+  const updateLine = (id, lid, field, val) => setList(factures.map((f) => (f.id === id
+    ? { ...f, lines: (f.lines || []).map((l) => (l.id === lid ? { ...l, [field]: val } : l)) } : f)));
+  const removeLine = (id, lid) => setList(factures.map((f) => (f.id === id
+    ? { ...f, lines: (f.lines || []).filter((l) => l.id !== lid) } : f)));
+
+  // ----- frais (charges récurrentes, liste globale) -----
+  const addCharge = (cat, libelle, ponctuel) => {
+    const from = ponctuel ? TODAY : `${YEAR}-01-01`;
+    setCharges(prev => [...prev, { id: uid(), libelle: libelle || "", montant: "", categorie: cat || categories[0] || "", tarifsHistory: [{ montant: "", from }], frequence: ponctuel ? "ponctuelle" : "mensuelle", jour: 1, date: from }]);
+  };
+  const updateCharge = (id, field, val) => setCharges(prev => prev.map((c) => {
+    if (c.id !== id) return c;
+    const updated = { ...c, [field]: val };
+    if (field === "date" && updated.tarifsHistory && updated.tarifsHistory.length > 0) {
+      const hist = updated.tarifsHistory.slice().sort((a, b) => a.from < b.from ? -1 : 1);
+      hist[0] = { ...hist[0], from: val };
+      updated.tarifsHistory = hist;
+    }
+    return updated;
+  }));
+  const removeCharge = (id) => setCharges(charges.filter((c) => c.id !== id));
+  const addTariff = (id, from, montant) => setCharges(charges.map(c => c.id === id
+    ? { ...c, tarifsHistory: [...(c.tarifsHistory || []).filter(t => t.from !== from), { from, montant }].sort((a, b) => a.from < b.from ? -1 : 1) }
+    : c));
+  const removeTariff = (id, from) => setCharges(charges.map(c => c.id === id
+    ? { ...c, tarifsHistory: (c.tarifsHistory || []).filter(t => t.from !== from) }
+    : c));
+
+  // ----- nav -----
+  const goMonth = (delta) => setUi((u) => ({ ...u, month: Math.min(11, Math.max(0, u.month + delta)) }));
+  const setTab = (tab) => setUi((u) => ({ ...u, tab }));
+
+  // ----- export / import -----
+  const exportJSON = () => {
+    const blob = new Blob([JSON.stringify({ version: 2, profile, facturesByMonth, charges }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `microcompte-${YEAR}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  const importJSON = (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const d = JSON.parse(r.result);
+        if (d.profile) setProfile(d.profile);
+        if (d.facturesByMonth) setFB(d.facturesByMonth);
+        if (d.charges) setCharges(d.charges);
+        alert("Données importées avec succès.");
+      } catch (err) { alert("Fichier invalide."); }
+    };
+    r.readAsText(file);
+    e.target.value = "";
+  };
+
+  const initiales = (profile.nom || "ME").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "ME";
+
+  const TABS = [
+    ["dashboard", "Tableau de bord", TabIcon.dashboard],
+    ["factures", "Factures", TabIcon.factures],
+    ["frais", "Frais", TabIcon.frais],
+    ["prov", "Charges & provisions", TabIcon.prov],
+  ];
+
+  return (
+    <div className="app">
+      <div className="appbar">
+        <div className="logo">
+          <div className="mk">€</div>
+          <div>
+            <div className="nm">MicroCompte</div>
+            <div className="yr">Micro-entreprise · {YEAR} · v2</div>
+          </div>
+        </div>
+        <div className="spacer"></div>
+        <button className="who" onClick={() => setProfileOpen(true)}>
+          <span className="ava">{initiales}</span>
+          {profile.nom || "Mon profil"}
+          <svg className="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1l-.3-2.6h-4l-.3 2.6a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.6h4l.3-2.6a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6a7 7 0 0 0 .1-1z"/></svg>
+        </button>
+      </div>
+
+      <div className="tabs">
+        {TABS.map(([k, lab, ic]) => (
+          <button key={k} className={"tab" + (ui.tab === k ? " on" : "")} onClick={() => setTab(k)}>{ic} {lab}</button>
+        ))}
+      </div>
+
+      <div className="monthnav">
+        <button className="mbtn" disabled={m === 0} onClick={() => goMonth(-1)}>{Chev("M15 18l-6-6 6-6")}</button>
+        <div className="mlabel">{MONTHS[m]} {YEAR}</div>
+        <button className="mbtn" disabled={m === 11} onClick={() => goMonth(1)}>{Chev("M9 18l6-6-6-6")}</button>
+      </div>
+
+      {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} charges={charges} profile={profile} mIndex={m} />}
+      {ui.tab === "factures" && <FacturesTab factures={factures} facturesByMonth={facturesByMonth} profile={profile}
+        onAddInv={addInv} onRemoveInv={removeInv} onUpdateInv={updateInv}
+        onAddLine={addLine} onUpdateLine={updateLine} onRemoveLine={removeLine} />}
+      {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} onAdd={addCharge} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} />}
+      {ui.tab === "prov" && <ChargesProvisionsTab factures={factures} charges={charges} profile={profile} mIndex={m} />}
+
+      {profileOpen && <ProfileModal profile={profile} setProfile={setProfile} onClose={() => setProfileOpen(false)} onExport={exportJSON} onImport={importJSON} />}
+    </div>
+  );
+}
+
+function ProfileModal({ profile, setProfile, onClose, onExport, onImport }) {
+  const up = (field, val) => setProfile({ ...profile, [field]: val });
+  const fileRef = React.useRef(null);
+  return (
+    <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-h">
+          <h3>Profil &amp; paramètres</h3>
+          <button className="x" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-b">
+          <div className="field">
+            <label>Nom du micro-entrepreneur</label>
+            <input className="in" value={profile.nom} placeholder="Ex : Camille Martin" onChange={(e) => up("nom", e.target.value)} />
+          </div>
+          <div className="toggle-row">
+            <div className="t-lab">Assujetti à la TVA<small>Affiche la colonne TVA et le suivi de TVA à reverser</small></div>
+            <button className={"sw" + (profile.tva ? " on" : "")} onClick={() => up("tva", !profile.tva)}></button>
+          </div>
+          <div className="toggle-row">
+            <div className="t-lab">Versement libératoire de l'impôt<small>Ajoute le taux libératoire aux cotisations URSSAF</small></div>
+            <button className={"sw" + (profile.liberatoire ? " on" : "")} onClick={() => up("liberatoire", !profile.liberatoire)}></button>
+          </div>
+          <div className="toggle-row">
+            <div className="t-lab">Année de référence<small>Fixe pour cette version</small></div>
+            <b>{YEAR}</b>
+          </div>
+          <div className="hint">
+            Toutes vos données sont enregistrées automatiquement dans ce navigateur.
+            Exportez un fichier JSON pour les sauvegarder ou les transférer sur un autre appareil.
+          </div>
+        </div>
+        <div className="modal-f">
+          <button className="btn" onClick={onExport}>
+            <svg viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg>
+            Exporter JSON
+          </button>
+          <button className="btn" onClick={() => fileRef.current.click()}>
+            <svg viewBox="0 0 24 24"><path d="M12 21V9M8 13l4-4 4 4M5 3h14"/></svg>
+            Importer JSON
+          </button>
+          <input ref={fileRef} type="file" accept="application/json,.json" style={{ display: "none" }} onChange={onImport} />
+          <button className="btn pri" style={{ marginLeft: "auto" }} onClick={onClose}>Terminé</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+</script>
+</body>
+</html>
