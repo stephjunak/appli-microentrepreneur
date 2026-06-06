@@ -20,7 +20,7 @@ En cours de développement.
 
 ### Bugs connus
 
-- **Onglet Frais > Calendrier** : le calendrier ne fonctionne plus depuis la refonte en catégories.
+Aucun bug connu.
 
 ### Améliorations prévues
 

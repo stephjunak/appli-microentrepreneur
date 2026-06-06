@@ -23,7 +23,7 @@
   --primary:#57563f;
   --primary-d:#403f30;
   --primary-soft:#ecebe1;
-  --pos:#4f6138;
+  --pos:#57563f;
   --pos-soft:#e9ecdd;
   --neg:#94614e;
   --neg-soft:#f1e8e2;
@@ -370,6 +370,9 @@ select.cell-in{appearance:none;cursor:pointer;
 .ysum .yrow.tot{border-bottom:none;padding-top:11px;}
 .ysum .yrow.tot .lab{color:var(--ink);font-weight:600;}
 .ysum .yrow.tot b{font-size:19px;font-weight:800;}
+.ysum .yrow.sub{padding:3px 0 3px 14px;border-bottom:none;font-size:12.5px;}
+.ysum .yrow.sub .lab{font-size:12px;color:var(--faint);}
+.ysum .yrow.sub b{font-size:13px;font-weight:600;color:var(--soft);}
 .yproj{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;
   background:var(--primary-soft);border:1px solid var(--line-2);border-radius:10px;padding:13px 16px;}
 .yproj .cap{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);font-weight:700;white-space:nowrap;}
@@ -438,6 +441,7 @@ select.cell-in{appearance:none;cursor:pointer;
   transition:background .12s,border-color .12s;
 }
 .tariff-btn:hover,.tariff-btn.on{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-d);}
+.tariff-btn.pending{border-color:#d8ca87;background:var(--prov-soft);color:var(--prov);}
 .tariff-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.9;}
 .tariff-count{font-size:11px;font-weight:800;color:var(--primary-d);}
 .tariff-panel{padding:14px 0 4px;display:flex;flex-direction:column;gap:12px;}
@@ -581,8 +585,7 @@ function chargeImpact(charge, mIndex) {
   const montant = tariffForMonth(charge, mIndex);
   const d = charge.date || "";                          // date de début ("à partir du")
   const startMonth = d ? (parseInt(d.slice(5, 7), 10) - 1) : 0;
-  const jour = charge.jour ? String(charge.jour).padStart(2, "0")
-                           : (d ? d.slice(8, 10) : "01");
+  const jour = d ? d.slice(8, 10) : (charge.jour ? String(charge.jour).padStart(2, "0") : "01");
   const out = { decaisse: 0, provision: 0, dueDay: jour, dueMonth: mIndex, active: true };
 
   // pas encore commencé ce mois-ci
@@ -701,7 +704,7 @@ function computeYear({ facturesByMonth, charges, profile }) {
 }
 
 // totaux cumulés sur l'année (jusqu'au mois inclus) + référence N-1
-function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth }) {
+function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth, prevYear }) {
   const year = computeYear({ facturesByMonth, charges, profile });
   const upto = uptoMonth == null ? 11 : uptoMonth;
   const acc = { caTTC: 0, caHT: 0, tva: 0, cotis: 0, decaisse: 0, provision: 0, net: 0, netPrudent: 0, nbFactures: 0, lastActive: -1 };
@@ -713,7 +716,7 @@ function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth }) {
     if (y.caTTC > 0) acc.lastActive = i;
   });
   acc.charges = acc.tva + acc.cotis + acc.decaisse + acc.provision;
-  acc.prev = (window.MEF_PREV_YEAR || {}); // référence N-1 (optionnelle)
+  acc.prev = prevYear || {};
   return acc;
 }
 
@@ -724,8 +727,6 @@ window.MEF = {
   linesOf, factureTotals,
 };
 
-// référence année précédente (2025) — pour l'écart annuel sur le tableau de bord
-window.MEF_PREV_YEAR = { caTTC: 71400, net: 41200, charges: 30200 };
 
 </script>
 <script type="text/babel">
@@ -752,12 +753,13 @@ const Icon = {
 };
 // couleur de pastille par fréquence dans le calendrier
 const FREQ_META = {
-  mensuelle: { color: "#8a7733", label: "Mensuel" },
-  trimestrielle: { color: "#94614e", label: "Trimestriel" },
-  annuelle: { color: "#577389", label: "Annuel" }
+  mensuelle:     { color: "#94614e", label: "Mensuel" },
+  trimestrielle: { color: "#6b3828", label: "Trimestriel" },
+  annuelle:      { color: "#8a7733", label: "Annuel" },
+  ponctuelle:    { color: "#577389", label: "Ponctuel" }
 };
 // Palette sémantique unique — utilisée pour les barres, l'histogramme ET le camembert
-const SEG_COLORS = { urssaf: "#94614e", tva: "#577389", decaisse: "#8a7733", provision: "#bca96a", net: "#4f6138" };
+const SEG_COLORS = { urssaf: "#94614e", tva: "#577389", decaisse: "#8a7733", provision: "#bca96a", net: "#57563f" };
 // le camembert reprend exactement la même palette (plus de teintes séparées)
 const DONUT_COLORS = SEG_COLORS;
 
@@ -803,13 +805,23 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex }) {
   const donutBg = stopList.length ? `conic-gradient(${stopList.join(", ")})` : "conic-gradient(#e3e1d6 0 100%)";
 
   const maxAbs = Math.max(1, ...year.map((y) => Math.abs(y.net)));
+  const [histScope, setHistScope] = React.useState("month");
 
   // synthèse annuelle (cumul jusqu'au mois affiché) + écart N-1
-  const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex });
+  const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex, prevYear: (profile.prevYears || {})[YEAR - 1] });
   const monthsElapsed = Math.max(1, (ys.lastActive < 0 ? mIndex : ys.lastActive) + 1);
   const projNet = ys.netPrudent / monthsElapsed * 12; // projection annuelle simple
   const prevNet = ys.prev.net || 0;
   const deltaPct = prevNet ? Math.round((projNet - prevNet) / prevNet * 100) : null;
+
+  // données pour la vue par année
+  const yearlyData = [
+    ...Object.entries(profile.prevYears || {})
+      .filter(([, d]) => d && d.net)
+      .map(([y, d]) => ({ year: parseInt(y), net: num(d.net), isCurrent: false })),
+    { year: YEAR, net: ys.netPrudent, isCurrent: true }
+  ].sort((a, b) => a.year - b.year);
+  const maxYearNet = Math.max(1, ...yearlyData.map(d => Math.abs(d.net)));
 
   return (
     <div className="dash">
@@ -878,17 +890,44 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex }) {
       {/* graphes + synthèse annuelle */}
       <div className="chart-grid">
         <div className="card">
-          <div className="card-h"><h2>Revenu net par mois</h2><span className="sub">{YEAR} · {MONTHS[mIndex]} en évidence</span></div>
+          <div className="card-h">
+            <h2>Revenu net</h2>
+            <span className="sub">
+              {histScope === "month" ? `${YEAR} · ${MONTHS[mIndex]} en évidence` : "évolution par année"}
+            </span>
+            <div className="viewseg sm" style={{ marginLeft: "auto" }}>
+              <button className={histScope === "month" ? "on" : ""} onClick={() => setHistScope("month")}>Mois</button>
+              <button className={histScope === "year" ? "on" : ""} onClick={() => setHistScope("year")}>Années</button>
+            </div>
+          </div>
           <div className="card-b">
-            <div className="bars2">
-              {year.map((y, i) =>
-              <div className="bcol" key={i} title={`${MONTHS[i]} : ${eur(y.net)}`}>
+            {histScope === "month" ? (
+              <div className="bars2">
+                {year.map((y, i) =>
+                <div className="bcol" key={i} title={`${MONTHS[i]} : ${eur(y.net)}`}>
                   <div className={"bar" + (i === mIndex ? " on" : "") + (y.net < 0 ? " neg" : "")}
-                style={{ height: Math.max(3, Math.abs(y.net) / maxAbs * 130) + "px" }}></div>
+                    style={{ height: Math.max(3, Math.abs(y.net) / maxAbs * 130) + "px" }}></div>
                   <span className={"ml" + (i === mIndex ? " on" : "")}>{MONTHS[i].slice(0, 1)}</span>
                 </div>
-              )}
-            </div>
+                )}
+              </div>
+            ) : yearlyData.length < 2 ? (
+              <div className="empty" style={{ fontSize: 13 }}>
+                Renseignez vos données N-1 dans les paramètres (icône engrenage) pour activer cette vue.
+              </div>
+            ) : (
+              <div className="bars2">
+                {yearlyData.map((yd) =>
+                <div className="bcol" key={yd.year} title={`${yd.year}${yd.isCurrent ? " (en cours)" : ""} : ${eur(yd.net)}`}>
+                  <div className={"bar" + (yd.isCurrent ? " on" : "") + (yd.net < 0 ? " neg" : "")}
+                    style={{ height: Math.max(3, Math.abs(yd.net) / maxYearNet * 130) + "px" }}></div>
+                  <span className={"ml" + (yd.isCurrent ? " on" : "")} style={{ fontSize: 9.5 }}>
+                    {yd.year}{yd.isCurrent ? "*" : ""}
+                  </span>
+                </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -897,7 +936,11 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex }) {
           <div className="card-b">
             <div className="ysum">
               <div className="yrow"><span className="lab">CA encaissé (TTC)</span><b>{eur0(ys.caTTC)}</b></div>
-              <div className="yrow"><span className="lab">Frais &amp; charges</span><b className="neg">−{eur0(ys.charges)}</b></div>
+              {profile.tva && <div className="yrow sub"><span className="lab">dont CA HT</span><b>{eur0(ys.caHT)}</b></div>}
+              {!profile.tva && <div className="yrow sub"><span className="lab">CA HT</span><b>{eur0(ys.caHT)}</b></div>}
+              <div className="yrow"><span className="lab">URSSAF</span><b className="neg">−{eur0(ys.cotis)}</b></div>
+              <div className="yrow"><span className="lab">Frais</span><b className="neg">−{eur0(ys.decaisse + ys.provision)}</b></div>
+              {profile.tva && <div className="yrow"><span className="lab">TVA à reverser</span><b className="neg">−{eur0(ys.tva)}</b></div>}
               <div className="yrow tot"><span className="lab">Revenu net cumulé</span><b className="pos">{eur0(ys.netPrudent)}</b></div>
             </div>
             <div className="yproj">
@@ -1220,6 +1263,86 @@ function TariffHistory({ charge, onAddTariff, onRemoveTariff }) {
   );
 }
 
+const CAT_PALETTE = ["#8a7733","#94614e","#577389","#57563f","#5d5b4d","#7a5c8a","#3a7a6f","#b06030"];
+
+function CategoryDonut({ charges, mIndex, scope, categories }) {
+  const computeByCat = (m, inclProv) => {
+    const byCat = {};
+    charges.forEach(ch => {
+      const imp = chargeImpact(ch, m);
+      const amount = imp.decaisse + (inclProv ? imp.provision : 0);
+      if (amount > 0) byCat[ch.categorie] = (byCat[ch.categorie] || 0) + amount;
+    });
+    return byCat;
+  };
+
+  const isMonth = !scope || scope === "month";
+  let byCat = {};
+  if (isMonth) {
+    byCat = computeByCat(mIndex, true);
+  } else {
+    for (let m = 0; m < 12; m++) {
+      const mc = computeByCat(m, false);
+      Object.entries(mc).forEach(([k, v]) => { byCat[k] = (byCat[k] || 0) + v; });
+    }
+  }
+
+  const total = Object.values(byCat).reduce((s, v) => s + v, 0);
+  if (total === 0) return null;
+
+  const slices = categories
+    .map((cat, i) => ({ cat, amount: byCat[cat] || 0, color: CAT_PALETTE[i % CAT_PALETTE.length] }))
+    .filter(s => s.amount > 0);
+
+  // conic-gradient
+  const GAP = 0.5, half = GAP / 2;
+  let acc = 0;
+  const positions = slices.map(s => {
+    const from = acc / total * 100; acc += s.amount; const to = acc / total * 100;
+    return { ...s, from, to };
+  });
+  let stopList = [];
+  if (positions.length > 1) {
+    stopList.push(`#fff 0% ${half}%`);
+    positions.forEach((p, i) => {
+      const a = i === 0 ? half : p.from + half;
+      const b = i === positions.length - 1 ? 100 - half : p.to - half;
+      stopList.push(`${p.color} ${a}% ${b}%`);
+      if (i < positions.length - 1) stopList.push(`#fff ${p.to - half}% ${p.to + half}%`);
+    });
+    stopList.push(`#fff ${100 - half}% 100%`);
+  } else {
+    stopList.push(`${positions[0].color} 0% 100%`);
+  }
+  const donutBg = `conic-gradient(${stopList.join(", ")})`;
+
+  return (
+    <div style={{ display:"flex", alignItems:"center", gap:28, marginTop:18, paddingTop:16, borderTop:"1px solid var(--line)", flexWrap:"wrap" }}>
+      <div className="donut2" style={{ background:donutBg, width:152, height:152, flex:"none" }} />
+      <div style={{ flex:1, minWidth:160 }}>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:".05em", textTransform:"uppercase", color:"var(--faint)", marginBottom:10 }}>
+          Répartition par catégorie
+        </div>
+        <div className="dlegend">
+          {slices.map(s => (
+            <div className="li" key={s.cat}>
+              <span className="sw2" style={{ background:s.color }} />
+              <span>{s.cat} · <b>{eur0(s.amount)}</b></span>
+              <span style={{ color:"var(--faint)", fontSize:11.5, marginLeft:4 }}>({Math.round(s.amount / total * 100)} %)</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ textAlign:"right", flexShrink:0 }}>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:".05em", textTransform:"uppercase", color:"var(--faint)", marginBottom:6 }}>
+          {isMonth ? `Impact total — ${MONTHS[mIndex]}` : `Total décaissé — ${YEAR}`}
+        </div>
+        <div style={{ fontSize:30, fontWeight:800, letterSpacing:"-.6px", color:"var(--neg)", lineHeight:1 }}>{eur0(total)}</div>
+      </div>
+    </div>
+  );
+}
+
 function FraisTab({ charges, mIndex, categories, onAdd, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory }) {
   const [view, setView] = React.useState("table");
   const [scope, setScope] = React.useState("month");
@@ -1262,11 +1385,16 @@ function FraisTab({ charges, mIndex, categories, onAdd, onUpdate, onRemove, onAd
             if (appIdx < 0) appIdx = 0;
             onUpdate(ch.id, "tarifsHistory", sorted.map((t, i) => i === appIdx ? { ...t, montant: e.target.value } : t));
           }} />
-        <button className={"tariff-btn" + (tarifsOpen[ch.id] ? " on" : "")}
-          title={ch.tarifsHistory && ch.tarifsHistory.length > 1 ? `${ch.tarifsHistory.length} tarifs` : "Gérer les variations de tarif"}
-          onClick={() => toggleTarifs(ch.id)}>
-          {ch.tarifsHistory && ch.tarifsHistory.length > 1 ? <span className="tariff-count">{ch.tarifsHistory.length}</span> : Icon.clock}
-        </button>
+        {(() => {
+          const hasFuture = (ch.tarifsHistory || []).some(t => t.from > TODAY);
+          return (
+            <button className={"tariff-btn" + (tarifsOpen[ch.id] ? " on" : "") + (hasFuture ? " pending" : "")}
+              title={hasFuture ? "Changement de tarif à venir" : "Gérer les variations de tarif"}
+              onClick={() => toggleTarifs(ch.id)}>
+              {Icon.clock}
+            </button>
+          );
+        })()}
       </div>
     </td>
   );
@@ -1325,6 +1453,14 @@ function FraisTab({ charges, mIndex, categories, onAdd, onUpdate, onRemove, onAd
     const imp = chargeImpact(ch, mIndex);
     return sum + (imp.active ? imp.decaisse + imp.provision : 0);
   }, 0);
+  const totalDecaisse = charges.reduce((sum, ch) => {
+    const imp = chargeImpact(ch, mIndex);
+    return sum + (imp.active ? imp.decaisse : 0);
+  }, 0);
+  const totalProv = charges.reduce((sum, ch) => {
+    const imp = chargeImpact(ch, mIndex);
+    return sum + (imp.active ? imp.provision : 0);
+  }, 0);
   const uncategorized = charges.filter(ch => !categories.includes(ch.categorie));
 
   return (
@@ -1351,7 +1487,10 @@ function FraisTab({ charges, mIndex, categories, onAdd, onUpdate, onRemove, onAd
           </div>
           {charges.length === 0 ?
             <div className="empty">Aucun frais. Ajoutez vos abonnements, assurances, loyers…</div> :
-            scope === "month" ? <MonthCalendar charges={charges} mIndex={mIndex} /> : <YearCalendar charges={charges} mIndex={mIndex} />}
+            <React.Fragment>
+              {scope === "month" ? <MonthCalendar charges={charges} mIndex={mIndex} /> : <YearCalendar charges={charges} mIndex={mIndex} />}
+              <CategoryDonut charges={charges} mIndex={mIndex} scope={scope} categories={categories} />
+            </React.Fragment>}
           <button className="addrow accent" onClick={openAdd} style={{ marginTop: 16 }}>{Icon.plus} Ajouter un frais</button>
         </React.Fragment> :
 
@@ -1400,6 +1539,19 @@ function FraisTab({ charges, mIndex, categories, onAdd, onUpdate, onRemove, onAd
               </tr>
             </tbody>
           </table>
+
+          <div className="cal-foot" style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--line)" }}>
+            <div className="cal-legend">
+              <span><i style={{ background: "var(--neg)" }} />Décaissé</span>
+              <span><i style={{ background: "var(--prov)" }} />À provisionner</span>
+            </div>
+            <div className="cal-tot">
+              {totalProv > 0 && <span className="prov-note">+ {eur0(totalProv)} à provisionner</span>}
+              <span>Décaissé en {MONTHS[mIndex]} · <b>{eur0(totalDecaisse)}</b></span>
+            </div>
+          </div>
+
+          <CategoryDonut charges={charges} mIndex={mIndex} scope="month" categories={categories} />
 
           {adding ? (
             <div className="frais-new-form">
@@ -1508,6 +1660,12 @@ function ChargesProvisionsTab({ factures, charges, profile, mIndex }) {
         <span className="lab">Total à mettre de côté ce mois</span>
         <span className="val">{eur(grandTotal)}</span>
       </div>
+      {s.totalDecaisse > 0 && (
+        <div style={{ marginTop: 10, textAlign: "right", fontSize: 12.5, color: "var(--soft)" }}>
+          + {eur(s.totalDecaisse)} de frais déjà prélevés ce mois
+          <span style={{ color: "var(--faint)", marginLeft: 6 }}>({s.decaisseLines.map(l => l.libelle).join(", ")})</span>
+        </div>
+      )}
     </div>);
 
 }
@@ -1518,10 +1676,10 @@ Object.assign(window, { DashboardTab, FacturesTab, FraisTab, ChargesProvisionsTa
 /* ============================================================
    app.jsx — App, profil, navigation, persistance, export/import
    ============================================================ */
-const { MONTHS, YEAR, monthKey, uid, load, save } = window.MEF;
+const { MONTHS, YEAR, monthKey, uid, load, save, num } = window.MEF;
 const { DashboardTab, FacturesTab, FraisTab, ChargesProvisionsTab } = window;
 
-const DEFAULT_PROFILE = { nom: "Camille Martin", tva: true, liberatoire: false };
+const DEFAULT_PROFILE = { nom: "Camille Martin", tva: true, liberatoire: false, prevYears: {} };
 
 // ---- données de démonstration (au premier lancement de la v2) ----
 const SEED_FACTURES = {
@@ -1640,13 +1798,15 @@ function App() {
 
   // ----- frais (charges récurrentes, liste globale) -----
   const addCharge = (cat, libelle, ponctuel) => {
-    const from = ponctuel ? TODAY : `${YEAR}-01-01`;
-    setCharges(prev => [...prev, { id: uid(), libelle: libelle || "", montant: "", categorie: cat || categories[0] || "", tarifsHistory: [{ montant: "", from }], frequence: ponctuel ? "ponctuelle" : "mensuelle", jour: 1, date: from }]);
+    const from = TODAY;
+    const jourFromDate = parseInt(from.slice(8, 10), 10) || 1;
+    setCharges(prev => [...prev, { id: uid(), libelle: libelle || "", montant: "", categorie: cat || categories[0] || "", tarifsHistory: [{ montant: "", from }], frequence: ponctuel ? "ponctuelle" : "mensuelle", jour: jourFromDate, date: from }]);
   };
   const updateCharge = (id, field, val) => setCharges(prev => prev.map((c) => {
     if (c.id !== id) return c;
     const updated = { ...c, [field]: val };
     if (field === "date" && updated.tarifsHistory && updated.tarifsHistory.length > 0) {
+      updated.jour = parseInt(val.slice(8, 10), 10) || 1;
       const hist = updated.tarifsHistory.slice().sort((a, b) => a.from < b.from ? -1 : 1);
       hist[0] = { ...hist[0], from: val };
       updated.tarifsHistory = hist;
@@ -1696,7 +1856,7 @@ function App() {
     ["dashboard", "Tableau de bord", TabIcon.dashboard],
     ["factures", "Factures", TabIcon.factures],
     ["frais", "Frais", TabIcon.frais],
-    ["prov", "Charges & provisions", TabIcon.prov],
+    ["prov", "À provisionner", TabIcon.prov],
   ];
 
   return (
@@ -1743,6 +1903,11 @@ function App() {
 
 function ProfileModal({ profile, setProfile, onClose, onExport, onImport }) {
   const up = (field, val) => setProfile({ ...profile, [field]: val });
+  const prev = (profile.prevYears || {})[YEAR - 1] || {};
+  const upPrev = (field, val) => setProfile(p => ({
+    ...p,
+    prevYears: { ...(p.prevYears || {}), [YEAR - 1]: { ...((p.prevYears || {})[YEAR - 1] || {}), [field]: num(val) } }
+  }));
   const fileRef = React.useRef(null);
   return (
     <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
@@ -1765,8 +1930,23 @@ function ProfileModal({ profile, setProfile, onClose, onExport, onImport }) {
             <button className={"sw" + (profile.liberatoire ? " on" : "")} onClick={() => up("liberatoire", !profile.liberatoire)}></button>
           </div>
           <div className="toggle-row">
-            <div className="t-lab">Année de référence<small>Fixe pour cette version</small></div>
+            <div className="t-lab">Année en cours<small>Données saisies pour {YEAR}</small></div>
             <b>{YEAR}</b>
+          </div>
+          <div style={{ borderTop: "1px solid var(--line)", paddingTop: 14, marginTop: 4 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--faint)", marginBottom: 12 }}>
+              Référence année précédente ({YEAR - 1})
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div className="field">
+                <label>Revenu net {YEAR - 1} <span style={{ fontWeight: 400, color: "var(--faint)" }}>— pour la comparaison N-1 sur le tableau de bord</span></label>
+                <input className="in" type="number" step="1" placeholder="Ex : 41200" value={prev.net || ""} onChange={e => upPrev("net", e.target.value)} />
+              </div>
+              <div className="field">
+                <label>CA encaissé TTC {YEAR - 1}</label>
+                <input className="in" type="number" step="1" placeholder="Ex : 71400" value={prev.caTTC || ""} onChange={e => upPrev("caTTC", e.target.value)} />
+              </div>
+            </div>
           </div>
           <div className="hint">
             Toutes vos données sont enregistrées automatiquement dans ce navigateur.
