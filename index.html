@@ -519,6 +519,35 @@ const MONTHS = ["Janvier","Février","Mars","Avril","Mai","Juin",
   "Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 const YEAR = 2026;
 
+// Barème de la base minimum de CFE (CFE due en YEAR, selon le CA de l'année N-2).
+// Hypothèse : pas de local professionnel (travail à domicile). Avec un local, la CFE
+// est calculée sur la valeur locative réelle et doit être saisie à la main.
+const CFE_BAREME = [
+  { caMax: 5000,     baseMin: 0,   baseMax: 0,    exo: true },
+  { caMax: 10000,    baseMin: 250, baseMax: 597  },
+  { caMax: 32600,    baseMin: 250, baseMax: 1194 },
+  { caMax: 100000,   baseMin: 250, baseMax: 2509 },
+  { caMax: 250000,   baseMin: 250, baseMax: 4183 },
+  { caMax: 500000,   baseMin: 250, baseMax: 5974 },
+  { caMax: Infinity, baseMin: 250, baseMax: 7769 },
+];
+const CFE_TAUX_DEFAUT = 26; // taux communal moyen national, en %, modifiable par l'utilisateur
+
+// Renvoie une estimation prudente de la CFE annuelle à partir du CA N-2 et du taux communal.
+// La CFE finale = base × taux communal. On retient le haut de fourchette (prudent) pour la
+// provision, en exposant aussi la fourchette basse-haute pour information.
+function estimateCfe(caN2, tauxPct) {
+  const ca = num(caN2) || 0;
+  const tx = (num(tauxPct) || 0) / 100;
+  const tranche = CFE_BAREME.find(t => ca <= t.caMax) || CFE_BAREME[CFE_BAREME.length - 1];
+  if (tranche.exo || ca <= 0) {
+    return { exo: true, tranche, baseMin: 0, baseMax: 0, cfeMin: 0, cfeMax: 0, cfe: 0 };
+  }
+  const cfeMin = Math.round(tranche.baseMin * tx);
+  const cfeMax = Math.round(tranche.baseMax * tx);
+  return { exo: false, tranche, baseMin: tranche.baseMin, baseMax: tranche.baseMax, cfeMin, cfeMax, cfe: cfeMax };
+}
+
 const pad2 = (n) => String(n + 1).padStart(2, "0");           // month index -> "01".."12"
 const monthKey = (m) => `${YEAR}-${pad2(m)}`;                  // -> "2026-04"
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -1666,6 +1695,7 @@ function ChargesProvisionsTab({ factures, charges, profile, mIndex, cfeData = {}
   const cfeAnnuel = num(cfeData.montant) || 0;
   const s = computeMonth({ factures, charges, profile, mIndex, cfeAnnuel, urssafHistory });
   const [open, setOpen] = React.useState({ urssaf: true, tva: true, cfe: true, prov: true });
+  const [showEstim, setShowEstim] = React.useState(false);
   const tog = (k) => setOpen((o) => ({ ...o, [k]: !o[k] }));
   const grandTotal = s.totalCotis + s.totalProvision + s.tvaAreverser + s.cfeProv;
 
@@ -1751,6 +1781,62 @@ function ChargesProvisionsTab({ factures, charges, profile, mIndex, cfeData = {}
                 </button>
               )}
             </div>
+          </div>
+          <div style={{ borderTop: "1px dashed var(--line-2)", paddingTop: 10 }}>
+            <button
+              className="btn"
+              style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "var(--card)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "9px 12px", cursor: "pointer", color: "var(--primary)", fontWeight: 600, fontSize: 13 }}
+              onClick={() => setShowEstim(v => !v)}
+            >
+              <span style={{ display: "inline-flex", color: "var(--faint)", fontWeight: 700, transition: "transform .15s", transform: showEstim ? "rotate(90deg)" : "none" }}>›</span>
+              Estimer ma CFE
+              <span style={{ marginLeft: "auto", fontWeight: 400, fontSize: 12, color: "var(--soft)" }}>{showEstim ? "Masquer" : "Ouvrir le calculateur"}</span>
+            </button>
+            {showEstim && (() => {
+              const taux = (cfeData.taux === undefined || cfeData.taux === "") ? CFE_TAUX_DEFAUT : cfeData.taux;
+              const est = estimateCfe(cfeData.caRef, taux);
+              const caOk = num(cfeData.caRef) > 0;
+              return (
+                <div style={{ marginTop: 10, background: "var(--primary-soft)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+                  <p className="mini" style={{ margin: 0 }}>Valable si vous travaillez à domicile, sans local professionnel dédié. Avec un local, saisissez votre montant à la main ci-dessus.</p>
+                  <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                    <label style={{ fontSize: 12.5, color: "var(--soft)", display: "flex", flexDirection: "column", gap: 4 }}>
+                      CA de référence (2024, N-2)
+                      <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <input className="in" type="number" step="1" placeholder="Ex : 18000" value={cfeData.caRef || ""} style={{ maxWidth: 130 }} onChange={(e) => onUpdateCfe("caRef", num(e.target.value) || "")} />
+                        <span style={{ fontSize: 13, color: "var(--soft)" }}>€</span>
+                      </span>
+                    </label>
+                    <label style={{ fontSize: 12.5, color: "var(--soft)", display: "flex", flexDirection: "column", gap: 4 }}>
+                      Taux communal
+                      <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <input className="in" type="number" step="0.01" value={cfeData.taux === undefined ? CFE_TAUX_DEFAUT : cfeData.taux} style={{ maxWidth: 90 }} onChange={(e) => onUpdateCfe("taux", e.target.value === "" ? "" : num(e.target.value))} />
+                        <span style={{ fontSize: 13, color: "var(--soft)" }}>%</span>
+                      </span>
+                    </label>
+                  </div>
+                  <p className="mini" style={{ margin: 0 }}>Taux indiqué sur votre avis CFE. Par défaut {CFE_TAUX_DEFAUT} % (moyenne nationale).</p>
+                  {!caOk ? (
+                    <p className="mini" style={{ margin: 0 }}>Saisissez votre CA 2024 pour lancer l'estimation.</p>
+                  ) : est.exo ? (
+                    <div className="listline"><span className="lab">CA sous 5 000 € → exonération</span><b style={{ color: SEG_COLORS.cfe }}>0 €</b></div>
+                  ) : (
+                    <>
+                      <div className="listline"><span className="lab">Base minimum (tranche)</span><b>{eur0(est.baseMin)} à {eur0(est.baseMax)}</b></div>
+                      <div className="listline"><span className="lab">CFE estimée <span style={{ color: "var(--faint)" }}>(fourchette {eur0(est.cfeMin)} à {eur0(est.cfeMax)})</span></span><b style={{ color: SEG_COLORS.cfe }}>~{eur0(est.cfe)} / an</b></div>
+                      <button
+                        className="btn"
+                        disabled={!!cfeData.valide}
+                        style={{ alignSelf: "flex-start", fontSize: 12, background: "var(--primary)", color: "#fff", border: "none", opacity: cfeData.valide ? 0.5 : 1 }}
+                        onClick={() => onUpdateCfe("montant", est.cfe)}
+                      >
+                        Utiliser cette estimation
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
           </div>
           {cfeAnnuel > 0 ? (
             <>
@@ -2010,7 +2096,7 @@ function App() {
     ["dashboard", "Tableau de bord", TabIcon.dashboard],
     ["factures", "Factures", TabIcon.factures],
     ["frais", "Frais", TabIcon.frais],
-    ["prov", "À provisionner", TabIcon.prov],
+    ["prov", "Charges et provisions", TabIcon.prov],
   ];
 
   return (

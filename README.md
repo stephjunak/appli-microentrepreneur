@@ -41,4 +41,26 @@ En cours de développement.
 
 ---
 
+## Estimateur de CFE
+
+- Calculateur dépliable dans l'onglet "Charges et provisions", section CFE
+- Hypothèse : travail à domicile, sans local professionnel (base minimum). Avec un local, saisie manuelle du montant
+- Saisie du CA de référence N-2 et du taux communal (défaut 26 %, moyenne nationale)
+- Applique le barème 2026 de la base minimum (7 tranches), retient le haut de fourchette pour une provision prudente, et affiche la fourchette complète
+- Exonération automatique si CA N-2 inférieur à 5 000 €
+- Bouton "Utiliser cette estimation" qui remplit le montant et déclenche la provision mensuelle
+
+---
+
 ## Améliorations à venir
+
+### Gestion dynamique des années (chantier de fond)
+
+Aujourd'hui l'année est codée en dur (`const YEAR = 2026`). L'app est donc figée sur 2026 : elle ne lit jamais l'année réelle et ne permet pas de naviguer dans l'historique.
+
+Objectif :
+- Déduire l'année courante de la date réelle, avec un sélecteur pour changer d'année
+- Naviguer dans l'historique des années passées (le stockage des factures par clé `année-mois` le permet déjà par construction)
+- Vérifier la cohérence de tous les usages de `YEAR` : échéances, barèmes URSSAF par date d'effet, CFE, projections annuelles, prevYears
+
+Bénéfice clé : une fois fait, l'estimateur de CFE pourra récupérer le CA N-2 automatiquement depuis l'historique, au lieu de la saisie manuelle actuelle.
