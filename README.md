@@ -31,10 +31,14 @@ En cours de développement.
 - Données stockées par année (`mef2:cfe`) — l'historique est conservé d'une année sur l'autre
 - Intégrée dans tous les calculs : dashboard, synthèse annuelle, total à provisionner
 
+### Taux officiels — URSSAF et TVA
+
+- Historique des taux URSSAF par catégorie (BNC, BIC vente, BIC prestation, BNC CIPAV), avec date d'effet
+- Le moteur de calcul choisit automatiquement le taux applicable selon la date de la facture ou du mois
+- Taux TVA disponibles dans les listes configurables (ajout/suppression)
+- Interface de gestion dans "Profil & paramètres" (icône engrenage)
+- Données stockées dans `mef2:urssaf_history` et `mef2:tva_config`, incluses dans l'export/import JSON
+
 ---
 
 ## Améliorations à venir
-
-### Gros chantiers
-
-- **Déclaration URSSAF** : gestion des changements de taux dans le temps (historique des taux officiels).
