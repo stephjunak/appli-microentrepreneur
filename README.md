@@ -16,27 +16,10 @@ En cours de développement.
 
 ---
 
-## Corrections et améliorations à venir
-
-### Bugs connus
-
-Aucun bug connu.
-
-### Améliorations prévues
-
-#### Onglet Frais
-- Camembert de répartition des charges mensuelles par catégorie.
-
-#### Onglet Tableau de bord
-- Synthèse annuelle : ajouter la colonne CA HT.
-- Histogramme : proposer un affichage par année (en plus du mois en cours).
-
-#### Onglet Charges & Provisions
-- Assistance à la déclaration URSSAF (récapitulatif prêt à remplir).
+## Améliorations à venir
 
 ### Gros chantiers
 
-- **Déclaration URSSAF** : gérer le calcul par chiffre arrondi, gérer les éventuels changements de taux.
+- **Déclaration URSSAF** : gestion des changements de taux dans le temps (historique des taux officiels).
 - **CFE** : intégrer la Cotisation Foncière des Entreprises.
-- **TVA déductible** : gérer la TVA déductible sur les achats, afficher le détail dans l'onglet Charges & Provisions.
-- **Changements de taux** : gérer les modifications de taux URSSAF et TVA dans le temps (historique).
+- **TVA déductible** : gérer la TVA déductible sur les achats, afficher le détail dans l'onglet À provisionner.

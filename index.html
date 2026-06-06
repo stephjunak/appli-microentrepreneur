@@ -654,9 +654,10 @@ function computeMonth({ factures, charges, profile, mIndex }) {
     const base = byCat[c];
     if (!base) return;
     const r = RATES[c];
-    const social = base * r.social;
-    const liber = lib ? base * r.lib : 0;
-    cotisLines.push({ cat: c, base, social, liber, rateSocial: r.social, rateLib: r.lib });
+    const roundedBase = Math.round(base);
+    const social = roundedBase * r.social;
+    const liber = lib ? roundedBase * r.lib : 0;
+    cotisLines.push({ cat: c, base, roundedBase, social, liber, rateSocial: r.social, rateLib: r.lib });
     totalCotis += social + liber;
   });
 
@@ -1024,7 +1025,7 @@ function InvoiceCard({ f, profile, onUpdateInv, onAddLine, onUpdateLine, onRemov
         </table>
         <button className="addrow" style={{ marginTop: 8, padding: "7px 12px", fontSize: 12.5 }} onClick={() => onAddLine(f.id)}>{Icon.plus} Ajouter une ligne</button>
         <div className="inv-result">
-          <div className="ir-line"><span>Cotisations URSSAF <em>calculées sur le HT</em></span><b className="neg">−{eur(t.urssaf)}</b></div>
+          <div className="ir-line"><span>Cotisations URSSAF <em>estimées sur le HT réel</em></span><b className="neg">−{eur(t.urssaf)}</b></div>
           <div className="ir-line net"><span>Net estimé pour vous</span><b>{eur(t.net)}</b></div>
         </div>
       </div>
@@ -1631,11 +1632,33 @@ function ChargesProvisionsTab({ factures, charges, profile, mIndex }) {
         {s.cotisLines.length === 0 && <p className="mini">Aucun chiffre d'affaires ce mois.</p>}
         {s.cotisLines.map((l) =>
         <div className="listline" key={l.cat}>
-            <span className="lab">{RATES[l.cat].label}<span style={{ color: "var(--faint)" }}> — base {eur0(l.base)} × {pct(l.rateSocial)}{s.lib ? ` + ${pct(l.rateLib)} (libér.)` : ""}</span></span>
+            <span className="lab">{RATES[l.cat].label}<span style={{ color: "var(--faint)" }}> — base déclarée {l.roundedBase.toLocaleString("fr-FR")} € × {pct(l.rateSocial)}{s.lib ? ` + ${pct(l.rateLib)} (libér.)` : ""}</span></span>
             <b>{eur(l.social + l.liber)}</b>
           </div>
         )}
         <p className="mini" style={{ marginTop: 8 }}>{s.lib ? "Versement libératoire de l'impôt inclus." : "Cotisations sociales seules (impôt sur le revenu hors de ce calcul)."}</p>
+        {s.cotisLines.length > 0 && (
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: "2px solid var(--line-2)" }}>
+            <div style={{ background: "var(--primary-soft)", border: "1px solid var(--line-2)", borderRadius: 10, padding: "13px 16px" }}>
+              <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--primary-d)", marginBottom: 10 }}>
+                CA à déclarer à l'URSSAF
+              </div>
+              {s.cotisLines.map((l) => (
+                <div className="listline" key={l.cat + "-decl"} style={{ borderBottomColor: "var(--line-2)" }}>
+                  <span className="lab" style={{ color: "var(--ink)", fontWeight: 600 }}>{RATES[l.cat].label}</span>
+                  <b style={{ fontSize: 16 }}>{Math.round(l.base).toLocaleString("fr-FR")} €</b>
+                </div>
+              ))}
+              {s.cotisLines.length > 1 && (
+                <div className="listline" style={{ borderTop: "2px solid var(--primary)", borderBottom: "none", paddingTop: 9, marginTop: 4 }}>
+                  <span className="lab" style={{ fontWeight: 700, color: "var(--primary-d)" }}>Total CA déclaré</span>
+                  <b style={{ fontSize: 18, color: "var(--primary-d)" }}>{Math.round(s.caHT).toLocaleString("fr-FR")} €</b>
+                </div>
+              )}
+              <p className="mini" style={{ marginTop: 10, marginBottom: 0 }}>Montants arrondis à l'euro, comme attendu sur le formulaire URSSAF. CA HT réel : {eur(s.caHT)}.</p>
+            </div>
+          </div>
+        )}
       </Section>
 
       {s.assujetti &&
