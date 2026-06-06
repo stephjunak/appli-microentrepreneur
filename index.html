@@ -663,12 +663,13 @@ function computeMonth({ factures, charges, profile, mIndex }) {
 
   // --- charges décaissées / provisions ---
   const decaisseLines = [], provisionLines = [];
-  let totalDecaisse = 0, totalProvision = 0;
+  let totalDecaisse = 0, totalProvision = 0, tvaDeductible = 0;
   charges.forEach((ch) => {
     const imp = chargeImpact(ch, mIndex);
     if (imp.decaisse > 0) {
       decaisseLines.push({ ...ch, montantCalc: imp.decaisse });
       totalDecaisse += imp.decaisse;
+      if (ch.tva > 0) tvaDeductible += imp.decaisse * ch.tva / (1 + ch.tva);
     }
     if (imp.provision > 0) {
       provisionLines.push({ ...ch, montantCalc: imp.provision, dueDay: imp.dueDay, dueMonth: imp.dueMonth });
@@ -684,7 +685,9 @@ function computeMonth({ factures, charges, profile, mIndex }) {
     assujetti, lib, caHT, tvaCollectee, caTTC, byCat,
     cotisLines, totalCotis,
     decaisseLines, provisionLines, totalDecaisse, totalProvision,
-    net, netPrudent, tvaAreverser: assujetti ? tvaCollectee : 0,
+    net, netPrudent,
+    tvaDeductible: assujetti ? tvaDeductible : 0,
+    tvaAreverser: assujetti ? Math.max(0, tvaCollectee - tvaDeductible) : 0,
   };
 }
 
@@ -835,14 +838,14 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex }) {
             <div className="sub">ce que j'ai encaissé · {factures.length} facture{factures.length > 1 ? "s" : ""}</div>
           </div>
         </div>
-        <div className="card stat warn">
+        <div className="card stat">
           <div className="card-b">
             <div className="cap">Frais &amp; charges</div>
             <div className="big neg">{eur0(aMettre)}</div>
             <div className="sub">ce que je dois payer{s.assujetti ? " · TVA +" : " ·"} URSSAF + frais</div>
           </div>
         </div>
-        <div className="card stat good">
+        <div className="card stat">
           <div className="card-b">
             <div className="cap">Revenu net</div>
             <div className="big pos">{eur0(net)}</div>
@@ -1344,7 +1347,7 @@ function CategoryDonut({ charges, mIndex, scope, categories }) {
   );
 }
 
-function FraisTab({ charges, mIndex, categories, onAdd, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory }) {
+function FraisTab({ charges, mIndex, categories, profile, onAdd, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory }) {
   const [view, setView] = React.useState("table");
   const [scope, setScope] = React.useState("month");
   const [tarifsOpen, setTarifsOpen] = React.useState({});
@@ -1397,6 +1400,13 @@ function FraisTab({ charges, mIndex, categories, onAdd, onUpdate, onRemove, onAd
           );
         })()}
       </div>
+      {profile.tva && (
+        <select className="cell-in cat-select" value={ch.tva || 0}
+          onChange={e => onUpdate(ch.id, "tva", parseFloat(e.target.value))}
+          style={{ marginTop: 4 }} title="TVA sur cet achat">
+          {TVA_RATES.map(tv => <option key={tv.v} value={tv.v}>TVA {tv.label}</option>)}
+        </select>
+      )}
     </td>
   );
 
@@ -1408,14 +1418,23 @@ function FraisTab({ charges, mIndex, categories, onAdd, onUpdate, onRemove, onAd
         <tr style={imp.active ? null : { opacity: .55 }}>
           {libelleCell(ch)}
           {isPonctuel
-            ? <td><input className="cell-in num" type="number" step="0.01" placeholder="0,00"
-                value={tariffAt(ch, TODAY)}
-                onChange={(e) => {
-                  const sorted = (ch.tarifsHistory || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
-                  let appIdx = sorted.reduce((best, t, i) => t.from <= TODAY ? i : best, -1);
-                  if (appIdx < 0) appIdx = 0;
-                  onUpdate(ch.id, "tarifsHistory", sorted.map((t, i) => i === appIdx ? { ...t, montant: e.target.value } : t));
-                }} /></td>
+            ? <td>
+                <input className="cell-in num" type="number" step="0.01" placeholder="0,00"
+                  value={tariffAt(ch, TODAY)}
+                  onChange={(e) => {
+                    const sorted = (ch.tarifsHistory || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
+                    let appIdx = sorted.reduce((best, t, i) => t.from <= TODAY ? i : best, -1);
+                    if (appIdx < 0) appIdx = 0;
+                    onUpdate(ch.id, "tarifsHistory", sorted.map((t, i) => i === appIdx ? { ...t, montant: e.target.value } : t));
+                  }} />
+                {profile.tva && (
+                  <select className="cell-in cat-select" value={ch.tva || 0}
+                    onChange={e => onUpdate(ch.id, "tva", parseFloat(e.target.value))}
+                    style={{ marginTop: 4 }} title="TVA sur cet achat">
+                    {TVA_RATES.map(tv => <option key={tv.v} value={tv.v}>TVA {tv.label}</option>)}
+                  </select>
+                )}
+              </td>
             : montantCell(ch)}
           {isPonctuel
             ? <td><span className="badge cat" style={{ fontSize: 11 }}>Achat ponctuel</span></td>
@@ -1662,9 +1681,18 @@ function ChargesProvisionsTab({ factures, charges, profile, mIndex }) {
       </Section>
 
       {s.assujetti &&
-      <Section title="TVA à reverser" amount={s.tvaAreverser} color={SEG_COLORS.tva} open={open.tva} onToggle={() => tog("tva")}>
-          <div className="listline"><span className="lab">TVA collectée sur les factures du mois</span><b>{eur(s.tvaCollectee)}</b></div>
-          <p className="mini" style={{ marginTop: 8 }}>À reverser à l'État — ce n'est pas votre revenu.</p>
+      <Section title="TVA nette à reverser" amount={s.tvaAreverser} color={SEG_COLORS.tva} open={open.tva} onToggle={() => tog("tva")}>
+          <div className="listline"><span className="lab">TVA collectée sur les factures</span><b>{eur(s.tvaCollectee)}</b></div>
+          {s.tvaDeductible > 0 && (
+            <div className="listline"><span className="lab pos">TVA déductible sur les achats</span><b className="pos">−{eur(s.tvaDeductible)}</b></div>
+          )}
+          {s.tvaDeductible > 0 && (
+            <div className="listline" style={{ borderTop: "1px solid var(--line)", paddingTop: 7, marginTop: 2 }}>
+              <span className="lab" style={{ fontWeight: 700, color: "var(--ink)" }}>TVA nette à reverser</span>
+              <b>{eur(s.tvaAreverser)}</b>
+            </div>
+          )}
+          <p className="mini" style={{ marginTop: 8 }}>À reverser à l'État — ce n'est pas votre revenu.{s.tvaDeductible > 0 ? " TVA déductible sur achats déjà déduite." : ""}</p>
         </Section>
       }
 
@@ -1777,6 +1805,7 @@ function migrateCharges(charges) {
       r = { ...r, tarifsHistory: r.tarifsHistory.map(t => ({ ...t, from: fix(t.from) })) };
     }
     if (!r.categorie) r = { ...r, categorie: "Charges de fonctionnement" };
+    if (r.tva === undefined) r = { ...r, tva: 0 };
     return r;
   });
 }
@@ -1823,7 +1852,7 @@ function App() {
   const addCharge = (cat, libelle, ponctuel) => {
     const from = TODAY;
     const jourFromDate = parseInt(from.slice(8, 10), 10) || 1;
-    setCharges(prev => [...prev, { id: uid(), libelle: libelle || "", montant: "", categorie: cat || categories[0] || "", tarifsHistory: [{ montant: "", from }], frequence: ponctuel ? "ponctuelle" : "mensuelle", jour: jourFromDate, date: from }]);
+    setCharges(prev => [...prev, { id: uid(), libelle: libelle || "", montant: "", categorie: cat || categories[0] || "", tarifsHistory: [{ montant: "", from }], frequence: ponctuel ? "ponctuelle" : "mensuelle", jour: jourFromDate, date: from, tva: 0 }]);
   };
   const updateCharge = (id, field, val) => setCharges(prev => prev.map((c) => {
     if (c.id !== id) return c;
@@ -1916,7 +1945,7 @@ function App() {
       {ui.tab === "factures" && <FacturesTab factures={factures} facturesByMonth={facturesByMonth} profile={profile}
         onAddInv={addInv} onRemoveInv={removeInv} onUpdateInv={updateInv}
         onAddLine={addLine} onUpdateLine={updateLine} onRemoveLine={removeLine} />}
-      {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} onAdd={addCharge} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} />}
+      {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} profile={profile} onAdd={addCharge} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} />}
       {ui.tab === "prov" && <ChargesProvisionsTab factures={factures} charges={charges} profile={profile} mIndex={m} />}
 
       {profileOpen && <ProfileModal profile={profile} setProfile={setProfile} onClose={() => setProfileOpen(false)} onExport={exportJSON} onImport={importJSON} />}
