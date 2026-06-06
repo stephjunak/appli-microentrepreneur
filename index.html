@@ -90,15 +90,15 @@ input,select{font-family:inherit;font-size:14px;color:var(--ink);}
 /* ---------- month nav ---------- */
 .monthnav{display:flex;align-items:center;gap:6px;margin-bottom:18px;}
 .monthnav .mbtn{
-  width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--card);
-  display:grid;place-items:center;cursor:pointer;color:var(--soft);box-shadow:var(--shadow);
+  width:34px;height:34px;border-radius:9px;border:1px solid #d8ca87;background:var(--prov-soft);
+  display:grid;place-items:center;cursor:pointer;color:#7a6a25;box-shadow:var(--shadow);
 }
-.monthnav .mbtn:hover:not(:disabled){border-color:var(--line-2);color:var(--ink);}
+.monthnav .mbtn:hover:not(:disabled){border-color:#c0b06a;color:#5a4e1a;}
 .monthnav .mbtn:disabled{opacity:.4;cursor:not-allowed;}
 .monthnav .mbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;}
 .monthnav .mlabel{
   min-width:188px;text-align:center;font-weight:700;font-size:16px;letter-spacing:-.2px;
-  background:var(--primary-soft);color:var(--primary-d);border:1px solid var(--line-2);border-radius:9px;padding:7px 16px;box-shadow:var(--shadow);
+  background:var(--prov-soft);color:#7a6a25;border:1px solid #d8ca87;border-radius:9px;padding:7px 16px;box-shadow:var(--shadow);
 }
 .monthnav .today{margin-left:6px;font-size:12px;color:var(--primary);font-weight:600;cursor:pointer;
   border:1px solid var(--line);background:var(--card);border-radius:8px;padding:7px 11px;box-shadow:var(--shadow);}
@@ -630,7 +630,7 @@ function factureTotals(f, profile) {
 }
 
 // calcule tout le résumé d'un mois
-function computeMonth({ factures, charges, profile, mIndex }) {
+function computeMonth({ factures, charges, profile, mIndex, cfeAnnuel = 0 }) {
   const assujetti = !!profile.tva;
   const lib = !!profile.liberatoire;
 
@@ -678,13 +678,15 @@ function computeMonth({ factures, charges, profile, mIndex }) {
   });
 
   // --- résultat ---
+  const cfeProv = cfeAnnuel / 12;
   const net = caHT - totalCotis - totalDecaisse;
-  const netPrudent = net - totalProvision;
+  const netPrudent = net - totalProvision - cfeProv;
 
   return {
     assujetti, lib, caHT, tvaCollectee, caTTC, byCat,
     cotisLines, totalCotis,
     decaisseLines, provisionLines, totalDecaisse, totalProvision,
+    cfeProv,
     net, netPrudent,
     tvaDeductible: assujetti ? tvaDeductible : 0,
     tvaAreverser: assujetti ? Math.max(0, tvaCollectee - tvaDeductible) : 0,
@@ -692,15 +694,16 @@ function computeMonth({ factures, charges, profile, mIndex }) {
 }
 
 // net (après URSSAF & charges décaissées) pour chaque mois de l'année — pour le graphe + synthèse
-function computeYear({ facturesByMonth, charges, profile }) {
+function computeYear({ facturesByMonth, charges, profile, cfeAnnuel = 0 }) {
   const out = [];
   for (let i = 0; i < 12; i++) {
     const fs = facturesByMonth[`${YEAR}-${pad2(i)}`] || [];
-    const s = computeMonth({ factures: fs, charges, profile, mIndex: i });
+    const s = computeMonth({ factures: fs, charges, profile, mIndex: i, cfeAnnuel });
     out.push({
       net: s.net, netPrudent: s.netPrudent, caHT: s.caHT, caTTC: s.caTTC,
       tva: s.tvaAreverser, cotis: s.totalCotis,
       decaisse: s.totalDecaisse, provision: s.totalProvision,
+      cfe: s.cfeProv,
       nbFactures: fs.length,
     });
   }
@@ -708,18 +711,18 @@ function computeYear({ facturesByMonth, charges, profile }) {
 }
 
 // totaux cumulés sur l'année (jusqu'au mois inclus) + référence N-1
-function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth, prevYear }) {
-  const year = computeYear({ facturesByMonth, charges, profile });
+function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth, prevYear, cfeAnnuel = 0 }) {
+  const year = computeYear({ facturesByMonth, charges, profile, cfeAnnuel });
   const upto = uptoMonth == null ? 11 : uptoMonth;
-  const acc = { caTTC: 0, caHT: 0, tva: 0, cotis: 0, decaisse: 0, provision: 0, net: 0, netPrudent: 0, nbFactures: 0, lastActive: -1 };
+  const acc = { caTTC: 0, caHT: 0, tva: 0, cotis: 0, decaisse: 0, provision: 0, cfe: 0, net: 0, netPrudent: 0, nbFactures: 0, lastActive: -1 };
   year.forEach((y, i) => {
     if (i > upto) return;
     acc.caTTC += y.caTTC; acc.caHT += y.caHT; acc.tva += y.tva; acc.cotis += y.cotis;
-    acc.decaisse += y.decaisse; acc.provision += y.provision;
+    acc.decaisse += y.decaisse; acc.provision += y.provision; acc.cfe += y.cfe;
     acc.net += y.net; acc.netPrudent += y.netPrudent; acc.nbFactures += y.nbFactures;
     if (y.caTTC > 0) acc.lastActive = i;
   });
-  acc.charges = acc.tva + acc.cotis + acc.decaisse + acc.provision;
+  acc.charges = acc.tva + acc.cotis + acc.decaisse + acc.provision + acc.cfe;
   acc.prev = prevYear || {};
   return acc;
 }
@@ -763,19 +766,19 @@ const FREQ_META = {
   ponctuelle:    { color: "#577389", label: "Ponctuel" }
 };
 // Palette sémantique unique — utilisée pour les barres, l'histogramme ET le camembert
-const SEG_COLORS = { urssaf: "#94614e", tva: "#577389", decaisse: "#8a7733", provision: "#bca96a", net: "#57563f" };
+const SEG_COLORS = { urssaf: "#94614e", tva: "#577389", decaisse: "#8a7733", provision: "#bca96a", cfe: "#7a6b8a", net: "#57563f" };
 // le camembert reprend exactement la même palette (plus de teintes séparées)
 const DONUT_COLORS = SEG_COLORS;
 
 /* ========================================================== */
 /* TABLEAU DE BORD (approche A + graphes B)                   */
 /* ========================================================== */
-function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex }) {
-  const s = computeMonth({ factures, charges, profile, mIndex });
-  const year = computeYear({ facturesByMonth, charges, profile });
+function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex, cfeAnnuel = 0 }) {
+  const s = computeMonth({ factures, charges, profile, mIndex, cfeAnnuel });
+  const year = computeYear({ facturesByMonth, charges, profile, cfeAnnuel });
 
   const ttc = s.caTTC; // ce que j'ai encaissé
-  const aMettre = s.tvaAreverser + s.totalCotis + s.totalDecaisse + s.totalProvision; // frais & charges
+  const aMettre = s.tvaAreverser + s.totalCotis + s.totalDecaisse + s.totalProvision + s.cfeProv; // frais & charges
   const net = s.netPrudent; // ce qui reste (provisions déduites)
   const base = Math.max(ttc, 1);
   const w = (x) => Math.max(0, Math.min(100, x / base * 100)) + "%";
@@ -786,7 +789,7 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex }) {
   { key: "urssaf", lab: "URSSAF", val: s.totalCotis },
   { key: "tva", lab: "TVA", val: s.tvaAreverser },
   { key: "decaisse", lab: "Frais", val: s.totalDecaisse },
-  { key: "provision", lab: "Provisions", val: s.totalProvision }].
+  { key: "provision", lab: s.cfeProv > 0 ? "Provisions frais et CFE" : "Provisions", val: s.totalProvision + s.cfeProv }].
   filter((x) => x.val > 0.005);
   const segTot = segs.reduce((a, x) => a + x.val, 0) || 1;
   // positions de chaque part, puis séparateurs blancs entre les parts
@@ -812,7 +815,7 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex }) {
   const [histScope, setHistScope] = React.useState("month");
 
   // synthèse annuelle (cumul jusqu'au mois affiché) + écart N-1
-  const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex, prevYear: (profile.prevYears || {})[YEAR - 1] });
+  const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex, prevYear: (profile.prevYears || {})[YEAR - 1], cfeAnnuel });
   const monthsElapsed = Math.max(1, (ys.lastActive < 0 ? mIndex : ys.lastActive) + 1);
   const projNet = ys.netPrudent / monthsElapsed * 12; // projection annuelle simple
   const prevNet = ys.prev.net || 0;
@@ -842,7 +845,7 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex }) {
           <div className="card-b">
             <div className="cap">Frais &amp; charges</div>
             <div className="big neg">{eur0(aMettre)}</div>
-            <div className="sub">ce que je dois payer{s.assujetti ? " · TVA +" : " ·"} URSSAF + frais</div>
+            <div className="sub">ce que je dois payer{s.assujetti ? " · TVA +" : " ·"} URSSAF + frais{s.cfeProv > 0 ? " + CFE" : ""}</div>
           </div>
         </div>
         <div className="card stat">
@@ -864,7 +867,7 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex }) {
               {s.assujetti && <div className="cas"><span className="op minus" aria-hidden="true">−</span><span className="k">TVA à reverser <em className="ctag set">à mettre de côté</em></span><div className="track"><i style={{ width: w(s.tvaAreverser), background: SEG_COLORS.tva }}></i></div><span className="v neg">−{eur0(s.tvaAreverser)}</span></div>}
               <div className="cas"><span className="op minus" aria-hidden="true">−</span><span className="k">Cotisations URSSAF <em className="ctag set">à mettre de côté</em></span><div className="track"><i style={{ width: w(s.totalCotis), background: SEG_COLORS.urssaf }}></i></div><span className="v neg">−{eur0(s.totalCotis)}</span></div>
               <div className="cas"><span className="op minus" aria-hidden="true">−</span><span className="k">Frais <em className="ctag paid">déjà payé</em></span><div className="track"><i style={{ width: w(s.totalDecaisse), background: SEG_COLORS.decaisse }}></i></div><span className="v neg">−{eur0(s.totalDecaisse)}</span></div>
-              <div className="cas"><span className="op minus" aria-hidden="true">−</span><span className="k">Provisions <em className="ctag set">à mettre de côté</em></span><div className="track"><i style={{ width: w(s.totalProvision), background: SEG_COLORS.provision }}></i></div><span className="v" style={{ color: "var(--prov)" }}>−{eur0(s.totalProvision)}</span></div>
+              <div className="cas"><span className="op minus" aria-hidden="true">−</span><span className="k">{s.cfeProv > 0 ? "Provisions frais et CFE" : "Provisions"} <em className="ctag set">à mettre de côté</em></span><div className="track"><i style={{ width: w(s.totalProvision + s.cfeProv), background: SEG_COLORS.provision }}></i></div><span className="v" style={{ color: "var(--prov)" }}>−{eur0(s.totalProvision + s.cfeProv)}</span></div>
               <div className="cas net"><span className="op eq" aria-hidden="true">=</span><span className="k" style={{ fontWeight: 700, color: "var(--ink)" }}>Net dans ma poche</span><div className="track"><i style={{ width: w(Math.max(0, net)), background: SEG_COLORS.net }}></i></div><span className="v pos">{eur0(net)}</span></div>
             </div>
             <div className="cas-key">
@@ -878,9 +881,9 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex }) {
           <div className="card-h"><h2>Où part le TTC encaissé ?</h2><span className="sub">{MONTHS[mIndex]}</span></div>
           <div className="card-b">
             {ttc > 0 ?
-            <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
                 <div className="donut2" style={{ background: donutBg }} data-comment-anchor="3a898726ed-div-105-17"></div>
-                <div className="dlegend">
+                <div className="dlegend" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px 16px" }}>
                   {segs.map((x) =>
                 <div className="li" key={x.key}><span className="sw2" style={{ background: DONUT_COLORS[x.key] }}></span>{x.lab} · <b>{Math.round(x.val / segTot * 100)}%</b></div>
                 )}
@@ -944,6 +947,7 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex }) {
               {!profile.tva && <div className="yrow sub"><span className="lab">CA HT</span><b>{eur0(ys.caHT)}</b></div>}
               <div className="yrow"><span className="lab">URSSAF</span><b className="neg">−{eur0(ys.cotis)}</b></div>
               <div className="yrow"><span className="lab">Frais</span><b className="neg">−{eur0(ys.decaisse + ys.provision)}</b></div>
+              {ys.cfe > 0 && <div className="yrow"><span className="lab">CFE</span><b className="neg">−{eur0(ys.cfe)}</b></div>}
               {profile.tva && <div className="yrow"><span className="lab">TVA à reverser</span><b className="neg">−{eur0(ys.tva)}</b></div>}
               <div className="yrow tot"><span className="lab">Revenu net cumulé</span><b className="pos">{eur0(ys.netPrudent)}</b></div>
             </div>
@@ -1639,11 +1643,12 @@ function Section({ title, amount, color, open, onToggle, children }) {
 
 }
 
-function ChargesProvisionsTab({ factures, charges, profile, mIndex }) {
-  const s = computeMonth({ factures, charges, profile, mIndex });
-  const [open, setOpen] = React.useState({ urssaf: true, tva: true, prov: true });
+function ChargesProvisionsTab({ factures, charges, profile, mIndex, cfeData = {}, onUpdateCfe }) {
+  const cfeAnnuel = num(cfeData.montant) || 0;
+  const s = computeMonth({ factures, charges, profile, mIndex, cfeAnnuel });
+  const [open, setOpen] = React.useState({ urssaf: true, tva: true, cfe: true, prov: true });
   const tog = (k) => setOpen((o) => ({ ...o, [k]: !o[k] }));
-  const grandTotal = s.totalCotis + s.totalProvision + s.tvaAreverser;
+  const grandTotal = s.totalCotis + s.totalProvision + s.tvaAreverser + s.cfeProv;
 
   return (
     <div>
@@ -1695,6 +1700,62 @@ function ChargesProvisionsTab({ factures, charges, profile, mIndex }) {
           <p className="mini" style={{ marginTop: 8 }}>À reverser à l'État — ce n'est pas votre revenu.{s.tvaDeductible > 0 ? " TVA déductible sur achats déjà déduite." : ""}</p>
         </Section>
       }
+
+      <Section title="CFE — Cotisation Foncière des Entreprises" amount={s.cfeProv} color={SEG_COLORS.cfe} open={open.cfe} onToggle={() => tog("cfe")}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label style={{ fontSize: 12.5 }}>
+              {cfeData.valide
+                ? <span style={{ color: "#3a7a3a", fontWeight: 700 }}>✓ Montant validé — avis reçu</span>
+                : <span>Estimation {YEAR} <span style={{ fontWeight: 400, color: "var(--faint)" }}>— à mettre à jour dès réception de l'avis (novembre)</span></span>
+              }
+            </label>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <input
+                className="in"
+                type="number"
+                step="1"
+                placeholder="Ex : 250"
+                value={cfeData.montant || ""}
+                disabled={!!cfeData.valide}
+                style={{ maxWidth: 140, opacity: cfeData.valide ? 0.6 : 1 }}
+                onChange={(e) => onUpdateCfe("montant", num(e.target.value) || "")}
+              />
+              <span style={{ fontSize: 13, color: "var(--soft)" }}>€ / an</span>
+              {cfeAnnuel > 0 && (
+                <button
+                  className="btn"
+                  style={{ marginLeft: "auto", fontSize: 12, background: cfeData.valide ? "var(--primary-soft)" : "var(--primary)", color: cfeData.valide ? "var(--primary-d)" : "#fff", border: "none" }}
+                  onClick={() => onUpdateCfe("valide", !cfeData.valide)}
+                >
+                  {cfeData.valide ? "Modifier" : "Valider l'avis"}
+                </button>
+              )}
+            </div>
+          </div>
+          {cfeAnnuel > 0 ? (
+            <>
+              <div className="listline">
+                <span className="lab">Provision mensuelle <span style={{ color: "var(--faint)" }}>(÷ 12)</span></span>
+                <b style={{ color: SEG_COLORS.cfe }}>{eur(s.cfeProv)}</b>
+              </div>
+              <div className="listline">
+                <span className="lab">Échéance annuelle</span>
+                <b>15 décembre {YEAR}</b>
+              </div>
+              {mIndex >= 10 && (
+                <div style={{ marginTop: 4, background: "#f1edf6", border: "1px solid #c9b8d8", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#5a4070" }}>
+                  {mIndex === 11
+                    ? "Paiement dû avant le 15 décembre. Pensez à régler votre CFE sur impots.gouv.fr."
+                    : "Votre avis CFE sera disponible début novembre sur impots.gouv.fr. Mettez à jour le montant et cliquez sur \"Valider l'avis\"."}
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="mini">Saisissez votre CFE estimée pour calculer la provision mensuelle.</p>
+          )}
+        </div>
+      </Section>
 
       <Section title="Provisions sur frais" amount={s.totalProvision} color={SEG_COLORS.provision} open={open.prov} onToggle={() => tog("prov")}>
         {s.provisionLines.length === 0 && <p className="mini">Aucune provision à constituer ce mois.</p>}
@@ -1873,13 +1934,19 @@ function App() {
     ? { ...c, tarifsHistory: (c.tarifsHistory || []).filter(t => t.from !== from) }
     : c));
 
+  // ----- CFE -----
+  const [cfeData, setCfeData] = React.useState(() => load("mef2:cfe", {}));
+  React.useEffect(() => save("mef2:cfe", cfeData), [cfeData]);
+  const updateCfe = (field, val) => setCfeData(prev => ({ ...prev, [YEAR]: { ...(prev[YEAR] || {}), [field]: val } }));
+  const cfeAnnuel = num((cfeData[YEAR] || {}).montant) || 0;
+
   // ----- nav -----
   const goMonth = (delta) => setUi((u) => ({ ...u, month: Math.min(11, Math.max(0, u.month + delta)) }));
   const setTab = (tab) => setUi((u) => ({ ...u, tab }));
 
   // ----- export / import -----
   const exportJSON = () => {
-    const blob = new Blob([JSON.stringify({ version: 2, profile, facturesByMonth, charges }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ version: 2, profile, facturesByMonth, charges, cfe: cfeData }, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `microcompte-${YEAR}.json`;
@@ -1895,6 +1962,7 @@ function App() {
         if (d.profile) setProfile(d.profile);
         if (d.facturesByMonth) setFB(d.facturesByMonth);
         if (d.charges) setCharges(d.charges);
+        if (d.cfe) setCfeData(d.cfe);
         alert("Données importées avec succès.");
       } catch (err) { alert("Fichier invalide."); }
     };
@@ -1941,12 +2009,12 @@ function App() {
         <button className="mbtn" disabled={m === 11} onClick={() => goMonth(1)}>{Chev("M9 18l6-6-6-6")}</button>
       </div>
 
-      {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} charges={charges} profile={profile} mIndex={m} />}
+      {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} charges={charges} profile={profile} mIndex={m} cfeAnnuel={cfeAnnuel} />}
       {ui.tab === "factures" && <FacturesTab factures={factures} facturesByMonth={facturesByMonth} profile={profile}
         onAddInv={addInv} onRemoveInv={removeInv} onUpdateInv={updateInv}
         onAddLine={addLine} onUpdateLine={updateLine} onRemoveLine={removeLine} />}
       {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} profile={profile} onAdd={addCharge} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} />}
-      {ui.tab === "prov" && <ChargesProvisionsTab factures={factures} charges={charges} profile={profile} mIndex={m} />}
+      {ui.tab === "prov" && <ChargesProvisionsTab factures={factures} charges={charges} profile={profile} mIndex={m} cfeData={cfeData[YEAR] || {}} onUpdateCfe={updateCfe} />}
 
       {profileOpen && <ProfileModal profile={profile} setProfile={setProfile} onClose={() => setProfileOpen(false)} onExport={exportJSON} onImport={importJSON} />}
     </div>
