@@ -273,12 +273,13 @@ select.cell-in{appearance:none;cursor:pointer;
 
 /* ---------- modal ---------- */
 .scrim{position:fixed;inset:0;background:rgba(20,28,40,.42);display:grid;place-items:center;z-index:60;padding:20px;}
-.modal{background:var(--card);border-radius:16px;width:min(480px,100%);box-shadow:0 24px 60px rgba(10,20,40,.3);overflow:hidden;}
-.modal-h{display:flex;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line);}
+.modal{background:var(--card);border-radius:16px;width:min(480px,100%);max-height:90vh;box-shadow:0 24px 60px rgba(10,20,40,.3);overflow:hidden;display:flex;flex-direction:column;}
+.modal-h{display:flex;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line);flex:none;}
 .modal-h h3{margin:0;font-size:16px;font-weight:700;}
 .modal-h .x{margin-left:auto;width:30px;height:30px;border:none;background:transparent;border-radius:8px;cursor:pointer;color:var(--faint);display:grid;place-items:center;}
 .modal-h .x:hover{background:#f0f2f5;color:var(--ink);}
-.modal-b{padding:20px;display:flex;flex-direction:column;gap:16px;}
+.modal-b{padding:20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;flex:1;min-height:0;}
+.modal-f{flex:none;}
 .modal-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;}
 
 .field{display:flex;flex-direction:column;gap:6px;}
@@ -563,6 +564,13 @@ function tariffForMonth(charge, mIndex) {
   return tariffAt(charge, `${YEAR}-${pad2(mIndex)}-31`);
 }
 
+function rateAt(cat, dateStr, history) {
+  const catHistory = (history[cat] || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
+  if (!catHistory.length) return RATES[cat] || RATES.BNC;
+  const applicable = catHistory.filter(r => r.from <= dateStr);
+  return applicable.length > 0 ? applicable[applicable.length - 1] : catHistory[0];
+}
+
 function nextDebitDate(charge) {
   const today = appToday();
   const startDate = new Date(charge.date || `${YEAR}-01-01`);
@@ -617,22 +625,24 @@ function linesOf(f) {
 }
 
 // totaux d'une seule facture (pour l'aperçu en direct)
-function factureTotals(f, profile) {
+function factureTotals(f, profile, urssafHistory = {}) {
   const lib = !!profile.liberatoire, assujetti = !!profile.tva;
   let ht = 0, tva = 0, urssaf = 0;
+  const dateStr = f.date || TODAY;
   linesOf(f).forEach((l) => {
     const m = num(l.montant); ht += m;
     if (assujetti) tva += m * num(l.tva);
-    const r = RATES[l.categorie] || RATES.BNC;
+    const r = rateAt(l.categorie, dateStr, urssafHistory);
     urssaf += m * (r.social + (lib ? r.lib : 0));
   });
   return { ht, tva, ttc: ht + tva, urssaf, net: ht - urssaf };
 }
 
 // calcule tout le résumé d'un mois
-function computeMonth({ factures, charges, profile, mIndex, cfeAnnuel = 0 }) {
+function computeMonth({ factures, charges, profile, mIndex, cfeAnnuel = 0, urssafHistory = {} }) {
   const assujetti = !!profile.tva;
   const lib = !!profile.liberatoire;
+  const monthDateStr = `${YEAR}-${pad2(mIndex)}-01`;
 
   // --- CA & TVA (sur toutes les lignes de toutes les factures) ---
   let caHT = 0, tvaCollectee = 0;
@@ -653,7 +663,7 @@ function computeMonth({ factures, charges, profile, mIndex, cfeAnnuel = 0 }) {
   CATS.forEach((c) => {
     const base = byCat[c];
     if (!base) return;
-    const r = RATES[c];
+    const r = rateAt(c, monthDateStr, urssafHistory);
     const roundedBase = Math.round(base);
     const social = roundedBase * r.social;
     const liber = lib ? roundedBase * r.lib : 0;
@@ -694,11 +704,11 @@ function computeMonth({ factures, charges, profile, mIndex, cfeAnnuel = 0 }) {
 }
 
 // net (après URSSAF & charges décaissées) pour chaque mois de l'année — pour le graphe + synthèse
-function computeYear({ facturesByMonth, charges, profile, cfeAnnuel = 0 }) {
+function computeYear({ facturesByMonth, charges, profile, cfeAnnuel = 0, urssafHistory = {} }) {
   const out = [];
   for (let i = 0; i < 12; i++) {
     const fs = facturesByMonth[`${YEAR}-${pad2(i)}`] || [];
-    const s = computeMonth({ factures: fs, charges, profile, mIndex: i, cfeAnnuel });
+    const s = computeMonth({ factures: fs, charges, profile, mIndex: i, cfeAnnuel, urssafHistory });
     out.push({
       net: s.net, netPrudent: s.netPrudent, caHT: s.caHT, caTTC: s.caTTC,
       tva: s.tvaAreverser, cotis: s.totalCotis,
@@ -711,8 +721,8 @@ function computeYear({ facturesByMonth, charges, profile, cfeAnnuel = 0 }) {
 }
 
 // totaux cumulés sur l'année (jusqu'au mois inclus) + référence N-1
-function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth, prevYear, cfeAnnuel = 0 }) {
-  const year = computeYear({ facturesByMonth, charges, profile, cfeAnnuel });
+function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth, prevYear, cfeAnnuel = 0, urssafHistory = {} }) {
+  const year = computeYear({ facturesByMonth, charges, profile, cfeAnnuel, urssafHistory });
   const upto = uptoMonth == null ? 11 : uptoMonth;
   const acc = { caTTC: 0, caHT: 0, tva: 0, cotis: 0, decaisse: 0, provision: 0, cfe: 0, net: 0, netPrudent: 0, nbFactures: 0, lastActive: -1 };
   year.forEach((y, i) => {
@@ -730,7 +740,7 @@ function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth, prev
 window.MEF = {
   RATES, CATS, TVA_RATES, MONTHS, YEAR,
   pad2, monthKey, uid, eur, eur0, pct, num,
-  load, save, appToday, TODAY, tariffAt, tariffForMonth, nextDebitDate, chargeImpact, computeMonth, computeYear, computeYearSummary,
+  load, save, appToday, TODAY, tariffAt, tariffForMonth, rateAt, nextDebitDate, chargeImpact, computeMonth, computeYear, computeYearSummary,
   linesOf, factureTotals,
 };
 
@@ -741,7 +751,14 @@ window.MEF = {
    tabs.jsx — Dashboard, Factures (multi-lignes), Frais, Charges & provisions
    ============================================================ */
 const { RATES, CATS, TVA_RATES, MONTHS, YEAR, eur, eur0, pct, num, uid, pad2,
-  appToday, TODAY, tariffAt, tariffForMonth, nextDebitDate, chargeImpact, computeMonth, computeYear, computeYearSummary, linesOf, factureTotals } = window.MEF;
+  appToday, TODAY, tariffAt, tariffForMonth, rateAt, nextDebitDate, chargeImpact, computeMonth, computeYear, computeYearSummary, linesOf, factureTotals } = window.MEF;
+
+const CATS_META = [
+  { key: "BNC",        label: "BNC (régime général)" },
+  { key: "BNC_CIPAV",  label: "BNC CIPAV" },
+  { key: "BIC_VENTE",  label: "BIC — Vente" },
+  { key: "BIC_PRESTA", label: "BIC — Prestation" },
+];
 
 const fmtDate = (d) => d instanceof Date
   ? d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
@@ -773,9 +790,9 @@ const DONUT_COLORS = SEG_COLORS;
 /* ========================================================== */
 /* TABLEAU DE BORD (approche A + graphes B)                   */
 /* ========================================================== */
-function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex, cfeAnnuel = 0 }) {
-  const s = computeMonth({ factures, charges, profile, mIndex, cfeAnnuel });
-  const year = computeYear({ facturesByMonth, charges, profile, cfeAnnuel });
+function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex, cfeAnnuel = 0, urssafHistory = {} }) {
+  const s = computeMonth({ factures, charges, profile, mIndex, cfeAnnuel, urssafHistory });
+  const year = computeYear({ facturesByMonth, charges, profile, cfeAnnuel, urssafHistory });
 
   const ttc = s.caTTC; // ce que j'ai encaissé
   const aMettre = s.tvaAreverser + s.totalCotis + s.totalDecaisse + s.totalProvision + s.cfeProv; // frais & charges
@@ -815,7 +832,7 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex, cfe
   const [histScope, setHistScope] = React.useState("month");
 
   // synthèse annuelle (cumul jusqu'au mois affiché) + écart N-1
-  const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex, prevYear: (profile.prevYears || {})[YEAR - 1], cfeAnnuel });
+  const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex, prevYear: (profile.prevYears || {})[YEAR - 1], cfeAnnuel, urssafHistory });
   const monthsElapsed = Math.max(1, (ys.lastActive < 0 ? mIndex : ys.lastActive) + 1);
   const projNet = ys.netPrudent / monthsElapsed * 12; // projection annuelle simple
   const prevNet = ys.prev.net || 0;
@@ -973,9 +990,10 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex, cfe
 /* ========================================================== */
 /* FACTURES — une facture, plusieurs lignes (taux différents) */
 /* ========================================================== */
-function InvoiceCard({ f, profile, onUpdateInv, onAddLine, onUpdateLine, onRemoveLine, onRemoveInv }) {
+function InvoiceCard({ f, profile, onUpdateInv, onAddLine, onUpdateLine, onRemoveLine, onRemoveInv, urssafHistory = {}, tvaConfig }) {
   const assujetti = !!profile.tva;
-  const t = factureTotals(f, profile);
+  const activeTvaRates = tvaConfig || TVA_RATES;
+  const t = factureTotals(f, profile, urssafHistory);
   const lines = linesOf(f);
   return (
     <div className="card invoice">
@@ -1011,7 +1029,7 @@ function InvoiceCard({ f, profile, onUpdateInv, onAddLine, onUpdateLine, onRemov
                 {assujetti &&
               <td>
                     <select className="cell-in" value={l.tva} onChange={(e) => onUpdateLine(f.id, l.id, "tva", parseFloat(e.target.value))}>
-                      {TVA_RATES.map((tv) => <option key={tv.v} value={tv.v}>{tv.label}</option>)}
+                      {activeTvaRates.map((tv) => <option key={tv.v} value={tv.v}>{tv.label}</option>)}
                     </select>
                   </td>
               }
@@ -1040,7 +1058,7 @@ function InvoiceCard({ f, profile, onUpdateInv, onAddLine, onUpdateLine, onRemov
 
 }
 
-function FacturesTab({ factures, facturesByMonth, profile, onAddInv, onRemoveInv, onUpdateInv, onAddLine, onUpdateLine, onRemoveLine }) {
+function FacturesTab({ factures, facturesByMonth, profile, onAddInv, onRemoveInv, onUpdateInv, onAddLine, onUpdateLine, onRemoveLine, urssafHistory = {}, tvaConfig }) {
   const assujetti = !!profile.tva;
   let caHT = 0,tvaTot = 0;const byCat = {};
   factures.forEach((f) => linesOf(f).forEach((l) => {
@@ -1060,7 +1078,7 @@ function FacturesTab({ factures, facturesByMonth, profile, onAddInv, onRemoveInv
         {factures.map((f) =>
         <InvoiceCard key={f.id} f={f} profile={profile}
         onUpdateInv={onUpdateInv} onAddLine={onAddLine} onUpdateLine={onUpdateLine}
-        onRemoveLine={onRemoveLine} onRemoveInv={onRemoveInv} />
+        onRemoveLine={onRemoveLine} onRemoveInv={onRemoveInv} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />
         )}
       </div>
       <button className="addrow accent" style={{ marginTop: 14 }} onClick={onAddInv}>{Icon.plus} Nouvelle facture</button>
@@ -1351,7 +1369,8 @@ function CategoryDonut({ charges, mIndex, scope, categories }) {
   );
 }
 
-function FraisTab({ charges, mIndex, categories, profile, onAdd, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory }) {
+function FraisTab({ charges, mIndex, categories, profile, onAdd, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory, tvaConfig }) {
+  const activeTvaRates = tvaConfig || TVA_RATES;
   const [view, setView] = React.useState("table");
   const [scope, setScope] = React.useState("month");
   const [tarifsOpen, setTarifsOpen] = React.useState({});
@@ -1408,7 +1427,7 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onUpdate, onRem
         <select className="cell-in cat-select" value={ch.tva || 0}
           onChange={e => onUpdate(ch.id, "tva", parseFloat(e.target.value))}
           style={{ marginTop: 4 }} title="TVA sur cet achat">
-          {TVA_RATES.map(tv => <option key={tv.v} value={tv.v}>TVA {tv.label}</option>)}
+          {activeTvaRates.map(tv => <option key={tv.v} value={tv.v}>TVA {tv.label}</option>)}
         </select>
       )}
     </td>
@@ -1435,7 +1454,7 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onUpdate, onRem
                   <select className="cell-in cat-select" value={ch.tva || 0}
                     onChange={e => onUpdate(ch.id, "tva", parseFloat(e.target.value))}
                     style={{ marginTop: 4 }} title="TVA sur cet achat">
-                    {TVA_RATES.map(tv => <option key={tv.v} value={tv.v}>TVA {tv.label}</option>)}
+                    {activeTvaRates.map(tv => <option key={tv.v} value={tv.v}>TVA {tv.label}</option>)}
                   </select>
                 )}
               </td>
@@ -1643,9 +1662,9 @@ function Section({ title, amount, color, open, onToggle, children }) {
 
 }
 
-function ChargesProvisionsTab({ factures, charges, profile, mIndex, cfeData = {}, onUpdateCfe }) {
+function ChargesProvisionsTab({ factures, charges, profile, mIndex, cfeData = {}, onUpdateCfe, urssafHistory = {} }) {
   const cfeAnnuel = num(cfeData.montant) || 0;
-  const s = computeMonth({ factures, charges, profile, mIndex, cfeAnnuel });
+  const s = computeMonth({ factures, charges, profile, mIndex, cfeAnnuel, urssafHistory });
   const [open, setOpen] = React.useState({ urssaf: true, tva: true, cfe: true, prov: true });
   const tog = (k) => setOpen((o) => ({ ...o, [k]: !o[k] }));
   const grandTotal = s.totalCotis + s.totalProvision + s.tvaAreverser + s.cfeProv;
@@ -1877,11 +1896,24 @@ function App() {
   const [charges, setCharges] = React.useState(() => migrateCharges(load("mef2:charges", SEED_CHARGES)));
   const [ui, setUi] = React.useState(() => load("mef2:ui", { tab: "dashboard", month: 3 }));
   const [profileOpen, setProfileOpen] = React.useState(false);
+  const [urssafHistory, setUrssafHistory] = React.useState(() => load("mef2:urssaf_history", {
+    "BIC_VENTE":  [{ from: "2026-01-01", social: 0.123, lib: 0.010 }],
+    "BIC_PRESTA": [{ from: "2026-01-01", social: 0.212, lib: 0.017 }],
+    "BNC":        [{ from: "2026-01-01", social: 0.261, lib: 0.022 }],
+    "BNC_CIPAV":  [{ from: "2026-01-01", social: 0.232, lib: 0.022 }],
+  }));
+  const [tvaConfig, setTvaConfig] = React.useState(() => load("mef2:tva_config", [
+    { v: 0,    label: "0 %" },
+    { v: 0.10, label: "10 %" },
+    { v: 0.20, label: "20 %" },
+  ]));
 
   React.useEffect(() => save("mef2:profile", profile), [profile]);
   React.useEffect(() => save("mef2:factures", facturesByMonth), [facturesByMonth]);
   React.useEffect(() => save("mef2:charges", charges), [charges]);
   React.useEffect(() => save("mef2:ui", ui), [ui]);
+  React.useEffect(() => save("mef2:urssaf_history", urssafHistory), [urssafHistory]);
+  React.useEffect(() => save("mef2:tva_config", tvaConfig), [tvaConfig]);
 
   const DEFAULT_CATEGORIES = ["Charges de fonctionnement", "Abonnements", "Achats ponctuels"];
   const [categories, setCategories] = React.useState(() => load("mef2:categories", DEFAULT_CATEGORIES));
@@ -1946,7 +1978,7 @@ function App() {
 
   // ----- export / import -----
   const exportJSON = () => {
-    const blob = new Blob([JSON.stringify({ version: 2, profile, facturesByMonth, charges, cfe: cfeData }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ version: 2, profile, facturesByMonth, charges, cfe: cfeData, urssafHistory, tvaConfig }, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `microcompte-${YEAR}.json`;
@@ -1963,6 +1995,8 @@ function App() {
         if (d.facturesByMonth) setFB(d.facturesByMonth);
         if (d.charges) setCharges(d.charges);
         if (d.cfe) setCfeData(d.cfe);
+        if (d.urssafHistory) setUrssafHistory(d.urssafHistory);
+        if (d.tvaConfig) setTvaConfig(d.tvaConfig);
         alert("Données importées avec succès.");
       } catch (err) { alert("Fichier invalide."); }
     };
@@ -2009,19 +2043,19 @@ function App() {
         <button className="mbtn" disabled={m === 11} onClick={() => goMonth(1)}>{Chev("M9 18l6-6-6-6")}</button>
       </div>
 
-      {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} charges={charges} profile={profile} mIndex={m} cfeAnnuel={cfeAnnuel} />}
+      {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} charges={charges} profile={profile} mIndex={m} cfeAnnuel={cfeAnnuel} urssafHistory={urssafHistory} />}
       {ui.tab === "factures" && <FacturesTab factures={factures} facturesByMonth={facturesByMonth} profile={profile}
         onAddInv={addInv} onRemoveInv={removeInv} onUpdateInv={updateInv}
-        onAddLine={addLine} onUpdateLine={updateLine} onRemoveLine={removeLine} />}
-      {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} profile={profile} onAdd={addCharge} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} />}
-      {ui.tab === "prov" && <ChargesProvisionsTab factures={factures} charges={charges} profile={profile} mIndex={m} cfeData={cfeData[YEAR] || {}} onUpdateCfe={updateCfe} />}
+        onAddLine={addLine} onUpdateLine={updateLine} onRemoveLine={removeLine} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />}
+      {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} profile={profile} onAdd={addCharge} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} tvaConfig={tvaConfig} />}
+      {ui.tab === "prov" && <ChargesProvisionsTab factures={factures} charges={charges} profile={profile} mIndex={m} cfeData={cfeData[YEAR] || {}} onUpdateCfe={updateCfe} urssafHistory={urssafHistory} />}
 
-      {profileOpen && <ProfileModal profile={profile} setProfile={setProfile} onClose={() => setProfileOpen(false)} onExport={exportJSON} onImport={importJSON} />}
+      {profileOpen && <ProfileModal profile={profile} setProfile={setProfile} onClose={() => setProfileOpen(false)} onExport={exportJSON} onImport={importJSON} urssafHistory={urssafHistory} setUrssafHistory={setUrssafHistory} tvaConfig={tvaConfig} setTvaConfig={setTvaConfig} />}
     </div>
   );
 }
 
-function ProfileModal({ profile, setProfile, onClose, onExport, onImport }) {
+function ProfileModal({ profile, setProfile, onClose, onExport, onImport, urssafHistory, setUrssafHistory, tvaConfig, setTvaConfig }) {
   const up = (field, val) => setProfile({ ...profile, [field]: val });
   const prev = (profile.prevYears || {})[YEAR - 1] || {};
   const upPrev = (field, val) => setProfile(p => ({
@@ -2029,6 +2063,38 @@ function ProfileModal({ profile, setProfile, onClose, onExport, onImport }) {
     prevYears: { ...(p.prevYears || {}), [YEAR - 1]: { ...((p.prevYears || {})[YEAR - 1] || {}), [field]: num(val) } }
   }));
   const fileRef = React.useRef(null);
+
+  const [addingUrssaf, setAddingUrssaf] = React.useState(false);
+  const [urssafForm, setUrssafForm] = React.useState({
+    from: `${YEAR + 1}-01-01`,
+    rates: Object.fromEntries(CATS_META.map(m => [m.key, { social: "", lib: "" }])),
+  });
+  const [showUrssafHistory, setShowUrssafHistory] = React.useState(false);
+  const currentRateFor = (cat) => {
+    const hist = ((urssafHistory || {})[cat] || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
+    return hist.length > 0 ? hist[hist.length - 1] : null;
+  };
+  const saveUrssafEntry = () => {
+    const newHistory = { ...(urssafHistory || {}) };
+    CATS_META.forEach(m => {
+      const s = parseFloat(urssafForm.rates[m.key].social) / 100;
+      const l = parseFloat(urssafForm.rates[m.key].lib) / 100;
+      if (!isNaN(s) && s > 0) {
+        const existing = (newHistory[m.key] || []).filter(e => e.from !== urssafForm.from);
+        newHistory[m.key] = [...existing, { from: urssafForm.from, social: s, lib: isNaN(l) ? 0 : l }]
+          .sort((a, b) => a.from < b.from ? -1 : 1);
+      }
+    });
+    setUrssafHistory(newHistory);
+    setAddingUrssaf(false);
+    setUrssafForm({ from: `${YEAR + 1}-01-01`, rates: Object.fromEntries(CATS_META.map(m => [m.key, { social: "", lib: "" }])) });
+  };
+  const deleteUrssafEntry = (cat, from) => {
+    const hist = ((urssafHistory || {})[cat] || []).filter(e => e.from !== from);
+    setUrssafHistory({ ...(urssafHistory || {}), [cat]: hist });
+  };
+  const [addingTva, setAddingTva] = React.useState(false);
+  const [newTvaValue, setNewTvaValue] = React.useState("");
   return (
     <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
@@ -2068,6 +2134,137 @@ function ProfileModal({ profile, setProfile, onClose, onExport, onImport }) {
               </div>
             </div>
           </div>
+          <div style={{ borderTop: "1px solid var(--line)", paddingTop: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--faint)", marginBottom: 12 }}>
+              Taux officiels
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>URSSAF · cotisations sociales</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {CATS_META.map(m => {
+                  const r = currentRateFor(m.key);
+                  return r ? (
+                    <div key={m.key} style={{ display: "flex", gap: 10, fontSize: 13, alignItems: "center" }}>
+                      <span style={{ flex: 1, color: "var(--soft)" }}>{m.label}</span>
+                      <span style={{ fontWeight: 600 }}>{pct(r.social)}</span>
+                      {r.lib > 0 && <span style={{ color: "var(--faint)" }}>+ {pct(r.lib)} libér.</span>}
+                      <span style={{ fontSize: 11, color: "var(--faint)" }}>depuis {new Date(r.from + "T00:00:00").toLocaleDateString("fr-FR")}</span>
+                    </div>
+                  ) : null;
+                })}
+              </div>
+
+              {!addingUrssaf ? (
+                <button className="btn" style={{ marginTop: 10, fontSize: 12.5 }} onClick={() => setAddingUrssaf(true)}>
+                  + Nouveau taux
+                </button>
+              ) : (
+                <div style={{ marginTop: 10, background: "var(--primary-soft)", borderRadius: 8, padding: 12 }}>
+                  <div style={{ marginBottom: 10 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>À partir du</label>
+                    <input type="date" className="in" value={urssafForm.from}
+                      onChange={e => setUrssafForm(f => ({ ...f, from: e.target.value }))}
+                      style={{ width: "auto" }} />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 120px 120px", gap: "4px 10px", fontSize: 12, marginBottom: 8 }}>
+                    <span style={{ fontWeight: 600, color: "var(--faint)", paddingBottom: 4 }}>Catégorie</span>
+                    <span style={{ fontWeight: 600, color: "var(--faint)", textAlign: "right", paddingBottom: 4 }}>Taux social</span>
+                    <span style={{ fontWeight: 600, color: "var(--faint)", textAlign: "right", paddingBottom: 4 }}>Taux libér.</span>
+                    {CATS_META.map(m => (
+                      <React.Fragment key={m.key}>
+                        <span style={{ color: "var(--soft)", alignSelf: "center", paddingBottom: 4 }}>{m.label}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 3, justifyContent: "flex-end", paddingBottom: 4 }}>
+                          <input type="number" step="0.1" min="0" max="100" className="in"
+                            placeholder={((currentRateFor(m.key)?.social || 0) * 100).toFixed(1)}
+                            value={urssafForm.rates[m.key].social}
+                            onChange={e => setUrssafForm(f => ({ ...f, rates: { ...f.rates, [m.key]: { ...f.rates[m.key], social: e.target.value } } }))}
+                            style={{ width: 64, textAlign: "right" }} />
+                          <span style={{ fontSize: 11, color: "var(--faint)" }}>%</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 3, justifyContent: "flex-end", paddingBottom: 4 }}>
+                          <input type="number" step="0.1" min="0" max="100" className="in"
+                            placeholder={((currentRateFor(m.key)?.lib || 0) * 100).toFixed(1)}
+                            value={urssafForm.rates[m.key].lib}
+                            onChange={e => setUrssafForm(f => ({ ...f, rates: { ...f.rates, [m.key]: { ...f.rates[m.key], lib: e.target.value } } }))}
+                            style={{ width: 64, textAlign: "right" }} />
+                          <span style={{ fontSize: 11, color: "var(--faint)" }}>%</span>
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button className="btn" onClick={() => setAddingUrssaf(false)}>Annuler</button>
+                    <button className="btn pri" onClick={saveUrssafEntry}>Enregistrer</button>
+                  </div>
+                </div>
+              )}
+
+              {Object.values(urssafHistory || {}).some(h => h.length > 1) && (
+                <button onClick={() => setShowUrssafHistory(v => !v)}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11.5, color: "var(--faint)", marginTop: 6, padding: 0 }}>
+                  {showUrssafHistory ? "Masquer l'historique" : "Voir l'historique complet"}
+                </button>
+              )}
+              {showUrssafHistory && (
+                <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
+                  {CATS_META.map(m => {
+                    const hist = ((urssafHistory || {})[m.key] || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
+                    if (hist.length <= 1) return null;
+                    return (
+                      <div key={m.key}>
+                        <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 3 }}>{m.label}</div>
+                        {hist.map(e => (
+                          <div key={e.from} style={{ display: "flex", gap: 8, fontSize: 12, color: "var(--soft)", paddingLeft: 8, alignItems: "center", marginBottom: 2 }}>
+                            <span style={{ color: "var(--faint)" }}>depuis {new Date(e.from + "T00:00:00").toLocaleDateString("fr-FR")}</span>
+                            <span>{pct(e.social)}</span>
+                            {e.lib > 0 && <span style={{ color: "var(--faint)" }}>{pct(e.lib)} libér.</span>}
+                            <button onClick={() => deleteUrssafEntry(m.key, e.from)}
+                              style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--faint)", fontSize: 14, padding: "0 2px", lineHeight: 1 }}>✕</button>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>TVA · taux disponibles</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                {(tvaConfig || []).map(tv => (
+                  <span key={tv.v} style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "var(--line)", borderRadius: 999, padding: "4px 10px", fontSize: 13 }}>
+                    {tv.label}
+                    {(tvaConfig || []).length > 1 && (
+                      <button onClick={() => setTvaConfig((tvaConfig || []).filter(t => t.v !== tv.v))}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--faint)", padding: 0, lineHeight: 1, fontSize: 13 }}>✕</button>
+                    )}
+                  </span>
+                ))}
+                {!addingTva ? (
+                  <button className="btn" style={{ fontSize: 12.5, padding: "4px 10px" }} onClick={() => setAddingTva(true)}>+ Ajouter</button>
+                ) : (
+                  <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                    <input type="number" step="0.1" min="0" max="100" className="in" placeholder="Ex : 5.5"
+                      value={newTvaValue} onChange={e => setNewTvaValue(e.target.value)}
+                      style={{ width: 70 }} />
+                    <span style={{ fontSize: 12, color: "var(--soft)" }}>%</span>
+                    <button className="btn pri" style={{ padding: "4px 10px", fontSize: 12.5 }} onClick={() => {
+                      const v = parseFloat(newTvaValue) / 100;
+                      if (!isNaN(v) && v >= 0 && !(tvaConfig || []).find(t => t.v === v)) {
+                        const label = parseFloat(newTvaValue).toLocaleString("fr-FR") + " %";
+                        setTvaConfig([...(tvaConfig || []), { v, label }].sort((a, b) => a.v - b.v));
+                      }
+                      setNewTvaValue(""); setAddingTva(false);
+                    }}>OK</button>
+                    <button className="btn" style={{ padding: "4px 10px", fontSize: 12.5 }} onClick={() => { setAddingTva(false); setNewTvaValue(""); }}>Annuler</button>
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="hint">
             Toutes vos données sont enregistrées automatiquement dans ce navigateur.
             Exportez un fichier JSON pour les sauvegarder ou les transférer sur un autre appareil.
