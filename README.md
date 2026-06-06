@@ -22,4 +22,3 @@ En cours de développement.
 
 - **Déclaration URSSAF** : gestion des changements de taux dans le temps (historique des taux officiels).
 - **CFE** : intégrer la Cotisation Foncière des Entreprises.
-- **TVA déductible** : gérer la TVA déductible sur les achats, afficher le détail dans l'onglet À provisionner.
