@@ -519,35 +519,6 @@ const MONTHS = ["Janvier","Février","Mars","Avril","Mai","Juin",
   "Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
 const YEAR = 2026;
 
-// Barème de la base minimum de CFE (CFE due en YEAR, selon le CA de l'année N-2).
-// Hypothèse : pas de local professionnel (travail à domicile). Avec un local, la CFE
-// est calculée sur la valeur locative réelle et doit être saisie à la main.
-const CFE_BAREME = [
-  { caMax: 5000,     baseMin: 0,   baseMax: 0,    exo: true },
-  { caMax: 10000,    baseMin: 250, baseMax: 597  },
-  { caMax: 32600,    baseMin: 250, baseMax: 1194 },
-  { caMax: 100000,   baseMin: 250, baseMax: 2509 },
-  { caMax: 250000,   baseMin: 250, baseMax: 4183 },
-  { caMax: 500000,   baseMin: 250, baseMax: 5974 },
-  { caMax: Infinity, baseMin: 250, baseMax: 7769 },
-];
-const CFE_TAUX_DEFAUT = 26; // taux communal moyen national, en %, modifiable par l'utilisateur
-
-// Renvoie une estimation prudente de la CFE annuelle à partir du CA N-2 et du taux communal.
-// La CFE finale = base × taux communal. On retient le haut de fourchette (prudent) pour la
-// provision, en exposant aussi la fourchette basse-haute pour information.
-function estimateCfe(caN2, tauxPct) {
-  const ca = num(caN2) || 0;
-  const tx = (num(tauxPct) || 0) / 100;
-  const tranche = CFE_BAREME.find(t => ca <= t.caMax) || CFE_BAREME[CFE_BAREME.length - 1];
-  if (tranche.exo || ca <= 0) {
-    return { exo: true, tranche, baseMin: 0, baseMax: 0, cfeMin: 0, cfeMax: 0, cfe: 0 };
-  }
-  const cfeMin = Math.round(tranche.baseMin * tx);
-  const cfeMax = Math.round(tranche.baseMax * tx);
-  return { exo: false, tranche, baseMin: tranche.baseMin, baseMax: tranche.baseMax, cfeMin, cfeMax, cfe: cfeMax };
-}
-
 const pad2 = (n) => String(n + 1).padStart(2, "0");           // month index -> "01".."12"
 const monthKey = (m) => `${YEAR}-${pad2(m)}`;                  // -> "2026-04"
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -802,7 +773,8 @@ const Icon = {
   car: <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>,
   rows: <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg>,
   cal: <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 3v3M16 3v3" /></svg>,
-  tag: <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/></svg>
+  tag: <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/></svg>,
+  pencil: <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" /></svg>
 };
 // couleur de pastille par fréquence dans le calendrier
 const FREQ_META = {
@@ -1019,18 +991,23 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex, cfe
 /* ========================================================== */
 /* FACTURES — une facture, plusieurs lignes (taux différents) */
 /* ========================================================== */
-function InvoiceCard({ f, profile, onUpdateInv, onAddLine, onUpdateLine, onRemoveLine, onRemoveInv, urssafHistory = {}, tvaConfig }) {
+// Carte facture en lecture seule. Modification via le crayon (ouvre InvoiceModal).
+function InvoiceCard({ f, profile, onEdit, onRemoveInv, urssafHistory = {} }) {
   const assujetti = !!profile.tva;
-  const activeTvaRates = tvaConfig || TVA_RATES;
   const t = factureTotals(f, profile, urssafHistory);
   const lines = linesOf(f);
+  const dateLabel = f.date
+    ? new Date(f.date + "T00:00:00").toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+    : "Date manquante";
   return (
     <div className="card invoice">
       <div className="inv-h">
-        <input className={"cell-in date-in" + (!f.date ? " field-missing" : "")} type="date" value={f.date} onChange={(e) => onUpdateInv(f.id, "date", e.target.value)} />
-        {!f.date && <span className="field-missing-hint">Date requise</span>}
-        <input className="cell-in client-in" placeholder="Nom du client" value={f.client} list="mef-clients" onChange={(e) => onUpdateInv(f.id, "client", e.target.value)} />
+        <span style={{ flex: "none", fontWeight: 600, color: f.date ? "var(--ink)" : "#d9534f" }}>{dateLabel}</span>
+        <span style={{ flex: 1, fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {f.client || <em style={{ color: "var(--faint)", fontWeight: 400 }}>Sans client</em>}
+        </span>
         <div className="inv-net">Net estimé <b>{eur(t.net)}</b></div>
+        <button className="del" title="Modifier la facture" onClick={() => onEdit(f)}>{Icon.pencil}</button>
         <button className="del" title="Supprimer la facture" onClick={() => onRemoveInv(f.id)}>{Icon.trash}</button>
       </div>
       <div className="inv-b">
@@ -1038,32 +1015,20 @@ function InvoiceCard({ f, profile, onUpdateInv, onAddLine, onUpdateLine, onRemov
           <thead>
             <tr>
               <th>Description de la prestation</th>
-              <th style={{ width: 180 }}>Catégorie (taux URSSAF)</th>
+              <th style={{ width: 180 }}>Taux URSSAF</th>
               <th className="r" style={{ width: 120 }}>Montant HT</th>
               {assujetti && <th className="c" style={{ width: 96 }}>TVA</th>}
               {assujetti && <th className="r" style={{ width: 120 }}>Montant TTC</th>}
-              <th style={{ width: 36 }}></th>
             </tr>
           </thead>
           <tbody>
             {lines.map((l) =>
             <tr key={l.id}>
-                <td><input className="cell-in" placeholder="Ex : création de contenu" value={l.description} onChange={(e) => onUpdateLine(f.id, l.id, "description", e.target.value)} /></td>
-                <td>
-                  <select className="cell-in" value={l.categorie} onChange={(e) => onUpdateLine(f.id, l.id, "categorie", e.target.value)}>
-                    {CATS.map((c) => <option key={c} value={c}>{RATES[c].short} · {pct(RATES[c].social)}</option>)}
-                  </select>
-                </td>
-                <td><input className="cell-in num" type="number" step="0.01" placeholder="0,00" value={l.montant} onChange={(e) => onUpdateLine(f.id, l.id, "montant", e.target.value)} /></td>
-                {assujetti &&
-              <td>
-                    <select className="cell-in" value={l.tva} onChange={(e) => onUpdateLine(f.id, l.id, "tva", parseFloat(e.target.value))}>
-                      {activeTvaRates.map((tv) => <option key={tv.v} value={tv.v}>{tv.label}</option>)}
-                    </select>
-                  </td>
-              }
+                <td>{l.description || <span style={{ color: "var(--faint)" }}>—</span>}</td>
+                <td>{RATES[l.categorie].short} · {pct(RATES[l.categorie].social)}</td>
+                <td className="num">{eur(num(l.montant))}</td>
+                {assujetti && <td className="c">{pct(num(l.tva))}</td>}
                 {assujetti && <td className="num ttc-cell">{eur(num(l.montant) * (1 + num(l.tva)))}</td>}
-                <td className="c">{lines.length > 1 && <button className="del" title="Supprimer la ligne" onClick={() => onRemoveLine(f.id, l.id)}>{Icon.trash}</button>}</td>
               </tr>
             )}
           </tbody>
@@ -1073,64 +1038,182 @@ function InvoiceCard({ f, profile, onUpdateInv, onAddLine, onUpdateLine, onRemov
               <td className="num"><b>{eur(t.ht)}</b></td>
               {assujetti && <td className="c sum-tva">{eur(t.tva)}</td>}
               {assujetti && <td className="num"><b>{eur(t.ttc)}</b></td>}
-              <td></td>
             </tr>
           </tfoot>
         </table>
-        <button className="addrow" style={{ marginTop: 8, padding: "7px 12px", fontSize: 12.5 }} onClick={() => onAddLine(f.id)}>{Icon.plus} Ajouter une ligne</button>
-        <div className="inv-result">
-          <div className="ir-line"><span>Cotisations URSSAF <em>estimées sur le HT réel</em></span><b className="neg">−{eur(t.urssaf)}</b></div>
-          <div className="ir-line net"><span>Net estimé pour vous</span><b>{eur(t.net)}</b></div>
+      </div>
+    </div>);
+}
+
+// Modale de création / modification d'une facture. Travaille sur un brouillon local :
+// rien n'est enregistré tant que l'utilisateur n'a pas cliqué sur "Valider".
+function InvoiceModal({ initial, profile, urssafHistory = {}, tvaConfig, onSave, onClose }) {
+  const assujetti = !!profile.tva;
+  const activeTvaRates = tvaConfig || TVA_RATES;
+  const [draft, setDraft] = React.useState(() => ({
+    id: (initial && initial.id) || uid(),
+    date: (initial && initial.date) || "",
+    client: (initial && initial.client) || "",
+    lines: (initial && initial.lines && initial.lines.length)
+      ? initial.lines.map((l) => ({ ...l }))
+      : [newLine(profile.tva)],
+  }));
+  const t = factureTotals(draft, profile, urssafHistory);
+  const lines = linesOf(draft);
+  const setField = (field, val) => setDraft((d) => ({ ...d, [field]: val }));
+  const setLine = (lid, field, val) => setDraft((d) => ({ ...d, lines: d.lines.map((l) => (l.id === lid ? { ...l, [field]: val } : l)) }));
+  const addLine = () => setDraft((d) => ({ ...d, lines: [...d.lines, newLine(profile.tva)] }));
+  const removeLine = (lid) => setDraft((d) => ({ ...d, lines: d.lines.filter((l) => l.id !== lid) }));
+  const canSave = !!draft.date;
+  return (
+    <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{ width: "min(720px, 100%)" }}>
+        <div className="modal-h">
+          <h3>{initial ? "Modifier la facture" : "Nouvelle facture"}</h3>
+          <button className="x" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-b">
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <div className="field" style={{ flex: "0 0 170px", marginBottom: 0 }}>
+              <label>Date</label>
+              <input className={"in" + (!draft.date ? " field-missing" : "")} type="date" value={draft.date} onChange={(e) => setField("date", e.target.value)} />
+            </div>
+            <div className="field" style={{ flex: 1, minWidth: 200, marginBottom: 0 }}>
+              <label>Client</label>
+              <input className="in" placeholder="Nom du client" value={draft.client} list="mef-clients" onChange={(e) => setField("client", e.target.value)} />
+            </div>
+          </div>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Description de la prestation</th>
+                <th style={{ width: 180 }}>Taux URSSAF</th>
+                <th className="r" style={{ width: 120 }}>Montant HT</th>
+                {assujetti && <th className="c" style={{ width: 96 }}>TVA</th>}
+                {assujetti && <th className="r" style={{ width: 120 }}>Montant TTC</th>}
+                <th style={{ width: 36 }}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map((l) =>
+              <tr key={l.id}>
+                  <td><input className="cell-in" placeholder="Ex : création de contenu" value={l.description} onChange={(e) => setLine(l.id, "description", e.target.value)} /></td>
+                  <td>
+                    <select className="cell-in" value={l.categorie} onChange={(e) => setLine(l.id, "categorie", e.target.value)}>
+                      {CATS.map((c) => <option key={c} value={c}>{RATES[c].short} · {pct(RATES[c].social)}</option>)}
+                    </select>
+                  </td>
+                  <td><input className="cell-in num" type="number" step="0.01" placeholder="0,00" value={l.montant} onChange={(e) => setLine(l.id, "montant", e.target.value)} /></td>
+                  {assujetti &&
+                <td>
+                      <select className="cell-in" value={l.tva} onChange={(e) => setLine(l.id, "tva", parseFloat(e.target.value))}>
+                        {activeTvaRates.map((tv) => <option key={tv.v} value={tv.v}>{tv.label}</option>)}
+                      </select>
+                    </td>
+                }
+                  {assujetti && <td className="num ttc-cell">{eur(num(l.montant) * (1 + num(l.tva)))}</td>}
+                  <td className="c">{lines.length > 1 && <button className="del" title="Supprimer la ligne" onClick={() => removeLine(l.id)}>{Icon.trash}</button>}</td>
+                </tr>
+              )}
+            </tbody>
+            <tfoot>
+              <tr className="sumrow">
+                <td colSpan={2} className="sumlab">Total facture</td>
+                <td className="num"><b>{eur(t.ht)}</b></td>
+                {assujetti && <td className="c sum-tva">{eur(t.tva)}</td>}
+                {assujetti && <td className="num"><b>{eur(t.ttc)}</b></td>}
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+          <button className="addrow" style={{ marginTop: 8, padding: "7px 12px", fontSize: 12.5 }} onClick={addLine}>{Icon.plus} Ajouter une ligne</button>
+          <div className="inv-result">
+            <div className="ir-line"><span>Cotisations URSSAF <em>estimées sur le HT réel</em></span><b className="neg">−{eur(t.urssaf)}</b></div>
+            <div className="ir-line net"><span>Net estimé pour vous</span><b>{eur(t.net)}</b></div>
+          </div>
+        </div>
+        <div className="modal-f">
+          <button className="btn ghost" onClick={onClose}>Annuler</button>
+          <button className="btn pri" disabled={!canSave} style={{ marginLeft: "auto" }} onClick={() => onSave(draft)}>Valider</button>
         </div>
       </div>
     </div>);
-
 }
 
-function FacturesTab({ factures, facturesByMonth, profile, onAddInv, onRemoveInv, onUpdateInv, onAddLine, onUpdateLine, onRemoveLine, urssafHistory = {}, tvaConfig }) {
-  const assujetti = !!profile.tva;
-  let caHT = 0,tvaTot = 0;const byCat = {};
-  factures.forEach((f) => linesOf(f).forEach((l) => {
-    const ht = num(l.montant);caHT += ht;
-    if (assujetti) tvaTot += ht * num(l.tva);
-    byCat[l.categorie] = (byCat[l.categorie] || 0) + ht;
-  }));
+function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSaveInv, onRemoveInv, urssafHistory = {}, tvaConfig }) {
+  const s = computeMonth({ factures, charges, profile, mIndex, urssafHistory });
+  const ttc = s.caTTC;
   const allClients = [...new Set(Object.values(facturesByMonth || {}).flat().map(f => f.client).filter(Boolean))].sort();
+  // modal : null = fermé ; { inv: null } = nouvelle facture ; { inv: facture } = modification
+  const [modal, setModal] = React.useState(null);
 
   return (
     <div>
       <datalist id="mef-clients">{allClients.map(c => <option key={c} value={c} />)}</datalist>
+      {factures.length > 0 &&
+      <div className="card" style={{ marginBottom: 14 }}>
+        <div className="card-h"><h2>Synthèse du mois</h2></div>
+        <div className="card-b">
+          {/* Décomposition du TTC encaissé : TVA à reverser, URSSAF, et le reste en net */}
+          <div className="listline">
+            <span className="lab" style={{ fontWeight: 600 }}>{s.assujetti ? "TTC encaissé" : "CA encaissé"}</span>
+            <b style={{ fontSize: 16 }}>{eur(ttc)}</b>
+          </div>
+          {s.assujetti &&
+          <div className="listline">
+            <span className="lab">TVA à reverser</span>
+            <b className="neg">−{eur(s.tvaCollectee)}</b>
+          </div>
+          }
+          <div className="listline">
+            <span className="lab">Cotisations URSSAF</span>
+            <b className="neg">−{eur(s.totalCotis)}</b>
+          </div>
+          <div className="listline" style={{ borderTop: "2px solid var(--primary)", borderBottom: "none", paddingTop: 9, marginTop: 4 }}>
+            <span className="lab" style={{ fontWeight: 700, color: "var(--primary-d)" }}>Net pour vous</span>
+            <b style={{ fontSize: 18, color: "var(--primary-d)" }}>{eur(ttc - s.tvaCollectee - s.totalCotis)}</b>
+          </div>
+
+          {/* Assistance déclaration URSSAF (déplacée depuis Charges et provisions) */}
+          {s.cotisLines.length > 0 &&
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: "2px solid var(--line-2)" }}>
+            <div style={{ background: "var(--primary-soft)", border: "1px solid var(--line-2)", borderRadius: 10, padding: "13px 16px" }}>
+              <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--primary-d)", marginBottom: 10 }}>
+                CA à déclarer à l'URSSAF
+              </div>
+              {s.cotisLines.map((l) => (
+                <div className="listline" key={l.cat + "-decl"} style={{ borderBottomColor: "var(--line-2)" }}>
+                  <span className="lab" style={{ color: "var(--ink)", fontWeight: 600 }}>{RATES[l.cat].label}</span>
+                  <b style={{ fontSize: 16 }}>{Math.round(l.base).toLocaleString("fr-FR")} €</b>
+                </div>
+              ))}
+              {s.cotisLines.length > 1 && (
+                <div className="listline" style={{ borderTop: "2px solid var(--primary)", borderBottom: "none", paddingTop: 9, marginTop: 4 }}>
+                  <span className="lab" style={{ fontWeight: 700, color: "var(--primary-d)" }}>Total CA déclaré</span>
+                  <b style={{ fontSize: 18, color: "var(--primary-d)" }}>{Math.round(s.caHT).toLocaleString("fr-FR")} €</b>
+                </div>
+              )}
+              <p className="mini" style={{ marginTop: 10, marginBottom: 0 }}>Montants arrondis à l'euro, comme attendu sur le formulaire URSSAF. CA HT réel : {eur(s.caHT)}.</p>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
+      <button className="addrow accent" style={{ marginBottom: 14 }} onClick={() => setModal({ inv: null })}>{Icon.plus} Nouvelle facture</button>
       <div className="stack">
         {factures.length === 0 &&
         <div className="card"><div className="empty" style={{ padding: "40px 10px" }}>Aucune facture ce mois. Créez votre première facture — elle peut contenir plusieurs lignes à taux différents.</div></div>
         }
         {factures.map((f) =>
         <InvoiceCard key={f.id} f={f} profile={profile}
-        onUpdateInv={onUpdateInv} onAddLine={onAddLine} onUpdateLine={onUpdateLine}
-        onRemoveLine={onRemoveLine} onRemoveInv={onRemoveInv} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />
+        onEdit={(inv) => setModal({ inv })} onRemoveInv={onRemoveInv} urssafHistory={urssafHistory} />
         )}
       </div>
-      <button className="addrow accent" style={{ marginTop: 14 }} onClick={onAddInv}>{Icon.plus} Nouvelle facture</button>
-
-      <div className="card" style={{ marginTop: 18 }}>
-        <div className="card-h"><h2>Récapitulatif du mois</h2></div>
-        <div className="card-b">
-          <div className="recap" style={{ marginTop: 0 }}>
-            {Object.keys(byCat).length > 0 &&
-            <div className="it cats">
-                <div className="k">Total HT par catégorie</div>
-                <div style={{ marginTop: 6 }}>
-                  {CATS.filter((c) => byCat[c]).map((c) =>
-                <div className="catline" key={c}><span>{RATES[c].label}</span><b>{eur(byCat[c])}</b></div>
-                )}
-                </div>
-              </div>
-            }
-            {assujetti && <div className="it"><div className="k">TVA collectée</div><div className="v">{eur(tvaTot)}</div></div>}
-            <div className="it"><div className="k">{assujetti ? "Total TTC" : "Total HT"}</div><div className="v">{eur(assujetti ? caHT + tvaTot : caHT)}</div></div>
-          </div>
-        </div>
-      </div>
+      {modal &&
+      <InvoiceModal initial={modal.inv} profile={profile} urssafHistory={urssafHistory} tvaConfig={tvaConfig}
+        onSave={(draft) => { onSaveInv(draft); setModal(null); }} onClose={() => setModal(null)} />
+      }
     </div>);
 
 }
@@ -1694,8 +1777,7 @@ function Section({ title, amount, color, open, onToggle, children }) {
 function ChargesProvisionsTab({ factures, charges, profile, mIndex, cfeData = {}, onUpdateCfe, urssafHistory = {} }) {
   const cfeAnnuel = num(cfeData.montant) || 0;
   const s = computeMonth({ factures, charges, profile, mIndex, cfeAnnuel, urssafHistory });
-  const [open, setOpen] = React.useState({ urssaf: true, tva: true, cfe: true, prov: true });
-  const [showEstim, setShowEstim] = React.useState(false);
+  const [open, setOpen] = React.useState({ urssaf: false, tva: false, cfe: false, prov: false });
   const tog = (k) => setOpen((o) => ({ ...o, [k]: !o[k] }));
   const grandTotal = s.totalCotis + s.totalProvision + s.tvaAreverser + s.cfeProv;
 
@@ -1710,28 +1792,7 @@ function ChargesProvisionsTab({ factures, charges, profile, mIndex, cfeData = {}
           </div>
         )}
         <p className="mini" style={{ marginTop: 8 }}>{s.lib ? "Versement libératoire de l'impôt inclus." : "Cotisations sociales seules (impôt sur le revenu hors de ce calcul)."}</p>
-        {s.cotisLines.length > 0 && (
-          <div style={{ marginTop: 16, paddingTop: 16, borderTop: "2px solid var(--line-2)" }}>
-            <div style={{ background: "var(--primary-soft)", border: "1px solid var(--line-2)", borderRadius: 10, padding: "13px 16px" }}>
-              <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--primary-d)", marginBottom: 10 }}>
-                CA à déclarer à l'URSSAF
-              </div>
-              {s.cotisLines.map((l) => (
-                <div className="listline" key={l.cat + "-decl"} style={{ borderBottomColor: "var(--line-2)" }}>
-                  <span className="lab" style={{ color: "var(--ink)", fontWeight: 600 }}>{RATES[l.cat].label}</span>
-                  <b style={{ fontSize: 16 }}>{Math.round(l.base).toLocaleString("fr-FR")} €</b>
-                </div>
-              ))}
-              {s.cotisLines.length > 1 && (
-                <div className="listline" style={{ borderTop: "2px solid var(--primary)", borderBottom: "none", paddingTop: 9, marginTop: 4 }}>
-                  <span className="lab" style={{ fontWeight: 700, color: "var(--primary-d)" }}>Total CA déclaré</span>
-                  <b style={{ fontSize: 18, color: "var(--primary-d)" }}>{Math.round(s.caHT).toLocaleString("fr-FR")} €</b>
-                </div>
-              )}
-              <p className="mini" style={{ marginTop: 10, marginBottom: 0 }}>Montants arrondis à l'euro, comme attendu sur le formulaire URSSAF. CA HT réel : {eur(s.caHT)}.</p>
-            </div>
-          </div>
-        )}
+        {s.cotisLines.length > 0 && <p className="mini" style={{ marginTop: 4 }}>Le détail du CA à déclarer se trouve dans l'onglet Factures.</p>}
       </Section>
 
       {s.assujetti &&
@@ -1782,62 +1843,6 @@ function ChargesProvisionsTab({ factures, charges, profile, mIndex, cfeData = {}
               )}
             </div>
           </div>
-          <div style={{ borderTop: "1px dashed var(--line-2)", paddingTop: 10 }}>
-            <button
-              className="btn"
-              style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "var(--card)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "9px 12px", cursor: "pointer", color: "var(--primary)", fontWeight: 600, fontSize: 13 }}
-              onClick={() => setShowEstim(v => !v)}
-            >
-              <span style={{ display: "inline-flex", color: "var(--faint)", fontWeight: 700, transition: "transform .15s", transform: showEstim ? "rotate(90deg)" : "none" }}>›</span>
-              Estimer ma CFE
-              <span style={{ marginLeft: "auto", fontWeight: 400, fontSize: 12, color: "var(--soft)" }}>{showEstim ? "Masquer" : "Ouvrir le calculateur"}</span>
-            </button>
-            {showEstim && (() => {
-              const taux = (cfeData.taux === undefined || cfeData.taux === "") ? CFE_TAUX_DEFAUT : cfeData.taux;
-              const est = estimateCfe(cfeData.caRef, taux);
-              const caOk = num(cfeData.caRef) > 0;
-              return (
-                <div style={{ marginTop: 10, background: "var(--primary-soft)", border: "1px solid var(--line-2)", borderRadius: 8, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
-                  <p className="mini" style={{ margin: 0 }}>Valable si vous travaillez à domicile, sans local professionnel dédié. Avec un local, saisissez votre montant à la main ci-dessus.</p>
-                  <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-                    <label style={{ fontSize: 12.5, color: "var(--soft)", display: "flex", flexDirection: "column", gap: 4 }}>
-                      CA de référence (2024, N-2)
-                      <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <input className="in" type="number" step="1" placeholder="Ex : 18000" value={cfeData.caRef || ""} style={{ maxWidth: 130 }} onChange={(e) => onUpdateCfe("caRef", num(e.target.value) || "")} />
-                        <span style={{ fontSize: 13, color: "var(--soft)" }}>€</span>
-                      </span>
-                    </label>
-                    <label style={{ fontSize: 12.5, color: "var(--soft)", display: "flex", flexDirection: "column", gap: 4 }}>
-                      Taux communal
-                      <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <input className="in" type="number" step="0.01" value={cfeData.taux === undefined ? CFE_TAUX_DEFAUT : cfeData.taux} style={{ maxWidth: 90 }} onChange={(e) => onUpdateCfe("taux", e.target.value === "" ? "" : num(e.target.value))} />
-                        <span style={{ fontSize: 13, color: "var(--soft)" }}>%</span>
-                      </span>
-                    </label>
-                  </div>
-                  <p className="mini" style={{ margin: 0 }}>Taux indiqué sur votre avis CFE. Par défaut {CFE_TAUX_DEFAUT} % (moyenne nationale).</p>
-                  {!caOk ? (
-                    <p className="mini" style={{ margin: 0 }}>Saisissez votre CA 2024 pour lancer l'estimation.</p>
-                  ) : est.exo ? (
-                    <div className="listline"><span className="lab">CA sous 5 000 € → exonération</span><b style={{ color: SEG_COLORS.cfe }}>0 €</b></div>
-                  ) : (
-                    <>
-                      <div className="listline"><span className="lab">Base minimum (tranche)</span><b>{eur0(est.baseMin)} à {eur0(est.baseMax)}</b></div>
-                      <div className="listline"><span className="lab">CFE estimée <span style={{ color: "var(--faint)" }}>(fourchette {eur0(est.cfeMin)} à {eur0(est.cfeMax)})</span></span><b style={{ color: SEG_COLORS.cfe }}>~{eur0(est.cfe)} / an</b></div>
-                      <button
-                        className="btn"
-                        disabled={!!cfeData.valide}
-                        style={{ alignSelf: "flex-start", fontSize: 12, background: "var(--primary)", color: "#fff", border: "none", opacity: cfeData.valide ? 0.5 : 1 }}
-                        onClick={() => onUpdateCfe("montant", est.cfe)}
-                      >
-                        Utiliser cette estimation
-                      </button>
-                    </>
-                  )}
-                </div>
-              );
-            })()}
-          </div>
           {cfeAnnuel > 0 ? (
             <>
               <div className="listline">
@@ -1877,12 +1882,6 @@ function ChargesProvisionsTab({ factures, charges, profile, mIndex, cfeData = {}
         <span className="lab">Total à mettre de côté ce mois</span>
         <span className="val">{eur(grandTotal)}</span>
       </div>
-      {s.totalDecaisse > 0 && (
-        <div style={{ marginTop: 10, textAlign: "right", fontSize: 12.5, color: "var(--soft)" }}>
-          + {eur(s.totalDecaisse)} de frais déjà prélevés ce mois
-          <span style={{ color: "var(--faint)", marginLeft: 6 }}>({s.decaisseLines.map(l => l.libelle).join(", ")})</span>
-        </div>
-      )}
     </div>);
 
 }
@@ -2018,14 +2017,19 @@ function App() {
   const setList = (list) => setFB((p) => ({ ...p, [key]: list }));
 
   // ----- factures (invoices w/ lines) -----
-  const addInv = () => setList([...factures, { id: uid(), date: "", client: "", lines: [newLine(profile.tva)] }]);
   const removeInv = (id) => setList(factures.filter((f) => f.id !== id));
-  const updateInv = (id, field, val) => setList(factures.map((f) => (f.id === id ? { ...f, [field]: val } : f)));
-  const addLine = (id) => setList(factures.map((f) => (f.id === id ? { ...f, lines: [...(f.lines || []), newLine(profile.tva)] } : f)));
-  const updateLine = (id, lid, field, val) => setList(factures.map((f) => (f.id === id
-    ? { ...f, lines: (f.lines || []).map((l) => (l.id === lid ? { ...l, [field]: val } : l)) } : f)));
-  const removeLine = (id, lid) => setList(factures.map((f) => (f.id === id
-    ? { ...f, lines: (f.lines || []).filter((l) => l.id !== lid) } : f)));
+  // Enregistre une facture (création ou modification) dans le bucket du mois de sa date.
+  // Gère le changement de mois : la facture est retirée de tout autre bucket.
+  const saveInv = (inv) => setFB((p) => {
+    const targetKey = (inv.date && inv.date.slice(0, 7)) || key;
+    const next = {};
+    for (const k of Object.keys(p)) next[k] = (p[k] || []).filter((f) => f.id !== inv.id);
+    const existedHere = (p[targetKey] || []).some((f) => f.id === inv.id);
+    next[targetKey] = existedHere
+      ? (p[targetKey] || []).map((f) => (f.id === inv.id ? inv : f))
+      : [...(next[targetKey] || []), inv];
+    return next;
+  });
 
   // ----- frais (charges récurrentes, liste globale) -----
   const addCharge = (cat, libelle, ponctuel) => {
@@ -2130,9 +2134,8 @@ function App() {
       </div>
 
       {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} charges={charges} profile={profile} mIndex={m} cfeAnnuel={cfeAnnuel} urssafHistory={urssafHistory} />}
-      {ui.tab === "factures" && <FacturesTab factures={factures} facturesByMonth={facturesByMonth} profile={profile}
-        onAddInv={addInv} onRemoveInv={removeInv} onUpdateInv={updateInv}
-        onAddLine={addLine} onUpdateLine={updateLine} onRemoveLine={removeLine} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />}
+      {ui.tab === "factures" && <FacturesTab factures={factures} facturesByMonth={facturesByMonth} charges={charges} profile={profile} mIndex={m}
+        onSaveInv={saveInv} onRemoveInv={removeInv} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />}
       {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} profile={profile} onAdd={addCharge} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} tvaConfig={tvaConfig} />}
       {ui.tab === "prov" && <ChargesProvisionsTab factures={factures} charges={charges} profile={profile} mIndex={m} cfeData={cfeData[YEAR] || {}} onUpdateCfe={updateCfe} urssafHistory={urssafHistory} />}
 
