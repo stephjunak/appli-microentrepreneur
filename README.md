@@ -23,22 +23,41 @@ En cours de développement.
 
 ## Fonctionnalités
 
-- **Tableau de bord** : KPIs du mois, cascade de déduction, donut de répartition, graphe mensuel, synthèse annuelle avec projection
-- **Factures** : saisie en fenêtre modale, lignes multiples par catégorie (BNC, BIC, vente), support TVA, synthèse du mois et assistance à la déclaration URSSAF
-- **Frais** : charges récurrentes (mensuelles, trimestrielles, ponctuelles) avec historique de tarifs
-- **À provisionner** : cotisations URSSAF, TVA à reverser, provisions frais, CFE
+- **Tableau de bord** : 3 KPIs (CA, Charges payées, Revenu net), carte Provision, cascade Trésorerie, camembert Mois/Année, synthèse annuelle.
+- **Factures** : saisie en fenêtre modale, lignes multiples par catégorie (BNC, BIC, vente), support TVA.
+- **Frais et achats** : charges récurrentes (mensuelles, trimestrielles, ponctuelles) et achats ponctuels, avec historique de tarifs.
+- **Impôts & déclarations mensuelles** : cotisations URSSAF (+ CA à déclarer), TVA nette à reverser, CFE, déclaration IR.
+- **Calendrier** : tous les prélèvements du mois ou de l'année (URSSAF, TVA, CFE, charges), avec vue mensuelle en grille et vue annuelle en liste.
+
+### Tableau de bord
+
+Organisé en trois blocs :
+
+- **3 KPIs principaux** : CA TTC encaissé · Charges & achats payés ce mois (URSSAF m-2 + TVA m-1 + frais + achats + CFE) · Revenu net (CA − tout ce qui est sorti du compte).
+- **Provision à mettre de côté** (fond ambré, visuellement séparé) : total à provisionner avec le détail par poste (URSSAF, TVA, frais & achats, CFE) et les dates d'échéance.
+- **Trésorerie + Camembert** (deux colonnes) :
+  - À gauche : cascade détaillée (CA TTC → URSSAF m-2 → TVA m-1 → CFE → Frais récurrents → Achats ponctuels = Revenu net), puis bloc **Trésorerie disponible** = solde de début de mois (saisi par l'utilisateur) + revenu net du mois, avec verdict en couleur.
+  - À droite : camembert de répartition avec toggle **Mois / Année**. En mode Mois : valeurs réellement payées ce mois. En mode Année : provisions cumulées depuis janvier.
+- **Synthèse annuelle** : chiffres cumulés (CA, TVA, URSSAF, frais & achats, CFE, revenu net cumulé), projection annuelle avec écart N-1, et histogramme du revenu net (vue par mois ou par année).
 
 ### Factures
 
 - **Création / modification en fenêtre modale** : le bouton "Nouvelle facture" ouvre une fenêtre ; rien n'est enregistré tant qu'on n'a pas cliqué sur "Valider" (plus de cartes vides). "Valider" est actif dès qu'une date est saisie.
 - **Cartes en lecture seule** dans la liste, avec un bouton crayon (modifier, rouvre la modale pré-remplie) et un bouton corbeille (supprimer).
 - **Déplacement automatique** : si on change la date d'une facture vers un autre mois, elle se range dans le bon mois (stockage par clé `année-mois`).
-- **Synthèse du mois** en haut de l'onglet : décomposition du TTC encaissé (− TVA à reverser, − cotisations URSSAF, = net pour vous).
-- **Assistance à la déclaration URSSAF** : le CA à déclarer par catégorie (arrondi à l'euro, comme sur le formulaire) + total, affiché dans la synthèse.
+- **Synthèse du mois** en haut de l'onglet : réduite au seul TTC encaissé (la décomposition et la déclaration URSSAF ont migré vers l'onglet Impôts).
+
+### Onglet Impôts & déclarations mensuelles
+
+- **Cotisations URSSAF** : détail des cotisations par catégorie + le bloc **"CA à déclarer à l'URSSAF"** (CA par catégorie arrondi à l'euro comme sur le formulaire, et total).
+- **TVA nette à reverser** : TVA collectée − TVA déductible.
+- **CFE** : voir ci-dessous.
+- **Impôt sur le revenu** : affiche le **CA HT cumulé sur l'année** à reporter sur la déclaration de revenus, avec une note d'aide adaptée au profil (versement libératoire ou abattement forfaitaire).
+- Un bandeau "Total à mettre de côté ce mois" (URSSAF + TVA + CFE). Les provisions de frais n'apparaissent plus ici (elles sont gérées dans la carte Rentabilité du tableau de bord).
 
 ### CFE — Cotisation Foncière des Entreprises
 
-- Saisie du montant annuel estimé directement dans l'onglet "À provisionner"
+- Saisie du montant annuel estimé directement dans l'onglet "Impôts & déclarations mensuelles"
 - Provision mensuelle calculée automatiquement (montant ÷ 12)
 - Bouton "Valider l'avis" pour verrouiller le montant définitif à réception de l'avis (novembre)
 - Données stockées par année (`mef2:cfe`) — l'historique est conservé d'une année sur l'autre
@@ -53,6 +72,14 @@ En cours de développement.
 - Données stockées dans `mef2:urssaf_history` et `mef2:tva_config`, incluses dans l'export/import JSON
 
 ---
+
+## Fait récemment
+
+- **Onglet Calendrier** (nouvel onglet, dernier de la barre) : regroupe tous les prélèvements — URSSAF, TVA, CFE et charges récurrentes — avec leurs dates exactes. Vue mensuelle en grille (même structure que le calendrier des frais) et vue annuelle en cartes fixes avec scroll interne. Le calendrier a été retiré de l'onglet "Frais et achats" qui affiche désormais uniquement le tableau.
+- **Refonte complète du tableau de bord** : 3 KPIs clairs (CA, Charges payées, Revenu net) + carte Provision séparée (fond ambré) + bloc Trésorerie avec cascade détaillée + camembert avec toggle Mois/Année.
+- **Revenu net redéfini** : CA TTC − tout ce qui sort réellement du compte ce mois (URSSAF m-2, TVA m-1, frais récurrents, achats ponctuels, CFE).
+- **Trésorerie disponible** = solde de début de mois + revenu net du mois.
+- Sessions précédentes : moteur de calcul `chargeLisse`/`netLisse`, onglets renommés, déclarations regroupées dans "Impôts & déclarations mensuelles".
 
 ## Améliorations à venir
 
@@ -86,21 +113,18 @@ Aujourd'hui les données vivent dans le `localStorage` du navigateur (export/imp
 
 Ajouter des informations d'aide (infobulles ou encadrés explicatifs) sur les notions qui ne sont pas évidentes pour un débutant : CFE, base déclarée, versement libératoire, TVA à reverser, etc.
 
+_Partiellement fait :_ phrases explicatives sur les cartes Trésorerie et Rentabilité, et note d'aide sur l'impôt sur le revenu (versement libératoire / abattement). Reste à couvrir les autres notions.
+
 ### Modèles de factures récurrentes
 
 Permettre d'enregistrer un modèle de facture (client, lignes, montants) pour le réutiliser rapidement chaque mois, sans tout ressaisir.
 
-### Calendrier de paiement
+### Logique de calcul — FAIT
 
-Ajouter un calendrier regroupant tous les prélèvements à venir : TVA, URSSAF, abonnements et autres charges, avec leurs dates d'échéance, pour avoir une vision claire de la trésorerie.
+**Revenu net** = CA TTC encaissé − URSSAF (m-2) − TVA (m-1) − CFE − frais récurrents débités ce mois − achats ponctuels. C'est ce qui reste sur le compte après toutes les sorties réelles du mois.
 
-### Décalage réel des paiements — FAIT
+**Trésorerie disponible** = solde du compte au 1er du mois (saisi par l'utilisateur) + revenu net du mois.
 
-Le tableau de bord sépare désormais strictement **deux notions, qui ne se mélangent jamais** :
-
-- **Trésorerie** (ce qui sort vraiment du compte ce mois) : l'URSSAF d'il y a 2 mois, la TVA du mois précédent, les frais réellement débités, la CFE le cas échéant. Ces montants viennent de l'activité passée, déjà provisionnée. Vue purement informative, elle n'entre pas dans le calcul du revenu.
-- **Rentabilité** (ce que l'activité du mois rapporte vraiment) : l'URSSAF, la TVA et la CFE générées par le mois courant, plus tous les frais à leur **part mensuelle lissée** (mensuel = montant, trimestriel ÷3, annuel ÷12). Le revenu net raisonnable = CA TTC − ces charges.
-
-Principe de fond : **on ne met jamais dans la même vue la provision d'un mois et le prélèvement d'un mois.** C'est ce mélange qui faussait l'ancien "revenu net" (il déduisait à la fois une provision et un frais réellement payé, et comptait deux fois les frais trimestriels/annuels les mois de prélèvement). Corrigé via la fonction `chargeLisse` et le champ `netLisse` du moteur de calcul.
+**Provisions** (carte ambrée, séparée) = URSSAF + TVA + frais lissés + CFE du mois en cours, avec dates d'échéance. Ce sont les montants à mettre de côté maintenant pour les prélèvements futurs.
 
 Les décalages de prélèvement (jour et nombre de mois pour l'URSSAF et la TVA) sont réglables dans "Profil & paramètres".

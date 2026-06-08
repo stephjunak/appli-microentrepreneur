@@ -195,15 +195,15 @@ select.cell-in{appearance:none;cursor:pointer;
 .cal-tot .prov-note{color:var(--prov);font-style:italic;font-size:12.5px;}
 
 .cal-year{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
-.ym{min-width:0;border:1px solid var(--line);border-radius:11px;background:#fff;padding:12px 13px;display:flex;flex-direction:column;gap:9px;}
+.ym{min-width:0;height:220px;border:1px solid var(--line);border-radius:11px;background:#fff;padding:12px 13px;display:flex;flex-direction:column;gap:9px;}
 .ym.cur{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft);background:#fafbf7;}
-.ym-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
+.ym-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex:none;}
 .ym-h .nm{font-weight:700;font-size:14px;color:var(--ink);text-transform:capitalize;}
 .ym-h .tt{font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;color:var(--ink);}
-.ym-bar{height:5px;border-radius:3px;background:var(--primary-soft);overflow:hidden;}
+.ym-bar{height:5px;border-radius:3px;background:var(--primary-soft);overflow:hidden;flex:none;}
 .ym-bar i{display:block;height:100%;border-radius:3px;}
-.ym-list{display:flex;flex-direction:column;gap:6px;}
-.ym-it{display:flex;align-items:center;gap:8px;font-size:12px;min-width:0;}
+.ym-list{display:flex;flex-direction:column;gap:5px;flex:1;overflow-y:auto;min-height:0;}
+.ym-it{display:flex;align-items:center;gap:8px;font-size:12px;min-width:0;flex:none;}
 .ym-it .dd{flex:none;min-width:22px;height:19px;padding:0 4px;border-radius:5px;color:#fff;font-weight:700;
   font-size:10.5px;display:grid;place-items:center;font-variant-numeric:tabular-nums;}
 .ym-it .ll{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--soft);}
@@ -434,47 +434,48 @@ select.cell-in{appearance:none;cursor:pointer;
   .hero-grid,.chart-grid,.kpi-grid{grid-template-columns:1fr;}
 }
 
-/* ---------- dashboard : deux notions (trésorerie / rentabilité) ---------- */
-.notion-intro{font-size:13.5px;color:var(--soft);margin:2px 2px 2px;line-height:1.5;}
-.notion-intro b{color:var(--ink);font-weight:700;}
-.notion-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch;}
-.notion{display:flex;flex-direction:column;}
-.notion .card-b{flex:1;display:flex;flex-direction:column;}
-.notion-sub-h{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--soft);margin:22px 0 14px;padding-top:18px;border-top:1px solid var(--line);}
-.notion .card-h{border-top:3px solid var(--line-2);border-top-left-radius:var(--radius);border-top-right-radius:var(--radius);}
-.notion.treso .card-h{border-top-color:var(--neg);}
-.notion.renta .card-h{border-top-color:var(--prov);}
-.notion-ic{font-size:17px;line-height:1;}
-.notion .cap{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);font-weight:700;}
-.notion .big{font-size:29px;font-weight:800;letter-spacing:-.5px;line-height:1;margin:8px 0 2px;}
-.notion-lines{margin-top:8px;}
-.notion-lines .listline{padding:8px 0;}
-.notion-lines .lab .due{font-style:normal;font-size:11.5px;color:var(--faint);margin-left:6px;white-space:nowrap;}
-.notion-note{font-size:12px;color:var(--faint);background:#fafbfc;border:1px solid var(--line);border-radius:9px;padding:10px 12px;line-height:1.5;margin:14px 0 0;}
-.notion-net{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:14px;padding-top:13px;border-top:2px solid var(--line-2);}
-.notion-net span{font-weight:700;color:var(--ink);font-size:14.5px;}
-.notion-net b{font-size:25px;font-weight:800;letter-spacing:-.5px;}
-.notion-net-sub{font-size:11.5px;color:var(--faint);text-align:right;margin-top:2px;}
-.notion-donut{display:flex;align-items:center;gap:22px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);}
-.notion-donut .donut2{width:138px;height:138px;flex:none;}
-.notion-donut .donut2::after{inset:30px;}
-.notion-donut .dlegend{gap:8px;}
-/* bloc revenu net : KPI + légende à gauche, camembert à droite */
-.net-split{display:flex;align-items:center;gap:20px;flex:1;}
-.net-left{flex:1;min-width:0;}
-.net-left .net-legend{margin-top:14px;gap:7px;}
-.net-right{flex:none;}
-.net-right .donut2{width:148px;height:148px;}
-.net-right .donut2::after{inset:32px;}
-@media(max-width:720px){ .net-split{flex-direction:column;align-items:flex-start;} }
+/* ---------- dashboard — layout ---------- */
+.dash-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.prov-card{background:var(--prov-soft);border:1px solid #d8ca87;border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;}
+.prov-card .cap{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#7a6a25;font-weight:700;}
+.prov-card .big{font-size:30px;font-weight:800;letter-spacing:-.6px;line-height:1;color:var(--prov);margin:9px 0 14px;}
+.prov-detail{display:flex;gap:10px 28px;flex-wrap:wrap;}
+.prov-pi{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--soft);}
+.prov-pi b{color:var(--prov);font-weight:700;margin-left:4px;}
+.prov-pi .swatch{width:9px;height:9px;border-radius:3px;flex:none;display:inline-block;}
+.dash-main{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:stretch;}
+.treso-cascade{display:flex;flex-direction:column;}
+.treso-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13.5px;}
+.treso-row .lab{color:var(--soft);display:flex;align-items:center;gap:7px;}
+.treso-row .op{width:20px;height:20px;border-radius:50%;background:var(--neg-soft);color:var(--neg);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;}
+.treso-row .op.neutral{background:transparent;border:1.5px dashed var(--line-2);color:var(--soft);}
+.treso-row.ca-row{border-bottom:1px solid var(--line-2);}
+.treso-row.ca-row .lab{font-weight:600;color:var(--ink);}
+.treso-row.net-row{border-bottom:none;border-top:2px solid var(--line-2);margin-top:4px;padding-top:12px;}
+.treso-row.net-row .lab{font-weight:700;color:var(--ink);font-size:14.5px;}
+.treso-row.net-row b{font-size:22px;font-weight:800;letter-spacing:-.4px;}
+.treso-solde{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);}
+.treso-solde-h{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--soft);margin-bottom:14px;}
+.treso-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:12px;padding-top:12px;border-top:2px solid var(--line-2);}
+.treso-total span{font-weight:700;color:var(--ink);font-size:14.5px;}
+.treso-total b{font-size:24px;font-weight:800;letter-spacing:-.5px;}
+.treso-verdict{font-size:12.5px;border-radius:9px;padding:10px 13px;line-height:1.5;margin-top:10px;border:1px solid var(--line);color:var(--faint);background:#fafbfc;}
+.donut-card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line);}
+.donut-card-h h2{margin:0;font-size:15px;font-weight:700;}
+.donut-legend{display:flex;flex-direction:column;gap:9px;width:100%;}
+.donut-legend .li{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--soft);}
+.donut-legend .swatch{width:11px;height:11px;border-radius:3px;flex:none;display:inline-block;}
 /* synthèse annuelle fusionnée : chiffres à gauche, histogramme à droite */
 .synth-split{display:grid;grid-template-columns:1fr 1.15fr;gap:26px;align-items:start;}
 .synth-figures{min-width:0;}
 .synth-graph{min-width:0;display:flex;flex-direction:column;}
 .synth-graph-h{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
 .synth-graph-h .cap{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:700;}
-@media(max-width:720px){ .synth-split{grid-template-columns:1fr;} }
-@media(max-width:720px){ .notion-grid{grid-template-columns:1fr;} }
+@media(max-width:720px){
+  .dash-kpi-row{grid-template-columns:1fr;}
+  .dash-main{grid-template-columns:1fr;}
+  .synth-split{grid-template-columns:1fr;}
+}
 
 
 /* ---------- tariff history ---------- */
@@ -848,7 +849,7 @@ const FREQ_META = {
   ponctuelle:    { color: "#577389", label: "Ponctuel" }
 };
 // Palette sémantique unique — utilisée pour les barres, l'histogramme ET le camembert
-const SEG_COLORS = { urssaf: "#94614e", tva: "#577389", decaisse: "#8a7733", provision: "#bca96a", cfe: "#7a6b8a", net: "#57563f" };
+const SEG_COLORS = { urssaf: "#94614e", tva: "#577389", decaisse: "#8a7733", achat: "#5c7a6b", provision: "#bca96a", cfe: "#7a6b8a", net: "#57563f" };
 // le camembert reprend exactement la même palette (plus de teintes séparées)
 const DONUT_COLORS = SEG_COLORS;
 
@@ -884,56 +885,33 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex, cfe
   const outFrais  = s.totalDecaisse;                // frais réellement débités ce mois
   const outCfe    = mIndex === 11 ? cfeAnnuel : 0;  // CFE prélevée en décembre
   const cashOut   = outUrssaf + outTva + outFrais + outCfe;
-  const soldeNum   = num(soldeDebut);          // solde du compte au 1er du mois (saisi)
-  const resteTreso = soldeNum - cashOut;        // ce qui reste une fois les prélèvements passés
+  const soldeNum    = num(soldeDebut);
+  // split frais décaissés : récurrents vs achats ponctuels
+  const outFraisRec = s.decaisseLines.filter(ch => ch.frequence !== "ponctuelle").reduce((a,c) => a + c.montantCalc, 0);
+  const outAchats   = s.decaisseLines.filter(ch => ch.frequence === "ponctuelle").reduce((a,c) => a + c.montantCalc, 0);
+  // revenu net = CA TTC − tout ce qui sort du compte ce mois
+  const netCash     = ttc - cashOut;
+  // trésorerie disponible = solde début de mois + revenu net
+  const tresoDisp   = soldeNum + netCash;
 
-  // ===== NOTION 2 — RENTABILITÉ : charges du mois, toutes lissées =====
+  // provisions du mois (à mettre de côté)
   const provUrssaf = s.totalCotis;
   const provTva    = s.tvaAreverser;
   const provCfe    = s.cfeProv;
   const provFrais  = s.fraisLisse;
-  const charged    = s.charged;     // total des charges du mois (lissées)
-  const net        = s.netLisse;    // revenu net raisonnable = CA − charges
+  const charged    = s.charged;
 
-  // donut : répartition du CA du mois (vue rentabilité)
-  const segs = [
-  { key: "net", lab: "Revenu net", val: Math.max(0, net) },
-  { key: "urssaf", lab: "URSSAF", val: provUrssaf },
-  { key: "tva", lab: "TVA", val: provTva },
-  { key: "decaisse", lab: "Frais", val: provFrais },
-  { key: "cfe", lab: "CFE", val: provCfe }].
-  filter((x) => x.val > 0.005);
-  const segTot = segs.reduce((a, x) => a + x.val, 0) || 1;
-  // positions de chaque part, puis séparateurs blancs entre les parts
-  let acc = 0;
-  const segPos = segs.map((x) => {const from = acc / segTot * 100;acc += x.val;const to = acc / segTot * 100;return { key: x.key, from, to };});
-  const GAP = 0.5,half = GAP / 2,sep = "#fff"; // épaisseur du trait de séparation (% du cercle)
-  let stopList = [];
-  if (segPos.length > 1) {
-    stopList.push(`${sep} 0% ${half}%`);
-    segPos.forEach((p, i) => {
-      const a = i === 0 ? half : p.from + half;
-      const b = i === segPos.length - 1 ? 100 - half : p.to - half;
-      stopList.push(`${DONUT_COLORS[p.key]} ${a}% ${b}%`);
-      if (i < segPos.length - 1) stopList.push(`${sep} ${p.to - half}% ${p.to + half}%`);
-    });
-    stopList.push(`${sep} ${100 - half}% 100%`);
-  } else if (segPos.length === 1) {
-    stopList.push(`${DONUT_COLORS[segPos[0].key]} 0% 100%`);
-  }
-  const donutBg = stopList.length ? `conic-gradient(${stopList.join(", ")})` : "conic-gradient(#e3e1d6 0 100%)";
-
+  const [donutScope, setDonutScope] = React.useState("month");
+  const [histScope,  setHistScope]  = React.useState("month");
   const maxAbs = Math.max(1, ...year.map((y) => Math.abs(y.netLisse)));
-  const [histScope, setHistScope] = React.useState("month");
 
-  // synthèse annuelle (cumul jusqu'au mois affiché) + écart N-1
+  // synthèse annuelle (cumul jusqu'au mois affiché)
   const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex, prevYear: (profile.prevYears || {})[YEAR - 1], cfeAnnuel, urssafHistory });
   const monthsElapsed = Math.max(1, (ys.lastActive < 0 ? mIndex : ys.lastActive) + 1);
-  const projNet = ys.netLisse / monthsElapsed * 12; // projection annuelle simple
-  const prevNet = ys.prev.net || 0;
+  const projNet  = ys.netLisse / monthsElapsed * 12;
+  const prevNet  = ys.prev.net || 0;
   const deltaPct = prevNet ? Math.round((projNet - prevNet) / prevNet * 100) : null;
 
-  // données pour la vue par année
   const yearlyData = [
     ...Object.entries(profile.prevYears || {})
       .filter(([, d]) => d && d.net)
@@ -942,97 +920,238 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex, cfe
   ].sort((a, b) => a.year - b.year);
   const maxYearNet = Math.max(1, ...yearlyData.map(d => Math.abs(d.net)));
 
+  // construction du conic-gradient pour le donut
+  const buildDonut = (segs) => {
+    const tot = segs.reduce((a,x) => a + x.val, 0) || 1;
+    let acd = 0;
+    const pos = segs.map(x => { const f = acd/tot*100; acd += x.val; return { key: x.key, from: f, to: acd/tot*100 }; });
+    const GAP = 0.5, half = GAP/2, sep = "#fff";
+    const stops = [];
+    if (pos.length > 1) {
+      stops.push(`${sep} 0% ${half}%`);
+      pos.forEach((p, i) => {
+        stops.push(`${DONUT_COLORS[p.key]} ${i===0?half:p.from+half}% ${i===pos.length-1?100-half:p.to-half}%`);
+        if (i < pos.length-1) stops.push(`${sep} ${p.to-half}% ${p.to+half}%`);
+      });
+      stops.push(`${sep} ${100-half}% 100%`);
+    } else if (pos.length === 1) {
+      stops.push(`${DONUT_COLORS[pos[0].key]} 0% 100%`);
+    }
+    return stops.length ? `conic-gradient(${stops.join(", ")})` : "conic-gradient(#e3e1d6 0 100%)";
+  };
+
+  const segsMonth = [
+    { key: "net",      lab: "Revenu net",       val: Math.max(0, netCash) },
+    { key: "urssaf",   lab: "URSSAF",           val: outUrssaf },
+    { key: "tva",      lab: "TVA",              val: outTva },
+    { key: "decaisse", lab: "Frais récurrents", val: outFraisRec },
+    { key: "achat",    lab: "Achats ponctuels", val: outAchats },
+    { key: "cfe",      lab: "CFE",              val: outCfe },
+  ].filter(x => x.val > 0.005);
+
+  // valeurs réellement payées cumul jan → mIndex (même logique que le mode mois)
+  let yCumulUrssaf = 0, yCumulTva = 0, yCumulFrais = 0, yCumulCfe = 0;
+  for (let i = 0; i <= mIndex; i++) {
+    const uSrc = i - urssafDec;
+    if (uSrc >= 0) yCumulUrssaf += year[uSrc].cotis;
+    const tSrc = i - tvaDec;
+    if (tSrc >= 0 && s.assujetti) yCumulTva += year[tSrc].tva;
+    yCumulFrais += year[i].decaisse;
+    if (i === 11) yCumulCfe += cfeAnnuel;
+  }
+  const yCumulCashOut = yCumulUrssaf + yCumulTva + yCumulFrais + yCumulCfe;
+  const yCumulNet     = Math.max(0, ys.caTTC - yCumulCashOut);
+
+  const segsYear = [
+    { key: "net",      lab: "Revenu net",    val: yCumulNet },
+    { key: "urssaf",   lab: "URSSAF",        val: yCumulUrssaf },
+    { key: "tva",      lab: "TVA",           val: yCumulTva },
+    { key: "decaisse", lab: "Frais & achats",val: yCumulFrais },
+    { key: "cfe",      lab: "CFE",           val: yCumulCfe },
+  ].filter(x => x.val > 0.005);
+
+  const donutSegs = donutScope === "month" ? segsMonth : segsYear;
+  const donutTot  = donutSegs.reduce((a,x) => a + x.val, 0) || 1;
+  const donutBg   = buildDonut(donutSegs);
+
   return (
     <div className="dash">
-      {/* CA encaissé — point de départ commun aux deux lectures */}
-      <div className="card stat">
-        <div className="card-b">
-          <div className="cap">CA ENCAISSÉ CE MOIS (TTC)</div>
-          <div className="big">{eur0(ttc)}</div>
-          <div className="sub">ce que j'ai encaissé · {factures.length} facture{factures.length > 1 ? "s" : ""}</div>
+
+      {/* === 3 KPIs principaux === */}
+      <div className="dash-kpi-row">
+        <div className="card stat">
+          <div className="card-b">
+            <div className="cap">CA ENCAISSÉ CE MOIS</div>
+            <div className="big">{eur0(ttc)}</div>
+            <div className="sub">{factures.length} facture{factures.length !== 1 ? "s" : ""} · TTC</div>
+          </div>
+        </div>
+        <div className="card stat">
+          <div className="card-b">
+            <div className="cap">CHARGES &amp; ACHATS PAYÉS</div>
+            <div className="big neg">{cashOut > 0 ? `−${eur0(cashOut)}` : eur0(0)}</div>
+            <div className="sub">URSSAF + TVA + frais + achats</div>
+          </div>
+        </div>
+        <div className="card stat">
+          <div className="card-b">
+            <div className="cap">REVENU NET DU MOIS</div>
+            <div className={`big ${netCash >= 0 ? "pos" : "neg"}`}>{eur0(netCash)}</div>
+            <div className="sub">CA − tout ce qui est sorti</div>
+          </div>
         </div>
       </div>
 
-      <p className="notion-intro">Deux façons de lire ton mois : ce qui <b>bouge sur ton compte</b> (trésorerie) et ce que ton <b>activité te laisse vraiment</b> (rentabilité). Les deux ne se mélangent jamais.</p>
+      {/* === Trésorerie + (Provision + Camembert) === */}
+      <div className="dash-main">
 
-      <div className="notion-grid">
-        {/* ===== TRÉSORERIE : ce qui sort ce mois + ai-je de quoi payer ===== */}
-        <div className="card notion treso">
-          <div className="card-h"><span className="notion-ic">💧</span><h2>Trésorerie</h2><span className="sub">ce qui sort de mon compte</span></div>
+        {/* Trésorerie */}
+        <div className="card" style={{ display: "flex", flexDirection: "column" }}>
+          <div className="card-h"><h2>Trésorerie</h2><span className="sub">ce qui bouge sur ton compte ce mois</span></div>
           <div className="card-b">
-            <div className="cap">Frais &amp; charges payés ce mois</div>
-            <div className="big neg">{eur0(cashOut)}</div>
-            <div className="notion-lines">
-              <div className="listline"><span className="lab">URSSAF de {originLabel(urssafDec)}</span><b className="neg">−{eur0(outUrssaf)}</b></div>
-              {s.assujetti && <div className="listline"><span className="lab">TVA de {originLabel(tvaDec)}</span><b className="neg">−{eur0(outTva)}</b></div>}
-              <div className="listline"><span className="lab">Frais débités ce mois</span><b className="neg">−{eur0(outFrais)}</b></div>
-              {outCfe > 0 && <div className="listline"><span className="lab">CFE</span><b className="neg">−{eur0(outCfe)}</b></div>}
-            </div>
-            <p className="notion-note">L'URSSAF et la TVA sortent de ta tirelire : tu les avais déjà mises de côté les mois précédents.</p>
-
-            <div className="notion-sub-h"><span>🏦</span> Ai-je de quoi payer&nbsp;?</div>
-            <div className="field" style={{ marginBottom: 14 }}>
-              <label>Solde du compte au 1er {moisLabel(mIndex)}</label>
-              <input className="in" type="number" step="0.01" placeholder="0,00"
-                value={soldeDebut === undefined || soldeDebut === null ? "" : soldeDebut}
-                onChange={(e) => onSetSolde(e.target.value)} />
-            </div>
-            <div className="notion-lines">
-              <div className="listline"><span className="lab">Solde au 1er</span><b>{eur0(soldeNum)}</b></div>
-              <div className="listline"><span className="lab">− Prélèvements du mois</span><b className="neg">−{eur0(cashOut)}</b></div>
-            </div>
-            <div className="notion-net"><span>Reste après prélèvements</span><b className={resteTreso >= 0 ? "pos" : "neg"}>{eur0(resteTreso)}</b></div>
-            {soldeNum > 0
-              ? <p className="notion-note" style={{ minHeight: 58, display: "flex", alignItems: "center", color: resteTreso >= 0 ? "var(--pos)" : "var(--neg)", background: resteTreso >= 0 ? "var(--pos-soft)" : "var(--neg-soft)", borderColor: resteTreso >= 0 ? "#cfe6da" : "#e3d2c8" }}>{resteTreso >= 0 ? "Tu as de quoi couvrir les prélèvements de ce mois." : "Attention : ton solde ne couvre pas les prélèvements de ce mois."}</p>
-              : <p className="notion-note" style={{ minHeight: 58, display: "flex", alignItems: "center" }}>Saisis ton solde bancaire au 1er du mois pour voir si tu couvres les prélèvements à venir.</p>}
-          </div>
-        </div>
-
-        {/* ===== RENTABILITÉ : charges lissées du mois + revenu net ===== */}
-        <div className="card notion renta">
-          <div className="card-h"><span className="notion-ic">📊</span><h2>Rentabilité</h2><span className="sub">ce que mon activité rapporte</span></div>
-          <div className="card-b">
-            <div className="cap">Provisions frais &amp; charges du mois</div>
-            <div className="big prov">{eur0(charged)}</div>
-            <div className="notion-lines">
-              <div className="listline"><span className="lab">URSSAF de {moisLabel(mIndex)} <em className="due">→ prélevée le {urssafJour} {dueLabel(urssafDec)}</em></span><b className="neg">−{eur0(provUrssaf)}</b></div>
-              {s.assujetti && <div className="listline"><span className="lab">TVA de {moisLabel(mIndex)} <em className="due">→ prélevée le {tvaJour} {dueLabel(tvaDec)}</em></span><b className="neg">−{eur0(provTva)}</b></div>}
-              {cfeAnnuel > 0 && <div className="listline"><span className="lab">CFE <em className="due">part du mois</em></span><b className="neg">−{eur0(provCfe)}</b></div>}
-              <div className="listline"><span className="lab">Frais du mois <em className="due">lissés</em></span><b className="neg">−{eur0(provFrais)}</b></div>
-            </div>
-            <p className="notion-note">Ces montants ne sont pas encore prélevés. Mets-les de côté dès maintenant pour les échéances à venir.</p>
-
-            <div className="notion-sub-h"><span>💰</span> Revenu net du mois</div>
-            <div className="net-split">
-              <div className="net-left">
-                <div className="cap">Net du mois&nbsp;: CA − charges</div>
-                <div className="big pos">{eur0(net)}</div>
-                <div className="notion-net-sub" style={{ textAlign: "left", margin: "4px 0 0" }}>{eur0(ttc)} encaissé − {eur0(charged)} de charges</div>
-                {ttc > 0 &&
-                <div className="dlegend net-legend">
-                  {segs.map((x) =>
-                  <div className="li" key={x.key}><span className="sw2" style={{ background: DONUT_COLORS[x.key] }}></span>{x.lab} · <b>{Math.round(x.val / segTot * 100)}%</b></div>
-                  )}
-                </div>}
+            <div className="treso-cascade">
+              <div className="treso-row ca-row">
+                <span className="lab">CA TTC encaissé</span>
+                <b className="pos">{eur0(ttc)}</b>
               </div>
-              {ttc > 0 && <div className="net-right"><div className="donut2" style={{ background: donutBg }}></div></div>}
+              {outUrssaf > 0 && <div className="treso-row">
+                <span className="lab"><span style={{ width:11,height:11,borderRadius:3,background:DONUT_COLORS.urssaf,flexShrink:0,display:"inline-block" }}></span>URSSAF de {originLabel(urssafDec)}</span>
+                <b className="neg">−{eur0(outUrssaf)}</b>
+              </div>}
+              {s.assujetti && outTva > 0 && <div className="treso-row">
+                <span className="lab"><span style={{ width:11,height:11,borderRadius:3,background:DONUT_COLORS.tva,flexShrink:0,display:"inline-block" }}></span>TVA de {originLabel(tvaDec)}</span>
+                <b className="neg">−{eur0(outTva)}</b>
+              </div>}
+              {outCfe > 0 && <div className="treso-row">
+                <span className="lab"><span style={{ width:11,height:11,borderRadius:3,background:DONUT_COLORS.cfe,flexShrink:0,display:"inline-block" }}></span>CFE</span>
+                <b className="neg">−{eur0(outCfe)}</b>
+              </div>}
+              {outFraisRec > 0 && <div className="treso-row">
+                <span className="lab"><span style={{ width:11,height:11,borderRadius:3,background:DONUT_COLORS.decaisse,flexShrink:0,display:"inline-block" }}></span>Frais récurrents débités</span>
+                <b className="neg">−{eur0(outFraisRec)}</b>
+              </div>}
+              {outAchats > 0 && <div className="treso-row">
+                <span className="lab"><span style={{ width:11,height:11,borderRadius:3,background:DONUT_COLORS.achat,flexShrink:0,display:"inline-block" }}></span>Achats ponctuels</span>
+                <b className="neg">−{eur0(outAchats)}</b>
+              </div>}
+              <div className="treso-row net-row">
+                <span className="lab">Revenu net</span>
+                <b className={netCash >= 0 ? "pos" : "neg"}>{eur0(netCash)}</b>
+              </div>
+            </div>
+
+            <div className="treso-solde">
+              <div className="treso-solde-h"><span>🏦</span> Trésorerie disponible</div>
+              <div className="field" style={{ marginBottom: 14 }}>
+                <label>Solde du compte au 1er {moisLabel(mIndex)}</label>
+                <input className="in" type="number" step="0.01" placeholder="0,00"
+                  value={soldeDebut === undefined || soldeDebut === null ? "" : soldeDebut}
+                  onChange={(e) => onSetSolde(e.target.value)} />
+              </div>
+              <div className="treso-cascade">
+                <div className="treso-row">
+                  <span className="lab">Solde au 1er {moisLabel(mIndex)}</span>
+                  <b>{eur0(soldeNum)}</b>
+                </div>
+                <div className="treso-row">
+                  <span className="lab"><span className="op neutral">+</span>Revenu net ce mois</span>
+                  <b className={netCash >= 0 ? "pos" : "neg"}>{eur0(netCash)}</b>
+                </div>
+              </div>
+              <div className="treso-total">
+                <span>Trésorerie disponible</span>
+                <b className={tresoDisp >= 0 ? "pos" : "neg"}>{eur0(tresoDisp)}</b>
+              </div>
+              {soldeNum > 0
+                ? <div className="treso-verdict" style={{ color: tresoDisp >= 0 ? "var(--pos)" : "var(--neg)", background: tresoDisp >= 0 ? "var(--pos-soft)" : "var(--neg-soft)", borderColor: tresoDisp >= 0 ? "#cfe6da" : "#e3d2c8" }}>
+                    {tresoDisp >= 0 ? "Ta trésorerie est positive ce mois." : "Attention : ta trésorerie est dans le rouge ce mois."}
+                  </div>
+                : <div className="treso-verdict">Saisis ton solde de début de mois pour voir ta trésorerie disponible.</div>
+              }
             </div>
           </div>
         </div>
+
+        {/* Colonne droite : Provision + Camembert */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, height: "100%" }}>
+
+          {/* Provision */}
+          <div className="prov-card">
+            <div className="cap">PROVISIONS DU MOIS</div>
+            <div className="big">{eur0(charged)}</div>
+            <div style={{ fontSize: 12, color: "#9a8a35", marginBottom: 6, marginTop: -10 }}>à mettre de côté avant les échéances</div>
+            <div className="prov-detail">
+              {provUrssaf > 0 && <div className="prov-pi">
+                <span className="swatch" style={{ background: DONUT_COLORS.urssaf }}></span>
+                <span>URSSAF de {moisLabel(mIndex)} <em style={{ fontSize: 11, color: "#9a8a35", fontStyle: "normal" }}>prélevé le {urssafJour} {dueLabel(urssafDec)}</em></span>
+                <b>{eur0(provUrssaf)}</b>
+              </div>}
+              {s.assujetti && provTva > 0 && <div className="prov-pi">
+                <span className="swatch" style={{ background: DONUT_COLORS.tva }}></span>
+                <span>TVA de {moisLabel(mIndex)} <em style={{ fontSize: 11, color: "#9a8a35", fontStyle: "normal" }}>prélevée le {tvaJour} {dueLabel(tvaDec)}</em></span>
+                <b>{eur0(provTva)}</b>
+              </div>}
+              {provFrais > 0 && <div className="prov-pi">
+                <span className="swatch" style={{ background: DONUT_COLORS.decaisse }}></span>
+                <span>Charges récurrentes</span>
+                <b>{eur0(provFrais)}</b>
+              </div>}
+              {provCfe > 0 && <div className="prov-pi">
+                <span className="swatch" style={{ background: DONUT_COLORS.cfe }}></span>
+                <span>CFE</span>
+                <b>{eur0(provCfe)}</b>
+              </div>}
+            </div>
+          </div>
+
+          {/* Camembert */}
+          <div className="card" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <div className="donut-card-h">
+            <h2>Répartition</h2>
+            <div className="viewseg sm">
+              <button className={donutScope === "month" ? "on" : ""} onClick={() => setDonutScope("month")}>Mois</button>
+              <button className={donutScope === "year" ? "on" : ""} onClick={() => setDonutScope("year")}>Année</button>
+            </div>
+          </div>
+          <div className="card-b" style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "18px", flex: 1, justifyContent: "center" }}>
+            {donutSegs.length > 0
+              ? <>
+                  <div className="donut2" style={{ background: donutBg, width: 180, height: 180, marginBottom: 18 }}></div>
+                  <div className="donut-legend">
+                    {donutSegs.map((x) =>
+                      <div className="li" key={x.key}>
+                        <span className="swatch" style={{ background: DONUT_COLORS[x.key] }}></span>
+                        <span>{x.lab}</span>
+                        <span style={{ marginLeft: "auto", fontWeight: 700, color: "var(--ink)", whiteSpace: "nowrap" }}>{Math.round(x.val / donutTot * 100)}% · {eur0(x.val)}</span>
+                      </div>
+                    )}
+                  </div>
+                  <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "12px 0 0", textAlign: "center" }}>
+                    {donutScope === "year"
+                      ? `Payé jan → ${MONTHS[mIndex].slice(0,4).toLowerCase()}. · CA TTC ${eur0(ys.caTTC)}`
+                      : `CA TTC encaissé ce mois · ${eur0(ttc)}`}
+                  </p>
+                </>
+              : <div className="empty">Aucune donnée pour cette période.</div>
+            }
+          </div>
+          </div>{/* fin carte camembert */}
+
+        </div>{/* fin colonne droite */}
+
       </div>
 
-      {/* Synthèse annuelle : chiffres + histogramme (même donnée, deux vues) */}
+      {/* Synthèse annuelle */}
       <div className="card">
         <div className="card-h"><h2>Synthèse {YEAR}</h2><span className="sub">cumul jan → {MONTHS[mIndex].slice(0, 4).toLowerCase()}.</span></div>
         <div className="card-b">
-          <p className="notion-note" style={{ margin: "0 0 16px" }}>Vue rentabilité : ce que ton activité génère sur l'année, après déduction des frais et charges.</p>
           <div className="synth-split">
             <div className="synth-figures">
               <div className="ysum">
                 <div className="yrow"><span className="lab">CA encaissé (TTC)</span><b>{eur0(ys.caTTC)}</b></div>
                 {profile.tva && <div className="yrow"><span className="lab">TVA à reverser</span><b className="neg">−{eur0(ys.tva)}</b></div>}
                 <div className="yrow"><span className="lab">URSSAF</span><b className="neg">−{eur0(ys.cotis)}</b></div>
-                <div className="yrow"><span className="lab">Frais</span><b className="neg">−{eur0(ys.fraisLisse)}</b></div>
+                <div className="yrow"><span className="lab">Frais &amp; achats</span><b className="neg">−{eur0(ys.fraisLisse)}</b></div>
                 {ys.cfe > 0 && <div className="yrow"><span className="lab">CFE</span><b className="neg">−{eur0(ys.cfe)}</b></div>}
                 <div className="yrow tot"><span className="lab">Revenu net cumulé</span><b className="pos">{eur0(ys.netLisse)}</b></div>
               </div>
@@ -1286,6 +1405,57 @@ function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSa
 /* ========================================================== */
 /* FRAIS — charges récurrentes (saisie)                       */
 /* ========================================================== */
+// tous les paiements d'un mois : charges + URSSAF + TVA + CFE, indexés par jour
+function allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory) {
+  const assujetti = !!profile.tva;
+  const urssafDec = (profile.urssafDecalage === undefined || profile.urssafDecalage === "") ? 2 : num(profile.urssafDecalage);
+  const tvaDec    = (profile.tvaDecalage   === undefined || profile.tvaDecalage   === "") ? 1 : num(profile.tvaDecalage);
+  const urssafJour = parseInt(profile.urssafJour) || 5;
+  const tvaJour    = parseInt(profile.tvaJour)    || 15;
+
+  const byDay = {};
+  let total = 0;
+  const add = (day, item) => { (byDay[day] = byDay[day] || []).push(item); total += item.montant; };
+
+  // 1. Charges (frais & achats)
+  charges.forEach((ch) => {
+    const imp = chargeImpact(ch, m);
+    if (imp.decaisse > 0) {
+      const day = parseInt(imp.dueDay, 10) || 1;
+      add(day, { libelle: ch.libelle || "Sans libellé", montant: imp.decaisse,
+                 color: FREQ_META[ch.frequence || "mensuelle"].color, type: "charge" });
+    }
+  });
+
+  // 2. URSSAF (cotisations de m-urssafDec)
+  const uSrc = m - urssafDec;
+  if (uSrc >= 0) {
+    const fs = facturesByMonth[`${YEAR}-${pad2(uSrc)}`] || [];
+    const s  = computeMonth({ factures: fs, charges, profile, mIndex: uSrc, cfeAnnuel, urssafHistory });
+    if (s.totalCotis > 0.005)
+      add(urssafJour, { libelle: `URSSAF (activité ${MONTHS[uSrc].toLowerCase()})`,
+                        montant: s.totalCotis, color: "#94614e", type: "urssaf" });
+  }
+
+  // 3. TVA (tvaAreverser de m-tvaDec)
+  if (assujetti) {
+    const tSrc = m - tvaDec;
+    if (tSrc >= 0) {
+      const fs = facturesByMonth[`${YEAR}-${pad2(tSrc)}`] || [];
+      const s  = computeMonth({ factures: fs, charges, profile, mIndex: tSrc, cfeAnnuel, urssafHistory });
+      if (s.tvaAreverser > 0.005)
+        add(tvaJour, { libelle: `TVA (activité ${MONTHS[tSrc].toLowerCase()})`,
+                       montant: s.tvaAreverser, color: "#577389", type: "tva" });
+    }
+  }
+
+  // 4. CFE (décembre uniquement)
+  if (m === 11 && cfeAnnuel > 0)
+    add(15, { libelle: "CFE annuelle", montant: cfeAnnuel, color: "#7a6b8a", type: "cfe" });
+
+  return { byDay, total };
+}
+
 // chips décaissés (cash réellement débité) un mois donné, indexés par jour
 function debitsForMonth(charges, m) {
   const byDay = {};
@@ -1397,6 +1567,123 @@ function YearCalendar({ charges, mIndex }) {
         <div className="cal-tot"><span>Décaissé sur {YEAR} · <b>{eur0(yearTotal)}</b></span></div>
       </div>
     </div>);
+}
+
+// ---- Calendrier complet (charges + URSSAF + TVA + CFE) ----
+
+function FullMonthCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory }) {
+  const { byDay, total } = allPaymentsForMonth(mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory);
+  const daysInMonth = new Date(YEAR, mIndex + 1, 0).getDate();
+  const firstDow = (new Date(YEAR, mIndex, 1).getDay() + 6) % 7;
+  const now = new Date();
+  const isThisMonth = now.getFullYear() === YEAR && now.getMonth() === mIndex;
+  const todayDate = now.getDate();
+
+  const cells = [];
+  for (let i = 0; i < firstDow; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  return (
+    <div className="cal">
+      <div className="cal-dow">
+        {["lun","mar","mer","jeu","ven","sam","dim"].map(d => <span key={d}>{d}</span>)}
+      </div>
+      <div className="cal-grid">
+        {cells.map((d, i) => {
+          if (d === null) return <div key={"e"+i} className="cal-cell empty" />;
+          const items = byDay[d] || [];
+          const today = isThisMonth && d === todayDate;
+          return (
+            <div key={d} className={"cal-cell" + (items.length ? " has" : "") + (today ? " today" : "")}>
+              <span className="cal-day">{d}</span>
+              <div className="cal-chips">
+                {items.map((it, k) => (
+                  <div key={k} className="cal-chip" title={`${it.libelle} · ${eur0(it.montant)}`}
+                    style={{ background: it.color }}>
+                    <span className="lab">{it.libelle}</span>
+                    <b>{eur0(it.montant)}</b>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="cal-foot">
+        <div className="cal-tot">
+          {total > 0
+            ? <span>Total prélevé en {MONTHS[mIndex]} · <b>{eur0(total)}</b></span>
+            : <span style={{ color:"var(--soft)", fontSize:12.5 }}>Aucun paiement ce mois.</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FullYearCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory }) {
+  const months = MONTHS.map((name, m) => {
+    const { byDay, total } = allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory);
+    const items = [];
+    Object.keys(byDay).forEach(day => byDay[day].forEach(it => items.push({ ...it, day: parseInt(day, 10) })));
+    items.sort((a, b) => a.day - b.day);
+    return { name, m, total, items };
+  });
+  const yearTotal = months.reduce((s, x) => s + x.total, 0);
+  const maxTotal = Math.max(1, ...months.map(x => x.total));
+
+  return (
+    <div className="cal">
+      <div className="cal-year">
+        {months.map(mo => (
+          <div key={mo.m} className={"ym" + (mo.m === mIndex ? " cur" : "")}>
+            <div className="ym-h">
+              <span className="nm">{mo.name}</span>
+              <span className="tt">{mo.total > 0 ? eur0(mo.total) : "—"}</span>
+            </div>
+            <div className="ym-bar"><i style={{ width: mo.total / maxTotal * 100 + "%", background: "var(--primary)" }} /></div>
+            <div className="ym-list">
+              {mo.items.length === 0 && <span className="ym-empty">aucun paiement</span>}
+              {mo.items.map((it, k) => (
+                <div key={k} className="ym-it">
+                  <span className="dd" style={{ background: it.color }}>{it.day}</span>
+                  <span className="ll">{it.libelle}</span>
+                  <span className="mm">{eur0(it.montant)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="cal-foot">
+        <div className="cal-tot"><span>Total prélevé sur {YEAR} · <b>{eur0(yearTotal)}</b></span></div>
+      </div>
+    </div>
+  );
+}
+
+function CalendarTab({ mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory }) {
+  const [scope, setScope] = React.useState("month");
+  return (
+    <div className="card">
+      <div className="card-h">
+        <h2>Calendrier des paiements</h2>
+        <span className="sub">
+          {scope === "month" ? `prélèvements de ${MONTHS[mIndex]}` : `prélèvements de l'année ${YEAR}`}
+        </span>
+        <div className="viewseg sm" style={{ marginLeft: 16 }}>
+          <button className={scope === "month" ? "on" : ""} onClick={() => setScope("month")}>Mois</button>
+          <button className={scope === "year" ? "on" : ""} onClick={() => setScope("year")}>Année</button>
+        </div>
+      </div>
+      <div className="card-b">
+        {scope === "month"
+          ? <FullMonthCalendar mIndex={mIndex} charges={charges} profile={profile}
+              cfeAnnuel={cfeAnnuel} facturesByMonth={facturesByMonth} urssafHistory={urssafHistory} />
+          : <FullYearCalendar mIndex={mIndex} charges={charges} profile={profile}
+              cfeAnnuel={cfeAnnuel} facturesByMonth={facturesByMonth} urssafHistory={urssafHistory} />}
+      </div>
+    </div>
+  );
 }
 
 function TariffHistory({ charge, onAddTariff, onRemoveTariff }) {
@@ -1548,8 +1835,6 @@ function CategoryDonut({ charges, mIndex, scope, categories }) {
 
 function FraisTab({ charges, mIndex, categories, profile, onAdd, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory, tvaConfig }) {
   const activeTvaRates = tvaConfig || TVA_RATES;
-  const [view, setView] = React.useState("table");
-  const [scope, setScope] = React.useState("month");
   const [tarifsOpen, setTarifsOpen] = React.useState({});
   const [movingId, setMovingId] = React.useState(null);
   const [adding, setAdding] = React.useState(false);
@@ -1687,33 +1972,9 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onUpdate, onRem
     <div className="card">
       <div className="card-h">
         <h2>Frais récurrents</h2>
-        <span className="sub">
-          {view === "table" ? `impact sur ${MONTHS[mIndex]} à droite` :
-          scope === "month" ? `prélèvements de ${MONTHS[mIndex]}` : `prélèvements de l'année ${YEAR}`}
-        </span>
-        <div className="viewseg" role="tablist" style={{ marginLeft: 16 }}>
-          <button className={view === "table" ? "on" : ""} onClick={() => setView("table")}>{Icon.rows} Tableau</button>
-          <button className={view === "cal" ? "on" : ""} onClick={() => setView("cal")}>{Icon.cal} Calendrier</button>
-        </div>
+        <span className="sub">impact sur {MONTHS[mIndex]} à droite</span>
       </div>
       <div className="card-b">
-        {view === "cal" ?
-        <React.Fragment>
-          <div className="cal-scope">
-            <div className="viewseg sm">
-              <button className={scope === "month" ? "on" : ""} onClick={() => setScope("month")}>Mois</button>
-              <button className={scope === "year" ? "on" : ""} onClick={() => setScope("year")}>Année</button>
-            </div>
-          </div>
-          {charges.length === 0 ?
-            <div className="empty">Aucun frais. Ajoutez vos abonnements, assurances, loyers…</div> :
-            <React.Fragment>
-              {scope === "month" ? <MonthCalendar charges={charges} mIndex={mIndex} /> : <YearCalendar charges={charges} mIndex={mIndex} />}
-              <CategoryDonut charges={charges} mIndex={mIndex} scope={scope} categories={categories} />
-            </React.Fragment>}
-          <button className="addrow accent" onClick={openAdd} style={{ marginTop: 16 }}>{Icon.plus} Ajouter un frais</button>
-        </React.Fragment> :
-
         <React.Fragment>
           <table className="tbl">
             <thead>
@@ -1817,7 +2078,6 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onUpdate, onRem
             Utilisez le bouton <b>horloge</b> pour enregistrer un changement de tarif futur.
           </div>
         </React.Fragment>
-        }
       </div>
     </div>);
 
@@ -2042,10 +2302,11 @@ const SEED_CHARGES = [
 ];
 
 const TabIcon = {
-  dashboard: <svg className="ic" viewBox="0 0 24 24"><path d="M3 13a9 9 0 0 1 18 0"/><path d="M12 13l4-3"/><circle cx="12" cy="13" r="1.3"/></svg>,
-  factures:  <svg className="ic" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>,
-  frais:     <svg className="ic" viewBox="0 0 24 24"><path d="M3 10h18M5 6h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/></svg>,
-  prov:      <svg className="ic" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>,
+  dashboard:   <svg className="ic" viewBox="0 0 24 24"><path d="M3 13a9 9 0 0 1 18 0"/><path d="M12 13l4-3"/><circle cx="12" cy="13" r="1.3"/></svg>,
+  factures:    <svg className="ic" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>,
+  frais:       <svg className="ic" viewBox="0 0 24 24"><path d="M3 10h18M5 6h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/></svg>,
+  prov:        <svg className="ic" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>,
+  calendrier:  <svg className="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="8" cy="15" r="1"/><circle cx="12" cy="15" r="1"/><circle cx="16" cy="15" r="1"/></svg>,
 };
 const Chev = (d) => <svg viewBox="0 0 24 24"><path d={d} /></svg>;
 const newLine = (tva) => ({ id: uid(), description: "", categorie: "BNC", montant: "", tva: tva ? 0.20 : 0 });
@@ -2194,10 +2455,11 @@ function App() {
   const initiales = (profile.nom || "ME").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "ME";
 
   const TABS = [
-    ["dashboard", "Tableau de bord", TabIcon.dashboard],
-    ["factures", "Factures", TabIcon.factures],
-    ["frais", "Frais et achats", TabIcon.frais],
-    ["prov", "Impôts & déclarations mensuelles", TabIcon.prov],
+    ["dashboard",   "Tableau de bord",                TabIcon.dashboard],
+    ["factures",    "Factures",                       TabIcon.factures],
+    ["frais",       "Frais et achats",                TabIcon.frais],
+    ["prov",        "Impôts & déclarations mensuelles", TabIcon.prov],
+    ["calendrier",  "Calendrier",                     TabIcon.calendrier],
   ];
 
   return (
@@ -2235,6 +2497,7 @@ function App() {
         onSaveInv={saveInv} onRemoveInv={removeInv} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />}
       {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} profile={profile} onAdd={addCharge} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} tvaConfig={tvaConfig} />}
       {ui.tab === "prov" && <ChargesProvisionsTab factures={factures} facturesByMonth={facturesByMonth} charges={charges} profile={profile} mIndex={m} cfeData={cfeData[YEAR] || {}} onUpdateCfe={updateCfe} urssafHistory={urssafHistory} />}
+      {ui.tab === "calendrier" && <CalendarTab mIndex={m} charges={charges} profile={profile} cfeAnnuel={cfeAnnuel} facturesByMonth={facturesByMonth} urssafHistory={urssafHistory} />}
 
       {profileOpen && <ProfileModal profile={profile} setProfile={setProfile} onClose={() => setProfileOpen(false)} onExport={exportJSON} onImport={importJSON} urssafHistory={urssafHistory} setUrssafHistory={setUrssafHistory} tvaConfig={tvaConfig} setTvaConfig={setTvaConfig} />}
     </div>
