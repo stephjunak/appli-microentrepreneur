@@ -2,9 +2,14 @@
 
 Web app de gestion des revenus pour micro-entrepreneurs et freelances.
 
-## Objectif
+## Objectif principal
 
-Permettre à un micro-entrepreneur de suivre ses revenus, déduire les charges (URSSAF, frais professionnels, etc.) et avoir une vision claire de son net réel.
+Aider un micro-entrepreneur à voir **clairement et simplement** deux choses que les logiciels comptables rendent confuses, et surtout à ne jamais les mélanger :
+
+1. **Ce qui va être réellement prélevé ce mois-ci** (la trésorerie qui sort vraiment du compte) : l'URSSAF correspondant à l'activité d'il y a 2 mois, la TVA du mois précédent, les frais et abonnements débités ce mois, la CFE le cas échéant.
+2. **Ce qu'il faut mettre de côté pour plus tard** (les provisions générées par l'activité du mois en cours, avec leurs dates d'échéance futures).
+
+Les deux sont utiles, mais doivent rester visuellement séparés. Le but est que l'utilisateur sache, sans être comptable : combien part maintenant, combien bloquer, et combien il peut réellement utiliser.
 
 ## Statut
 
@@ -89,10 +94,13 @@ Permettre d'enregistrer un modèle de facture (client, lignes, montants) pour le
 
 Ajouter un calendrier regroupant tous les prélèvements à venir : TVA, URSSAF, abonnements et autres charges, avec leurs dates d'échéance, pour avoir une vision claire de la trésorerie.
 
-### Décalage réel des paiements (gros chantier)
+### Décalage réel des paiements — FAIT
 
-Sur le tableau de bord, distinguer clairement deux choses aujourd'hui mélangées :
-- **Ce qu'on paie réellement ce mois-ci** : la TVA du mois précédent et l'URSSAF d'il y a 2 mois (les cotisations sont décalées dans le temps)
-- **Les provisions à constituer** : la TVA et l'URSSAF des mois à venir, qu'on met de côté mais qu'on ne paie pas encore
+Le tableau de bord sépare désormais strictement **deux notions, qui ne se mélangent jamais** :
 
-Objectif : ne plus confondre "à provisionner pour plus tard" et "à décaisser maintenant".
+- **Trésorerie** (ce qui sort vraiment du compte ce mois) : l'URSSAF d'il y a 2 mois, la TVA du mois précédent, les frais réellement débités, la CFE le cas échéant. Ces montants viennent de l'activité passée, déjà provisionnée. Vue purement informative, elle n'entre pas dans le calcul du revenu.
+- **Rentabilité** (ce que l'activité du mois rapporte vraiment) : l'URSSAF, la TVA et la CFE générées par le mois courant, plus tous les frais à leur **part mensuelle lissée** (mensuel = montant, trimestriel ÷3, annuel ÷12). Le revenu net raisonnable = CA TTC − ces charges.
+
+Principe de fond : **on ne met jamais dans la même vue la provision d'un mois et le prélèvement d'un mois.** C'est ce mélange qui faussait l'ancien "revenu net" (il déduisait à la fois une provision et un frais réellement payé, et comptait deux fois les frais trimestriels/annuels les mois de prélèvement). Corrigé via la fonction `chargeLisse` et le champ `netLisse` du moteur de calcul.
+
+Les décalages de prélèvement (jour et nombre de mois pour l'URSSAF et la TVA) sont réglables dans "Profil & paramètres".
