@@ -455,7 +455,11 @@ select.cell-in{appearance:none;cursor:pointer;
 .treso-row.net-row .lab{font-weight:700;color:var(--ink);font-size:14.5px;}
 .treso-row.net-row b{font-size:22px;font-weight:800;letter-spacing:-.4px;}
 .treso-solde{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);}
-.treso-solde-h{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--soft);margin-bottom:14px;}
+.treso-solde-toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;background:none;border:none;padding:0;margin:0;cursor:pointer;font-family:inherit;}
+.treso-solde-h{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--soft);}
+.treso-chevron{font-size:18px;line-height:1;color:var(--soft);transition:transform .2s ease;}
+.treso-chevron.open{transform:rotate(180deg);}
+.treso-solde-body{margin-top:14px;}
 .treso-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:12px;padding-top:12px;border-top:2px solid var(--line-2);}
 .treso-total span{font-weight:700;color:var(--ink);font-size:14.5px;}
 .treso-total b{font-size:24px;font-weight:800;letter-spacing:-.5px;}
@@ -516,9 +520,6 @@ select.cell-in{appearance:none;cursor:pointer;
 .cat-add-row{display:flex;gap:6px;align-items:center;}
 .cat-subtotal td{font-size:12px;color:var(--soft);text-align:right;padding:4px 12px 10px;border-bottom:2px solid var(--line-2);}
 .cat-subtotal .sub-val{font-weight:700;color:var(--ink);font-size:13px;margin-left:3px;}
-.frais-new-form{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;background:var(--prov-soft);border:1px solid #e2d9b3;border-radius:9px;margin-top:10px;}
-.frais-new-form label{font-size:13px;color:var(--primary-d);font-weight:600;white-space:nowrap;}
-.frais-new-form .cell-in{background:#fff;border-color:var(--line-2);box-shadow:0 1px 2px rgba(45,43,30,.06);}
 .cat-move-btn{background:none;border:none;cursor:pointer;padding:2px;opacity:.3;display:inline-flex;align-items:center;flex:none;}
 .cat-move-btn:hover{opacity:.9;}
 .cat-move-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;}
@@ -853,6 +854,15 @@ const SEG_COLORS = { urssaf: "#94614e", tva: "#577389", decaisse: "#8a7733", ach
 // le camembert reprend exactement la même palette (plus de teintes séparées)
 const DONUT_COLORS = SEG_COLORS;
 
+// couleurs du calendrier des paiements : une couleur unique par poste
+const PAY_COLORS = { urssaf: SEG_COLORS.urssaf, tva: SEG_COLORS.tva, cfe: SEG_COLORS.cfe, frais: SEG_COLORS.decaisse };
+const PAY_LEGEND = [
+  { key: "urssaf", label: "URSSAF",          color: PAY_COLORS.urssaf },
+  { key: "tva",    label: "TVA",             color: PAY_COLORS.tva },
+  { key: "cfe",    label: "CFE",             color: PAY_COLORS.cfe },
+  { key: "frais",  label: "Frais & achats",  color: PAY_COLORS.frais },
+];
+
 /* ========================================================== */
 /* TABLEAU DE BORD (approche A + graphes B)                   */
 /* ========================================================== */
@@ -903,6 +913,7 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex, cfe
 
   const [donutScope, setDonutScope] = React.useState("month");
   const [histScope,  setHistScope]  = React.useState("month");
+  const [tresoOpen,  setTresoOpen]  = React.useState(false);
   const maxAbs = Math.max(1, ...year.map((y) => Math.abs(y.netLisse)));
 
   // synthèse annuelle (cumul jusqu'au mois affiché)
@@ -1041,33 +1052,38 @@ function DashboardTab({ facturesByMonth, factures, charges, profile, mIndex, cfe
             </div>
 
             <div className="treso-solde">
-              <div className="treso-solde-h"><span>🏦</span> Trésorerie disponible</div>
-              <div className="field" style={{ marginBottom: 14 }}>
-                <label>Solde du compte au 1er {moisLabel(mIndex)}</label>
-                <input className="in" type="number" step="0.01" placeholder="0,00"
-                  value={soldeDebut === undefined || soldeDebut === null ? "" : soldeDebut}
-                  onChange={(e) => onSetSolde(e.target.value)} />
-              </div>
-              <div className="treso-cascade">
-                <div className="treso-row">
-                  <span className="lab">Solde au 1er {moisLabel(mIndex)}</span>
-                  <b>{eur0(soldeNum)}</b>
+              <button type="button" className="treso-solde-toggle" aria-expanded={tresoOpen} onClick={() => setTresoOpen(o => !o)}>
+                <span className="treso-solde-h"><span>🏦</span> Trésorerie disponible</span>
+                <span className={"treso-chevron" + (tresoOpen ? " open" : "")}>⌄</span>
+              </button>
+              {tresoOpen && <div className="treso-solde-body">
+                <div className="field" style={{ marginBottom: 14 }}>
+                  <label>Solde du compte au 1er {moisLabel(mIndex)}</label>
+                  <input className="in" type="number" step="0.01" placeholder="0,00"
+                    value={soldeDebut === undefined || soldeDebut === null ? "" : soldeDebut}
+                    onChange={(e) => onSetSolde(e.target.value)} />
                 </div>
-                <div className="treso-row">
-                  <span className="lab"><span className="op neutral">+</span>Revenu net ce mois</span>
-                  <b className={netCash >= 0 ? "pos" : "neg"}>{eur0(netCash)}</b>
-                </div>
-              </div>
-              <div className="treso-total">
-                <span>Trésorerie disponible</span>
-                <b className={tresoDisp >= 0 ? "pos" : "neg"}>{eur0(tresoDisp)}</b>
-              </div>
-              {soldeNum > 0
-                ? <div className="treso-verdict" style={{ color: tresoDisp >= 0 ? "var(--pos)" : "var(--neg)", background: tresoDisp >= 0 ? "var(--pos-soft)" : "var(--neg-soft)", borderColor: tresoDisp >= 0 ? "#cfe6da" : "#e3d2c8" }}>
-                    {tresoDisp >= 0 ? "Ta trésorerie est positive ce mois." : "Attention : ta trésorerie est dans le rouge ce mois."}
+                <div className="treso-cascade">
+                  <div className="treso-row">
+                    <span className="lab">Solde au 1er {moisLabel(mIndex)}</span>
+                    <b>{eur0(soldeNum)}</b>
                   </div>
-                : <div className="treso-verdict">Saisis ton solde de début de mois pour voir ta trésorerie disponible.</div>
-              }
+                  <div className="treso-row">
+                    <span className="lab"><span className="op neutral">+</span>Revenu net ce mois</span>
+                    <b className={netCash >= 0 ? "pos" : "neg"}>{eur0(netCash)}</b>
+                  </div>
+                </div>
+                <div className="treso-total">
+                  <span>Trésorerie disponible</span>
+                  <b className={tresoDisp >= 0 ? "pos" : "neg"}>{eur0(tresoDisp)}</b>
+                </div>
+                {soldeNum > 0
+                  ? <div className="treso-verdict" style={{ color: tresoDisp >= 0 ? "var(--pos)" : "var(--neg)", background: tresoDisp >= 0 ? "var(--pos-soft)" : "var(--neg-soft)", borderColor: tresoDisp >= 0 ? "#cfe6da" : "#e3d2c8" }}>
+                      {tresoDisp >= 0 ? "Ta trésorerie est positive ce mois." : "Attention : ta trésorerie est dans le rouge ce mois."}
+                    </div>
+                  : <div className="treso-verdict">Saisis ton solde de début de mois pour voir ta trésorerie disponible.</div>
+                }
+              </div>}
             </div>
           </div>
         </div>
@@ -1423,7 +1439,7 @@ function allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, ur
     if (imp.decaisse > 0) {
       const day = parseInt(imp.dueDay, 10) || 1;
       add(day, { libelle: ch.libelle || "Sans libellé", montant: imp.decaisse,
-                 color: FREQ_META[ch.frequence || "mensuelle"].color, type: "charge" });
+                 color: PAY_COLORS.frais, type: "charge" });
     }
   });
 
@@ -1434,7 +1450,7 @@ function allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, ur
     const s  = computeMonth({ factures: fs, charges, profile, mIndex: uSrc, cfeAnnuel, urssafHistory });
     if (s.totalCotis > 0.005)
       add(urssafJour, { libelle: `URSSAF (activité ${MONTHS[uSrc].toLowerCase()})`,
-                        montant: s.totalCotis, color: "#94614e", type: "urssaf" });
+                        montant: s.totalCotis, color: PAY_COLORS.urssaf, type: "urssaf" });
   }
 
   // 3. TVA (tvaAreverser de m-tvaDec)
@@ -1445,13 +1461,13 @@ function allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, ur
       const s  = computeMonth({ factures: fs, charges, profile, mIndex: tSrc, cfeAnnuel, urssafHistory });
       if (s.tvaAreverser > 0.005)
         add(tvaJour, { libelle: `TVA (activité ${MONTHS[tSrc].toLowerCase()})`,
-                       montant: s.tvaAreverser, color: "#577389", type: "tva" });
+                       montant: s.tvaAreverser, color: PAY_COLORS.tva, type: "tva" });
     }
   }
 
   // 4. CFE (décembre uniquement)
   if (m === 11 && cfeAnnuel > 0)
-    add(15, { libelle: "CFE annuelle", montant: cfeAnnuel, color: "#7a6b8a", type: "cfe" });
+    add(15, { libelle: "CFE annuelle", montant: cfeAnnuel, color: PAY_COLORS.cfe, type: "cfe" });
 
   return { byDay, total };
 }
@@ -1573,6 +1589,8 @@ function YearCalendar({ charges, mIndex }) {
 
 function FullMonthCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory }) {
   const { byDay, total } = allPaymentsForMonth(mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory);
+  const present = new Set();
+  Object.values(byDay).forEach(arr => arr.forEach(it => present.add(it.type === "charge" ? "frais" : it.type)));
   const daysInMonth = new Date(YEAR, mIndex + 1, 0).getDate();
   const firstDow = (new Date(YEAR, mIndex, 1).getDay() + 6) % 7;
   const now = new Date();
@@ -1610,6 +1628,10 @@ function FullMonthCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMont
         })}
       </div>
       <div className="cal-foot">
+        <div className="cal-legend">
+          {PAY_LEGEND.filter(l => present.has(l.key)).map(l =>
+            <span key={l.key}><i style={{ background: l.color }} />{l.label}</span>)}
+        </div>
         <div className="cal-tot">
           {total > 0
             ? <span>Total prélevé en {MONTHS[mIndex]} · <b>{eur0(total)}</b></span>
@@ -1630,6 +1652,8 @@ function FullYearCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMonth
   });
   const yearTotal = months.reduce((s, x) => s + x.total, 0);
   const maxTotal = Math.max(1, ...months.map(x => x.total));
+  const present = new Set();
+  months.forEach(mo => mo.items.forEach(it => present.add(it.type === "charge" ? "frais" : it.type)));
 
   return (
     <div className="cal">
@@ -1655,6 +1679,10 @@ function FullYearCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMonth
         ))}
       </div>
       <div className="cal-foot">
+        <div className="cal-legend">
+          {PAY_LEGEND.filter(l => present.has(l.key)).map(l =>
+            <span key={l.key}><i style={{ background: l.color }} />{l.label}</span>)}
+        </div>
         <div className="cal-tot"><span>Total prélevé sur {YEAR} · <b>{eur0(yearTotal)}</b></span></div>
       </div>
     </div>
@@ -1833,19 +1861,100 @@ function CategoryDonut({ charges, mIndex, scope, categories }) {
   );
 }
 
-function FraisTab({ charges, mIndex, categories, profile, onAdd, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory, tvaConfig }) {
+// Modale de création d'un frais ou d'un achat. Brouillon local : rien n'est créé tant qu'on n'a pas validé.
+function FraisModal({ categories, profile, tvaConfig, onSave, onClose }) {
+  const assujetti = !!profile.tva;
+  const activeTvaRates = tvaConfig || TVA_RATES;
+  const isPonctuelCat = (cat) => (cat || "").toLowerCase().includes("ponctuel");
+  const firstCat = categories[0] || "";
+  const [draft, setDraft] = React.useState(() => ({
+    libelle: "", categorie: firstCat,
+    frequence: isPonctuelCat(firstCat) ? "ponctuelle" : "mensuelle",
+    montant: "", date: TODAY, tva: 0,
+  }));
+  const setField = (f, v) => setDraft(d => ({ ...d, [f]: v }));
+  const onCat = (cat) => setDraft(d => ({ ...d, categorie: cat,
+    frequence: isPonctuelCat(cat) ? "ponctuelle" : (d.frequence === "ponctuelle" ? "mensuelle" : d.frequence) }));
+  const isPonctuel = draft.frequence === "ponctuelle";
+  const canSave = !!draft.libelle.trim();
+  const save = () => {
+    if (!canSave) return;
+    const date = draft.date || TODAY;
+    onSave({
+      id: uid(), libelle: draft.libelle.trim(), montant: "",
+      categorie: draft.categorie || firstCat,
+      tarifsHistory: [{ montant: draft.montant, from: date }],
+      frequence: draft.frequence,
+      jour: parseInt(date.slice(8, 10), 10) || 1,
+      date, tva: assujetti ? draft.tva : 0,
+    });
+  };
+  return (
+    <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{ width: "min(560px, 100%)" }}>
+        <div className="modal-h">
+          <h3>Nouveau frais ou achat</h3>
+          <button className="x" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-b">
+          <div className="field">
+            <label>Libellé</label>
+            <input className={"in" + (!draft.libelle.trim() ? " field-missing" : "")} placeholder="Ex : Assurance RC pro"
+              value={draft.libelle} onChange={(e) => setField("libelle", e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && save()} autoFocus />
+          </div>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <div className="field" style={{ flex: 1, minWidth: 200 }}>
+              <label>Catégorie</label>
+              <select className="in" value={draft.categorie} onChange={(e) => onCat(e.target.value)}>
+                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="field" style={{ flex: 1, minWidth: 200 }}>
+              <label>Fréquence</label>
+              <select className="in" value={draft.frequence} onChange={(e) => setField("frequence", e.target.value)}>
+                <option value="mensuelle">Mensuelle</option>
+                <option value="trimestrielle">Trimestrielle</option>
+                <option value="annuelle">Annuelle</option>
+                <option value="ponctuelle">Achat ponctuel</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <div className="field" style={{ flex: 1, minWidth: 150 }}>
+              <label>Montant (€)</label>
+              <input className="in" type="number" step="0.01" placeholder="0,00"
+                value={draft.montant} onChange={(e) => setField("montant", e.target.value)} />
+            </div>
+            <div className="field" style={{ flex: 1, minWidth: 150 }}>
+              <label>{isPonctuel ? "Date de l'achat" : "Depuis le"}</label>
+              <input className="in" type="date" value={draft.date} onChange={(e) => setField("date", e.target.value)} />
+            </div>
+            {assujetti &&
+              <div className="field" style={{ flex: 1, minWidth: 130 }}>
+                <label>TVA</label>
+                <select className="in" value={draft.tva} onChange={(e) => setField("tva", parseFloat(e.target.value))}>
+                  {activeTvaRates.map(tv => <option key={tv.v} value={tv.v}>TVA {tv.label}</option>)}
+                </select>
+              </div>
+            }
+          </div>
+        </div>
+        <div className="modal-f">
+          <button className="btn ghost" onClick={onClose}>Annuler</button>
+          <button className="btn pri" disabled={!canSave} style={{ marginLeft: "auto" }} onClick={save}>Valider</button>
+        </div>
+      </div>
+    </div>);
+}
+
+function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory, tvaConfig }) {
   const activeTvaRates = tvaConfig || TVA_RATES;
   const [tarifsOpen, setTarifsOpen] = React.useState({});
   const [movingId, setMovingId] = React.useState(null);
-  const [adding, setAdding] = React.useState(false);
-  const [newLibelle, setNewLibelle] = React.useState("");
-  const [newCatSel, setNewCatSel] = React.useState("");
+  const [modalOpen, setModalOpen] = React.useState(false);
   const [newCat, setNewCat] = React.useState("");
   const toggleTarifs = (id) => setTarifsOpen(o => ({ ...o, [id]: !o[id] }));
-
-  const openAdd = () => { setNewLibelle(""); setNewCatSel(categories[0] || ""); setAdding(true); };
-  const isPonctuelCat = (cat) => cat.toLowerCase().includes("ponctuel");
-  const confirmAdd = () => { if (newCatSel) { onAdd(newCatSel, newLibelle, isPonctuelCat(newCatSel)); setAdding(false); } };
 
   const libelleCell = (ch) => (
     <td>
@@ -1975,6 +2084,10 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onUpdate, onRem
         <span className="sub">impact sur {MONTHS[mIndex]} à droite</span>
       </div>
       <div className="card-b">
+        <button className="addrow accent" style={{ marginBottom: 14 }} onClick={() => setModalOpen(true)}>{Icon.plus} Ajouter un frais</button>
+        {modalOpen && <FraisModal categories={categories} profile={profile} tvaConfig={tvaConfig}
+          onSave={(charge) => { onCreate(charge); setModalOpen(false); }}
+          onClose={() => setModalOpen(false)} />}
         <React.Fragment>
           <table className="tbl">
             <thead>
@@ -2033,25 +2146,6 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onUpdate, onRem
           </div>
 
           <CategoryDonut charges={charges} mIndex={mIndex} scope="month" categories={categories} />
-
-          {adding ? (
-            <div className="frais-new-form">
-              <label>Nouveau frais :</label>
-              <input className="cell-in" placeholder="Libellé" value={newLibelle}
-                onChange={e => setNewLibelle(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && confirmAdd()}
-                style={{ width: 200 }} autoFocus />
-              <select className="cell-in" value={newCatSel}
-                onChange={e => setNewCatSel(e.target.value)} style={{ width: 200 }}>
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              {isPonctuelCat(newCatSel) && <span className="badge cat" style={{ fontSize: 11 }}>Sans récurrence</span>}
-              <button className="btn pri" onClick={confirmAdd}>Créer</button>
-              <button className="btn ghost" onClick={() => setAdding(false)}>Annuler</button>
-            </div>
-          ) : (
-            <button className="addrow accent" onClick={openAdd} style={{ marginTop: 10 }}>{Icon.plus} Ajouter un frais</button>
-          )}
 
           <div className="cat-manage">
             <div className="cat-manage-title">Gérer les catégories</div>
@@ -2389,6 +2483,7 @@ function App() {
     const jourFromDate = parseInt(from.slice(8, 10), 10) || 1;
     setCharges(prev => [...prev, { id: uid(), libelle: libelle || "", montant: "", categorie: cat || categories[0] || "", tarifsHistory: [{ montant: "", from }], frequence: ponctuel ? "ponctuelle" : "mensuelle", jour: jourFromDate, date: from, tva: 0 }]);
   };
+  const addChargeFull = (charge) => setCharges(prev => [...prev, charge]);
   const updateCharge = (id, field, val) => setCharges(prev => prev.map((c) => {
     if (c.id !== id) return c;
     const updated = { ...c, [field]: val };
@@ -2495,7 +2590,7 @@ function App() {
       {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} charges={charges} profile={profile} mIndex={m} cfeAnnuel={cfeAnnuel} urssafHistory={urssafHistory} soldeDebut={soldes[key]} onSetSolde={setSolde} />}
       {ui.tab === "factures" && <FacturesTab factures={factures} facturesByMonth={facturesByMonth} charges={charges} profile={profile} mIndex={m}
         onSaveInv={saveInv} onRemoveInv={removeInv} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />}
-      {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} profile={profile} onAdd={addCharge} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} tvaConfig={tvaConfig} />}
+      {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} profile={profile} onAdd={addCharge} onCreate={addChargeFull} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} tvaConfig={tvaConfig} />}
       {ui.tab === "prov" && <ChargesProvisionsTab factures={factures} facturesByMonth={facturesByMonth} charges={charges} profile={profile} mIndex={m} cfeData={cfeData[YEAR] || {}} onUpdateCfe={updateCfe} urssafHistory={urssafHistory} />}
       {ui.tab === "calendrier" && <CalendarTab mIndex={m} charges={charges} profile={profile} cfeAnnuel={cfeAnnuel} facturesByMonth={facturesByMonth} urssafHistory={urssafHistory} />}
 
