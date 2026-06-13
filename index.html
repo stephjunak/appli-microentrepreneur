@@ -454,18 +454,6 @@ select.cell-in{appearance:none;cursor:pointer;
 .treso-row.net-row{border-bottom:none;border-top:2px solid var(--line-2);margin-top:4px;padding-top:12px;}
 .treso-row.net-row .lab{font-weight:700;color:var(--ink);font-size:14.5px;}
 .treso-row.net-row b{font-size:22px;font-weight:800;letter-spacing:-.4px;}
-.treso-solde{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);}
-.treso-solde-toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;background:none;border:none;padding:0;margin:0;cursor:pointer;font-family:inherit;}
-.treso-solde-h{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--soft);}
-.treso-chevron{font-size:18px;line-height:1;color:var(--soft);transition:transform .2s ease;}
-.treso-chevron.open{transform:rotate(180deg);}
-.treso-solde-body{margin-top:14px;}
-.treso-total{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:12px;padding-top:12px;border-top:2px solid var(--line-2);}
-.treso-total span{font-weight:700;color:var(--ink);font-size:14.5px;}
-.treso-total b{font-size:24px;font-weight:800;letter-spacing:-.5px;}
-.treso-verdict{font-size:12.5px;border-radius:9px;padding:10px 13px;line-height:1.5;margin-top:10px;border:1px solid var(--line);color:var(--faint);background:#fafbfc;}
-.donut-card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line);}
-.donut-card-h h2{margin:0;font-size:15px;font-weight:700;}
 .donut-legend{display:flex;flex-direction:column;gap:9px;width:100%;}
 .donut-legend .li{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--soft);}
 .donut-legend .swatch{width:11px;height:11px;border-radius:3px;flex:none;display:inline-block;}
@@ -907,6 +895,72 @@ const PAY_LEGEND = [
 /* ========================================================== */
 /* TABLEAU DE BORD (approche A + graphes B)                   */
 /* ========================================================== */
+
+/* Mini-calendrier des prélèvements : fenêtre autour d'aujourd'hui, points par type, clic = détail */
+function MiniDashCalendar({ mIndex, charges, profile, cfeAnnuel = 0, facturesByMonth, urssafHistory = {} }) {
+  const { byDay } = allPaymentsForMonth(mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory);
+  const daysInMonth = new Date(YEAR, mIndex + 1, 0).getDate();
+  const now = new Date();
+  const isThisMonth = now.getFullYear() === YEAR && now.getMonth() === mIndex;
+  const today = isThisMonth ? now.getDate() : 1;
+
+  let start = Math.max(1, today - 5);
+  let end   = Math.min(daysInMonth, today + 5);
+  if (end - start < 10) {
+    if (start === 1) end = Math.min(daysInMonth, start + 10);
+    else if (end === daysInMonth) start = Math.max(1, end - 10);
+  }
+  const days = [];
+  for (let d = start; d <= end; d++) days.push(d);
+
+  const [sel, setSel] = React.useState(today);
+  const selItems = byDay[sel] || [];
+  const WD = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+  const selDate = new Date(YEAR, mIndex, sel);
+  const selLabel = `${WD[selDate.getDay()]} ${sel} ${MONTHS[mIndex].toLowerCase()}`;
+
+  return (
+    <div className="card" style={{ display: "flex", flexDirection: "column" }}>
+      <div className="card-h"><h2>Prélèvements à venir</h2><span className="sub">{MONTHS[mIndex].toLowerCase()}</span></div>
+      <div className="card-b">
+        <div style={{ display: "flex", gap: 2 }}>
+          {days.map((d) => {
+            const items = byDay[d] || [];
+            const isToday = isThisMonth && d === today;
+            const isSel = d === sel;
+            return (
+              <button type="button" key={d} onClick={() => setSel(d)}
+                style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "4px 0", fontFamily: "inherit" }}>
+                <span style={{ width: 30, height: 30, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
+                  color: isSel ? "#fff" : (isToday ? "var(--pos)" : "var(--soft)"),
+                  background: isSel ? "var(--pos)" : "transparent",
+                  border: (isToday && !isSel) ? "1.5px solid var(--pos)" : "1.5px solid transparent",
+                  fontWeight: (isSel || isToday) ? 600 : 400 }}>{d}</span>
+                <span style={{ display: "flex", gap: 2, height: 5 }}>
+                  {items.slice(0, 3).map((it, i) => <span key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: it.color }}></span>)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ background: "var(--primary-soft)", borderRadius: 8, padding: "12px 14px", marginTop: 14 }}>
+          <div style={{ fontSize: 12, color: "var(--faint)", marginBottom: selItems.length ? 8 : 0 }}>{selLabel}</div>
+          {selItems.length > 0
+            ? selItems.map((it, i) =>
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, padding: "3px 0" }}>
+                  <span><span style={{ width: 11, height: 11, borderRadius: 3, background: it.color, display: "inline-block", marginRight: 7 }}></span>{it.libelle}</span>
+                  <b className="neg">−{eur0(it.montant)}</b>
+                </div>
+              )
+            : <div style={{ fontSize: 13, color: "var(--faint)" }}>Aucun prélèvement ce jour.</div>
+          }
+        </div>
+        <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "10px 0 0", textAlign: "center" }}>clique un jour pour voir le détail</p>
+      </div>
+    </div>
+  );
+}
+
 function DashboardTab({ facturesByMonth, factures, previsions = [], charges, profile, mIndex, cfeAnnuel = 0, urssafHistory = {}, soldeDebut, onSetSolde }) {
   const s = computeMonth({ factures, charges, profile, mIndex, cfeAnnuel, urssafHistory });
   const year = computeYear({ facturesByMonth, charges, profile, cfeAnnuel, urssafHistory });
@@ -957,18 +1011,11 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const provFrais  = s.fraisLisse;
   const charged    = s.charged;
 
-  const [donutScope, setDonutScope] = React.useState("month");
   const [histScope,  setHistScope]  = React.useState("month");
-  const [tresoOpen,  setTresoOpen]  = React.useState(false);
-  const [avenirOpen, setAvenirOpen] = React.useState(false);
-  const maxAbs = Math.max(1, ...year.map((y) => Math.abs(y.netLisse)));
+  const [synthMode,  setSynthMode]  = React.useState("reel");
 
   // synthèse annuelle (cumul jusqu'au mois affiché)
   const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex, prevYear: (profile.prevYears || {})[YEAR - 1], cfeAnnuel, urssafHistory });
-  const monthsElapsed = Math.max(1, (ys.lastActive < 0 ? mIndex : ys.lastActive) + 1);
-  const projNet  = ys.netLisse / monthsElapsed * 12;
-  const prevNet  = ys.prev.net || 0;
-  const deltaPct = prevNet ? Math.round((projNet - prevNet) / prevNet * 100) : null;
 
   const yearlyData = [
     ...Object.entries(profile.prevYears || {})
@@ -978,28 +1025,8 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   ].sort((a, b) => a.year - b.year);
   const maxYearNet = Math.max(1, ...yearlyData.map(d => Math.abs(d.net)));
 
-  // construction du conic-gradient pour le donut
-  const buildDonut = (segs) => {
-    const tot = segs.reduce((a,x) => a + x.val, 0) || 1;
-    let acd = 0;
-    const pos = segs.map(x => { const f = acd/tot*100; acd += x.val; return { key: x.key, from: f, to: acd/tot*100 }; });
-    const GAP = 0.5, half = GAP/2, sep = "#fff";
-    const stops = [];
-    if (pos.length > 1) {
-      stops.push(`${sep} 0% ${half}%`);
-      pos.forEach((p, i) => {
-        stops.push(`${DONUT_COLORS[p.key]} ${i===0?half:p.from+half}% ${i===pos.length-1?100-half:p.to-half}%`);
-        if (i < pos.length-1) stops.push(`${sep} ${p.to-half}% ${p.to+half}%`);
-      });
-      stops.push(`${sep} ${100-half}% 100%`);
-    } else if (pos.length === 1) {
-      stops.push(`${DONUT_COLORS[pos[0].key]} 0% 100%`);
-    }
-    return stops.length ? `conic-gradient(${stops.join(", ")})` : "conic-gradient(#e3e1d6 0 100%)";
-  };
-
   const segsMonth = [
-    { key: "net",      lab: "Revenu net",       val: Math.max(0, netCash) },
+    { key: "net",      lab: "Ce qui te reste",  val: Math.max(0, netCash) },
     { key: "urssaf",   lab: "URSSAF",           val: outUrssaf },
     { key: "tva",      lab: "TVA",              val: outTva },
     { key: "decaisse", lab: "Frais récurrents", val: outFraisRec },
@@ -1020,85 +1047,50 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const yCumulCashOut = yCumulUrssaf + yCumulTva + yCumulFrais + yCumulCfe;
   const yCumulNet     = Math.max(0, ys.caTTC - yCumulCashOut);
 
-  const segsYear = [
-    { key: "net",      lab: "Revenu net",    val: yCumulNet },
-    { key: "urssaf",   lab: "URSSAF",        val: yCumulUrssaf },
-    { key: "tva",      lab: "TVA",           val: yCumulTva },
-    { key: "decaisse", lab: "Frais & achats",val: yCumulFrais },
-    { key: "cfe",      lab: "CFE",           val: yCumulCfe },
-  ].filter(x => x.val > 0.005);
+  // série trésorerie par mois (cash réellement entré − sorti chaque mois) pour les barres
+  const tresoByMonth = year.map((y, i) => {
+    const u = (i - urssafDec >= 0) ? year[i - urssafDec].cotis : 0;
+    const t = (s.assujetti && i - tvaDec >= 0) ? year[i - tvaDec].tva : 0;
+    return y.caTTC - u - t - y.decaisse - (i === 11 ? cfeAnnuel : 0);
+  });
+  // bascule trésorerie / réel pour la synthèse annuelle
+  const synthFig = synthMode === "treso"
+    ? { tva: yCumulTva, urssaf: yCumulUrssaf, frais: yCumulFrais, cfe: yCumulCfe, net: yCumulNet, netLabel: "Revenu net cumulé", graphLabel: "Revenu net" }
+    : { tva: ys.tva,    urssaf: ys.cotis,    frais: ys.fraisLisse, cfe: ys.cfe, net: ys.netLisse, netLabel: "Bénéfice réel cumulé", graphLabel: "Bénéfice réel" };
+  const barSeries  = synthMode === "treso" ? tresoByMonth : year.map((y) => y.netLisse);
+  const maxAbsBars = Math.max(1, ...barSeries.map((v) => Math.abs(v)));
 
-  const donutSegs = donutScope === "month" ? segsMonth : segsYear;
+  const donutSegs = segsMonth;
   const donutTot  = donutSegs.reduce((a,x) => a + x.val, 0) || 1;
-  const donutBg   = buildDonut(donutSegs);
 
   return (
     <div className="dash">
 
-      {/* === 3 KPIs principaux === */}
-      <div className="dash-kpi-row">
+      {/* === Bandeau : CA encaissé + factures en attente === */}
+      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14, marginBottom: 16 }}>
         <div className="card stat">
           <div className="card-b">
-            <div className="cap">CA ENCAISSÉ CE MOIS</div>
-            <div className="big">{eur0(ttc)}</div>
-            <div className="sub">{factures.length} facture{factures.length !== 1 ? "s" : ""} · TTC</div>
+            <div className="cap">CA encaissé · {MONTHS[mIndex].toLowerCase()} {YEAR}</div>
+            <div className="big">{eur0(s.caHT)}{s.assujetti && <span style={{ fontSize: 15, fontWeight: 500, color: "var(--faint)" }}> HT</span>}</div>
+            <div className="sub">{s.assujetti ? `${eur0(s.caTTC)} TTC · ` : ""}{factures.length} facture{factures.length !== 1 ? "s" : ""}</div>
           </div>
         </div>
-        <div className="card stat">
+
+        {/* Factures en attente (stat simple) */}
+        <div className="card stat" style={{ background: "var(--prov-soft)", borderColor: "#d8ca87" }}>
           <div className="card-b">
-            <div className="cap">CHARGES &amp; ACHATS PAYÉS</div>
-            <div className="big neg">{cashOut > 0 ? `−${eur0(cashOut)}` : eur0(0)}</div>
-            <div className="sub">URSSAF + TVA + frais + achats</div>
-          </div>
-        </div>
-        <div className="card stat">
-          <div className="card-b">
-            <div className="cap">REVENU NET DU MOIS</div>
-            <div className={`big ${netCash >= 0 ? "pos" : "neg"}`}>{eur0(netCash)}</div>
-            <div className="sub">CA − tout ce qui est sorti</div>
+            <div className="cap" style={{ color: "#7a6a25" }}>Factures en attente</div>
+            <div className="big" style={{ color: "var(--prov)" }}>{eur0(attenteTotal)}</div>
+            <div className="sub" style={{ color: "#7a6a25" }}>émises, pas encore encaissées</div>
           </div>
         </div>
       </div>
 
-      {/* === Revenus en attente / à venir (séparé des chiffres réels) === */}
-      <div className="card" style={{ marginBottom: 16, background: "var(--prov-soft)", borderColor: "#d8ca87" }}>
-        <button type="button" className="treso-solde-toggle" style={{ padding: "14px 18px" }} aria-expanded={avenirOpen} onClick={() => setAvenirOpen(o => !o)}>
-          <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
-            <span style={{ fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "#7a6a25", fontWeight: 700 }}>Factures en attente de paiement</span>
-            <span style={{ fontSize: 24, fontWeight: 800, color: "var(--prov)", lineHeight: 1 }}>{eur0(attenteTotal)}</span>
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 12.5, color: "#7a6a25" }}>voir le prévisionnel de {moisLabel(nextIdx)}</span>
-            <span className={"treso-chevron" + (avenirOpen ? " open" : "")}>⌄</span>
-          </span>
-        </button>
-        {avenirOpen && <div className="card-b" style={{ paddingTop: 0 }}>
-          <div style={{ fontSize: 12, color: "#7a6a25", marginBottom: 10 }}>Supposé, non encaissé — n'entre ni dans ton CA ni dans ton URSSAF.</div>
-          <div className="treso-cascade">
-            <div className="treso-row">
-              <span className="lab">Factures émises non payées <em style={{ color: "var(--faint)", fontStyle: "normal", fontSize: 11.5 }}>(cumul)</em></span>
-              <b>{eur0(attenteTotal)}</b>
-            </div>
-            <div className="treso-row net-row">
-              <span className="lab">Prévisionnel de {moisLabel(nextIdx)}</span>
-              <b>{eur0(prevNext.total)}</b>
-            </div>
-            {prevNext.items.map((p) =>
-            <div className="treso-row" key={p.id} style={{ paddingLeft: 14 }}>
-              <span className="lab" style={{ color: "var(--faint)", fontSize: 12.5 }}>{p.client || p.libelle || "Revenu prévu"}{p.recurrence === "mensuelle" ? " · mensuel" : ""}</span>
-              <b style={{ fontWeight: 600 }}>{eur0(num(p.montant))}</b>
-            </div>)}
-            {prevNext.items.length === 0 &&
-            <div className="treso-row" style={{ paddingLeft: 14 }}><span className="lab" style={{ color: "var(--faint)", fontSize: 12.5 }}>Aucun revenu prévu le mois prochain</span><b></b></div>}
-          </div>
-        </div>}
-      </div>
+      {/* === Rangée 1 : Trésorerie | Revenu réel === */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
 
-      {/* === Trésorerie + (Provision + Camembert) === */}
-      <div className="dash-main">
-
-        {/* Trésorerie */}
-        <div className="card" style={{ display: "flex", flexDirection: "column" }}>
+        {/* Trésorerie : ce qui bouge réellement sur le compte ce mois */}
+        <div className="card">
           <div className="card-h"><h2>Trésorerie</h2><span className="sub">ce qui bouge sur ton compte ce mois</span></div>
           <div className="card-b">
             <div className="treso-cascade">
@@ -1106,77 +1098,123 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
                 <span className="lab">CA TTC encaissé</span>
                 <b className="pos">{eur0(ttc)}</b>
               </div>
-              {outUrssaf > 0 && <div className="treso-row">
-                <span className="lab"><span style={{ width:11,height:11,borderRadius:3,background:DONUT_COLORS.urssaf,flexShrink:0,display:"inline-block" }}></span>URSSAF de {originLabel(urssafDec)}</span>
-                <b className="neg">−{eur0(outUrssaf)}</b>
-              </div>}
               {s.assujetti && outTva > 0 && <div className="treso-row">
-                <span className="lab"><span style={{ width:11,height:11,borderRadius:3,background:DONUT_COLORS.tva,flexShrink:0,display:"inline-block" }}></span>TVA de {originLabel(tvaDec)}</span>
+                <span className="lab">− TVA de {originLabel(tvaDec)}</span>
                 <b className="neg">−{eur0(outTva)}</b>
               </div>}
+              {outUrssaf > 0 && <div className="treso-row">
+                <span className="lab">− URSSAF de {originLabel(urssafDec)}</span>
+                <b className="neg">−{eur0(outUrssaf)}</b>
+              </div>}
+              {outFrais > 0 && <div className="treso-row">
+                <span className="lab">− Frais de {moisLabel(mIndex)}</span>
+                <b className="neg">−{eur0(outFrais)}</b>
+              </div>}
               {outCfe > 0 && <div className="treso-row">
-                <span className="lab"><span style={{ width:11,height:11,borderRadius:3,background:DONUT_COLORS.cfe,flexShrink:0,display:"inline-block" }}></span>CFE</span>
+                <span className="lab">− CFE</span>
                 <b className="neg">−{eur0(outCfe)}</b>
               </div>}
-              {outFraisRec > 0 && <div className="treso-row">
-                <span className="lab"><span style={{ width:11,height:11,borderRadius:3,background:DONUT_COLORS.decaisse,flexShrink:0,display:"inline-block" }}></span>Frais récurrents débités</span>
-                <b className="neg">−{eur0(outFraisRec)}</b>
-              </div>}
-              {outAchats > 0 && <div className="treso-row">
-                <span className="lab"><span style={{ width:11,height:11,borderRadius:3,background:DONUT_COLORS.achat,flexShrink:0,display:"inline-block" }}></span>Achats ponctuels</span>
-                <b className="neg">−{eur0(outAchats)}</b>
-              </div>}
               <div className="treso-row net-row">
-                <span className="lab">Revenu net</span>
+                <span className="lab">Ton revenu net ce mois</span>
                 <b className={netCash >= 0 ? "pos" : "neg"}>{eur0(netCash)}</b>
               </div>
             </div>
-
-            <div className="treso-solde">
-              <button type="button" className="treso-solde-toggle" aria-expanded={tresoOpen} onClick={() => setTresoOpen(o => !o)}>
-                <span className="treso-solde-h"><span>🏦</span> Trésorerie disponible</span>
-                <span className={"treso-chevron" + (tresoOpen ? " open" : "")}>⌄</span>
-              </button>
-              {tresoOpen && <div className="treso-solde-body">
-                <div className="field" style={{ marginBottom: 14 }}>
-                  <label>Solde du compte au 1er {moisLabel(mIndex)}</label>
-                  <input className="in" type="number" step="0.01" placeholder="0,00"
-                    value={soldeDebut === undefined || soldeDebut === null ? "" : soldeDebut}
-                    onChange={(e) => onSetSolde(e.target.value)} />
-                </div>
-                <div className="treso-cascade">
-                  <div className="treso-row">
-                    <span className="lab">Solde au 1er {moisLabel(mIndex)}</span>
-                    <b>{eur0(soldeNum)}</b>
-                  </div>
-                  <div className="treso-row">
-                    <span className="lab"><span className="op neutral">+</span>Revenu net ce mois</span>
-                    <b className={netCash >= 0 ? "pos" : "neg"}>{eur0(netCash)}</b>
-                  </div>
-                </div>
-                <div className="treso-total">
-                  <span>Trésorerie disponible</span>
-                  <b className={tresoDisp >= 0 ? "pos" : "neg"}>{eur0(tresoDisp)}</b>
-                </div>
-                {soldeNum > 0
-                  ? <div className="treso-verdict" style={{ color: tresoDisp >= 0 ? "var(--pos)" : "var(--neg)", background: tresoDisp >= 0 ? "var(--pos-soft)" : "var(--neg-soft)", borderColor: tresoDisp >= 0 ? "#cfe6da" : "#e3d2c8" }}>
-                      {tresoDisp >= 0 ? "Ta trésorerie est positive ce mois." : "Attention : ta trésorerie est dans le rouge ce mois."}
-                    </div>
-                  : <div className="treso-verdict">Saisis ton solde de début de mois pour voir ta trésorerie disponible.</div>
-                }
-              </div>}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--line)" }}>
+              <label style={{ fontSize: 12.5, color: "var(--soft)", whiteSpace: "nowrap" }}>+ Solde du mois dernier</label>
+              <input className="in" type="number" step="0.01" placeholder="0"
+                value={soldeDebut === undefined || soldeDebut === null ? "" : soldeDebut}
+                onChange={(e) => onSetSolde(e.target.value)}
+                style={{ width: 90, height: 30, padding: "4px 8px", fontSize: 13 }} />
+              <span style={{ marginLeft: "auto", textAlign: "right", whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: 11, color: "var(--faint)", display: "block", lineHeight: 1.2 }}>Solde réel</span>
+                <b className={tresoDisp >= 0 ? "pos" : "neg"} style={{ fontSize: 15 }}>{eur0(tresoDisp)}</b>
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Colonne droite : Provision + Camembert */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16, height: "100%" }}>
+        {/* Revenu réel : ce que l'activité du mois gagne vraiment */}
+        <div className="card">
+          <div className="card-h"><h2>Revenu réel</h2><span className="sub">ce que ton activité du mois te rapporte vraiment</span></div>
+          <div className="card-b">
+            <div className="treso-cascade">
+              <div className="treso-row ca-row">
+                <span className="lab">CA TTC encaissé</span>
+                <b className="pos">{eur0(ttc)}</b>
+              </div>
+              {s.assujetti && provTva > 0 && <div className="treso-row">
+                <span className="lab">− TVA de {moisLabel(mIndex)}</span>
+                <b className="neg">−{eur0(provTva)}</b>
+              </div>}
+              {provUrssaf > 0 && <div className="treso-row">
+                <span className="lab">− URSSAF de {moisLabel(mIndex)}</span>
+                <b className="neg">−{eur0(provUrssaf)}</b>
+              </div>}
+              {provFrais > 0 && <div className="treso-row">
+                <span className="lab">− Frais de {moisLabel(mIndex)}</span>
+                <b className="neg">−{eur0(provFrais)}</b>
+              </div>}
+              {provCfe > 0 && <div className="treso-row">
+                <span className="lab">− CFE (part du mois)</span>
+                <b className="neg">−{eur0(provCfe)}</b>
+              </div>}
+              <div className="treso-row net-row">
+                <span className="lab">Ton bénéfice réel</span>
+                <b className={s.netLisse >= 0 ? "pos" : "neg"}>{eur0(s.netLisse)}</b>
+              </div>
+            </div>
+            <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "10px 0 0" }}>Tu ne verras jamais ce chiffre car les impôts sont prélevés en différé.</p>
+          </div>
+        </div>
+
+      </div>
+
+      {/* === Rangée 2-3 : colonne gauche (trésorerie) | colonne droite (à mettre de côté) === */}
+      <div className="dash-main">
+
+        {/* Colonne gauche : où part l'argent + calendrier des prélèvements */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {/* Où part mon argent ? (ce qui sort réellement du compte ce mois) */}
+          <div className="card">
+            <div className="card-h"><h2>Où part mon argent ?</h2><span className="sub">ce mois</span></div>
+            <div className="card-b">
+              {donutSegs.length > 0
+                ? <>
+                    <div style={{ display: "flex", height: 26, borderRadius: 6, overflow: "hidden", marginBottom: 16 }}>
+                      {donutSegs.map((x) =>
+                        <div key={x.key} title={`${x.lab} · ${eur0(x.val)}`} style={{ width: `${x.val / donutTot * 100}%`, background: DONUT_COLORS[x.key] }}></div>
+                      )}
+                    </div>
+                    <div className="donut-legend">
+                      {donutSegs.map((x) =>
+                        <div className="li" key={x.key}>
+                          <span className="swatch" style={{ background: DONUT_COLORS[x.key] }}></span>
+                          <span>{x.lab}</span>
+                          <span style={{ marginLeft: "auto", fontWeight: 700, color: "var(--ink)", whiteSpace: "nowrap" }}>{Math.round(x.val / donutTot * 100)}% · {eur0(x.val)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "12px 0 0", textAlign: "center" }}>CA TTC encaissé ce mois · {eur0(ttc)}</p>
+                  </>
+                : <div className="empty">Aucune donnée pour cette période.</div>
+              }
+            </div>
+          </div>
+
+          {/* Calendrier des prélèvements */}
+          <MiniDashCalendar key={mIndex} mIndex={mIndex} charges={charges} profile={profile} cfeAnnuel={cfeAnnuel} facturesByMonth={facturesByMonth} urssafHistory={urssafHistory} />
+
+        </div>
+
+        {/* Colonne droite : à mettre de côté (provisions) */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
           {/* Provision */}
           <div className="prov-card">
-            <div className="cap">PROVISIONS DU MOIS</div>
+            <div className="cap">À METTRE DE CÔTÉ CE MOIS</div>
             <div className="big">{eur0(charged)}</div>
-            <div style={{ fontSize: 12, color: "#9a8a35", marginBottom: 6, marginTop: -10 }}>à mettre de côté avant les échéances</div>
+            <div style={{ fontSize: 12, color: "#9a8a35", marginBottom: 6, marginTop: -10 }}>l'URSSAF et la TVA de ce mois, payées plus tard</div>
             <div className="prov-detail">
               {provUrssaf > 0 && <div className="prov-pi">
                 <span className="swatch" style={{ background: DONUT_COLORS.urssaf }}></span>
@@ -1201,73 +1239,55 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
             </div>
           </div>
 
-          {/* Camembert */}
-          <div className="card" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-          <div className="donut-card-h">
-            <h2>Répartition</h2>
-            <div className="viewseg sm">
-              <button className={donutScope === "month" ? "on" : ""} onClick={() => setDonutScope("month")}>Mois</button>
-              <button className={donutScope === "year" ? "on" : ""} onClick={() => setDonutScope("year")}>Année</button>
+          {/* Prévisionnel du mois suivant */}
+          <div className="card">
+            <div className="card-h"><h2>Prévisionnel</h2><span className="sub">revenus attendus en {moisLabel(nextIdx)}</span></div>
+            <div className="card-b">
+              <div className="treso-cascade">
+                {prevNext.items.map((p) =>
+                <div className="treso-row" key={p.id}>
+                  <span className="lab">{p.client || p.libelle || "Revenu prévu"}{p.recurrence === "mensuelle" && <em style={{ color: "var(--faint)", fontStyle: "normal", fontSize: 11.5 }}> · mensuel</em>}</span>
+                  <b>{eur0(num(p.montant))}</b>
+                </div>)}
+                {prevNext.items.length === 0 &&
+                <div className="treso-row"><span className="lab" style={{ color: "var(--faint)" }}>Aucun revenu prévu</span><b></b></div>}
+                {prevNext.items.length > 0 &&
+                <div className="treso-row net-row">
+                  <span className="lab">Total attendu</span>
+                  <b className="pos">{eur0(prevNext.total)}</b>
+                </div>}
+              </div>
+              <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "10px 0 0" }}>Supposé, non encaissé. N'entre ni dans ton CA ni dans ton URSSAF.</p>
             </div>
           </div>
-          <div className="card-b" style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "18px", flex: 1, justifyContent: "center" }}>
-            {donutSegs.length > 0
-              ? <>
-                  <div className="donut2" style={{ background: donutBg, width: 180, height: 180, marginBottom: 18 }}></div>
-                  <div className="donut-legend">
-                    {donutSegs.map((x) =>
-                      <div className="li" key={x.key}>
-                        <span className="swatch" style={{ background: DONUT_COLORS[x.key] }}></span>
-                        <span>{x.lab}</span>
-                        <span style={{ marginLeft: "auto", fontWeight: 700, color: "var(--ink)", whiteSpace: "nowrap" }}>{Math.round(x.val / donutTot * 100)}% · {eur0(x.val)}</span>
-                      </div>
-                    )}
-                  </div>
-                  <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "12px 0 0", textAlign: "center" }}>
-                    {donutScope === "year"
-                      ? `Payé jan → ${MONTHS[mIndex].slice(0,4).toLowerCase()}. · CA TTC ${eur0(ys.caTTC)}`
-                      : `CA TTC encaissé ce mois · ${eur0(ttc)}`}
-                  </p>
-                </>
-              : <div className="empty">Aucune donnée pour cette période.</div>
-            }
-          </div>
-          </div>{/* fin carte camembert */}
 
-        </div>{/* fin colonne droite */}
+        </div>
 
       </div>
 
       {/* Synthèse annuelle */}
       <div className="card">
-        <div className="card-h"><h2>Synthèse {YEAR}</h2><span className="sub">cumul jan → {MONTHS[mIndex].slice(0, 4).toLowerCase()}.</span></div>
+        <div className="card-h"><h2>Synthèse {YEAR}</h2><span className="sub">cumul jan → {MONTHS[mIndex].slice(0, 4).toLowerCase()}.</span>
+          <div className="viewseg sm" style={{ marginLeft: "auto" }}>
+            <button className={synthMode === "treso" ? "on" : ""} onClick={() => setSynthMode("treso")}>Trésorerie</button>
+            <button className={synthMode === "reel" ? "on" : ""} onClick={() => setSynthMode("reel")}>Réel</button>
+          </div>
+        </div>
         <div className="card-b">
           <div className="synth-split">
             <div className="synth-figures">
               <div className="ysum">
                 <div className="yrow"><span className="lab">CA encaissé (TTC)</span><b>{eur0(ys.caTTC)}</b></div>
-                {profile.tva && <div className="yrow"><span className="lab">TVA à reverser</span><b className="neg">−{eur0(ys.tva)}</b></div>}
-                <div className="yrow"><span className="lab">URSSAF</span><b className="neg">−{eur0(ys.cotis)}</b></div>
-                <div className="yrow"><span className="lab">Frais &amp; achats</span><b className="neg">−{eur0(ys.fraisLisse)}</b></div>
-                {ys.cfe > 0 && <div className="yrow"><span className="lab">CFE</span><b className="neg">−{eur0(ys.cfe)}</b></div>}
-                <div className="yrow tot"><span className="lab">Revenu net cumulé</span><b className="pos">{eur0(ys.netLisse)}</b></div>
-              </div>
-              <div className="yproj">
-                <div className="yp-l">
-                  <div className="cap">Projection annuelle</div>
-                  <div className="yp-val">{eur0(projNet)}<span className="yp-u"> net</span></div>
-                </div>
-                {deltaPct != null &&
-                <div className={"ydelta " + (deltaPct >= 0 ? "up" : "down")}>
-                    {deltaPct >= 0 ? "▲" : "▼"} {Math.abs(deltaPct)}%
-                    <span className="yd-sub">vs {YEAR - 1} ({eur0(prevNet)})</span>
-                  </div>
-                }
+                {profile.tva && <div className="yrow"><span className="lab">TVA {synthMode === "treso" ? "payée" : "à reverser"}</span><b className="neg">−{eur0(synthFig.tva)}</b></div>}
+                <div className="yrow"><span className="lab">URSSAF</span><b className="neg">−{eur0(synthFig.urssaf)}</b></div>
+                <div className="yrow"><span className="lab">Frais &amp; achats</span><b className="neg">−{eur0(synthFig.frais)}</b></div>
+                {synthFig.cfe > 0 && <div className="yrow"><span className="lab">CFE</span><b className="neg">−{eur0(synthFig.cfe)}</b></div>}
+                <div className="yrow tot"><span className="lab">{synthFig.netLabel}</span><b className="pos">{eur0(synthFig.net)}</b></div>
               </div>
             </div>
             <div className="synth-graph">
               <div className="synth-graph-h">
-                <span className="cap">Revenu net {histScope === "month" ? "par mois" : "par année"}</span>
+                <span className="cap">{synthFig.graphLabel} {histScope === "month" ? "par mois" : "par année"}</span>
                 <div className="viewseg sm" style={{ marginLeft: "auto" }}>
                   <button className={histScope === "month" ? "on" : ""} onClick={() => setHistScope("month")}>Mois</button>
                   <button className={histScope === "year" ? "on" : ""} onClick={() => setHistScope("year")}>Années</button>
@@ -1276,9 +1296,9 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
               {histScope === "month" ? (
                 <div className="bars2">
                   {year.map((y, i) =>
-                  <div className="bcol" key={i} title={`${MONTHS[i]} : ${eur(y.netLisse)}`}>
-                    <div className={"bar" + (i === mIndex ? " on" : "") + (y.netLisse < 0 ? " neg" : "")}
-                      style={{ height: Math.max(3, Math.abs(y.netLisse) / maxAbs * 130) + "px" }}></div>
+                  <div className="bcol" key={i} title={`${MONTHS[i]} : ${eur(barSeries[i])}`}>
+                    <div className={"bar" + (i === mIndex ? " on" : "") + (barSeries[i] < 0 ? " neg" : "")}
+                      style={{ height: Math.max(3, Math.abs(barSeries[i]) / maxAbsBars * 130) + "px" }}></div>
                     <span className={"ml" + (i === mIndex ? " on" : "")}>{MONTHS[i].slice(0, 1)}</span>
                   </div>
                   )}
