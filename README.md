@@ -23,8 +23,9 @@ En cours de développement.
 
 ## Fonctionnalités
 
-- **Tableau de bord** : 3 KPIs (CA, Charges payées, Revenu net), carte Provision, cascade Trésorerie, camembert Mois/Année, synthèse annuelle.
-- **Factures** : saisie en fenêtre modale, lignes multiples par catégorie (BNC, BIC, vente), support TVA.
+- **Tableau de bord** : 3 KPIs (CA, Charges payées, Revenu net), KPI factures en attente + carte repliable Revenus à venir, carte Provision, cascade Trésorerie, camembert Mois/Année, synthèse annuelle.
+- **Factures** : saisie en fenêtre modale, lignes multiples par catégorie (BNC, BIC, vente), support TVA, statut payé / en attente avec date de paiement.
+- **Prévisionnel** : revenus à venir (ponctuels ou mensuels récurrents) non encore facturés, conversion en facture en attente, suivi des factures émises non payées.
 - **Frais et achats** : charges récurrentes (mensuelles, trimestrielles, ponctuelles) et achats ponctuels, avec historique de tarifs.
 - **Impôts & déclarations mensuelles** : cotisations URSSAF (+ CA à déclarer), TVA nette à reverser, CFE, déclaration IR.
 - **Calendrier** : tous les prélèvements du mois ou de l'année (URSSAF, TVA, CFE, charges), avec vue mensuelle en grille et vue annuelle en liste.
@@ -34,6 +35,7 @@ En cours de développement.
 Organisé en trois blocs :
 
 - **3 KPIs principaux** : CA TTC encaissé · Charges & achats payés ce mois (URSSAF m-2 + TVA m-1 + frais + achats + CFE) · Revenu net (CA − tout ce qui est sorti du compte).
+- **Revenus en attente / à venir** (bande ambrée séparée) : KPI cumulé des factures émises non payées, dépliable sur le prévisionnel du mois suivant. Clairement marqué « n'entre pas dans tes chiffres » : aucune influence sur le CA, l'URSSAF ou la trésorerie.
 - **Provision à mettre de côté** (fond ambré, visuellement séparé) : total à provisionner avec le détail par poste (URSSAF, TVA, frais & achats, CFE) et les dates d'échéance.
 - **Trésorerie + Camembert** (deux colonnes) :
   - À gauche : cascade détaillée (CA TTC → URSSAF m-2 → TVA m-1 → CFE → Frais récurrents → Achats ponctuels = Revenu net), puis bloc **Trésorerie disponible** = solde de début de mois (saisi par l'utilisateur) + revenu net du mois, avec verdict en couleur.
@@ -45,7 +47,17 @@ Organisé en trois blocs :
 - **Création / modification en fenêtre modale** : le bouton "Nouvelle facture" ouvre une fenêtre ; rien n'est enregistré tant qu'on n'a pas cliqué sur "Valider" (plus de cartes vides). "Valider" est actif dès qu'une date est saisie.
 - **Cartes en lecture seule** dans la liste, avec un bouton crayon (modifier, rouvre la modale pré-remplie) et un bouton corbeille (supprimer).
 - **Déplacement automatique** : si on change la date d'une facture vers un autre mois, elle se range dans le bon mois (stockage par clé `année-mois`).
-- **Synthèse du mois** en haut de l'onglet : réduite au seul TTC encaissé (la décomposition et la déclaration URSSAF ont migré vers l'onglet Impôts).
+- **Statut de paiement** : chaque facture est *payée* ou *en attente*. Une facture en attente n'entre pas dans le CA encaissé ni dans l'URSSAF tant qu'elle n'est pas marquée payée. La carte affiche un badge (vert *Payée* / orange *En attente de paiement*) et un bouton *Marquer payée*. Une *date de paiement* distincte de la date d'édition est renseignée au paiement.
+- **Synthèse du mois** en haut de l'onglet : TTC encaissé, plus une ligne *En attente* le cas échéant.
+
+### Prévisionnel
+
+Anticiper des revenus futurs que les logiciels comptables ne permettent pas d'enregistrer, sans fausser les vrais chiffres.
+
+- **Revenus prévisionnels** : saisie de revenus supposés non encore facturés, *ponctuels* (ex. solde d'une prestation à 4 mois) ou *mensuels récurrents* (client régulier), avec une date supposée de paiement. Aucun détail URSSAF, on raisonne en montants bruts.
+- **Convertir en facture** : transforme une prévision en *facture en attente* (sans date de paiement, la date supposée est abandonnée). Une prévision ponctuelle disparaît ; une mensuelle est conservée pour les mois suivants.
+- **Factures en attente de paiement** : liste des factures émises non payées (tous mois), avec bouton *Marquer payée*.
+- Données stockées dans `mef2:previsions`, incluses dans l'export/import JSON.
 
 ### Onglet Impôts & déclarations mensuelles
 
@@ -75,6 +87,7 @@ Organisé en trois blocs :
 
 ## Fait récemment
 
+- **Factures en attente + revenus prévisionnels** : statut payé/en attente sur les factures (le CA et l'URSSAF ne comptent que les factures payées), date de paiement distincte, nouvel onglet Prévisionnel (revenus à venir + conversion en facture en attente), et sur le tableau de bord un KPI factures en attente + carte repliable du prévisionnel du mois suivant.
 - **Onglet Calendrier** (nouvel onglet, dernier de la barre) : regroupe tous les prélèvements — URSSAF, TVA, CFE et charges récurrentes — avec leurs dates exactes. Vue mensuelle en grille (même structure que le calendrier des frais) et vue annuelle en cartes fixes avec scroll interne. Le calendrier a été retiré de l'onglet "Frais et achats" qui affiche désormais uniquement le tableau.
 - **Refonte complète du tableau de bord** : 3 KPIs clairs (CA, Charges payées, Revenu net) + carte Provision séparée (fond ambré) + bloc Trésorerie avec cascade détaillée + camembert avec toggle Mois/Année.
 - **Revenu net redéfini** : CA TTC − tout ce qui sort réellement du compte ce mois (URSSAF m-2, TVA m-1, frais récurrents, achats ponctuels, CFE).
