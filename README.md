@@ -23,7 +23,7 @@ En cours de développement.
 
 ## Fonctionnalités
 
-- **Tableau de bord** : 3 KPIs (CA, Charges payées, Revenu net), KPI factures en attente + carte repliable Revenus à venir, carte Provision, cascade Trésorerie, camembert Mois/Année, synthèse annuelle.
+- **Tableau de bord** : deux lectures côte à côte (Trésorerie « ton revenu net ce mois » vs Revenu réel « ton bénéfice réel »), bandeau CA (HT) + factures en attente, barre « où part mon argent », mini-calendrier des prélèvements, carte « à mettre de côté », prévisionnel du mois suivant, synthèse annuelle basculable Trésorerie/Réel.
 - **Factures** : saisie en fenêtre modale, lignes multiples par catégorie (BNC, BIC, vente), support TVA, statut payé / en attente avec date de paiement.
 - **Prévisionnel** : revenus à venir (ponctuels ou mensuels récurrents) non encore facturés, conversion en facture en attente, suivi des factures émises non payées.
 - **Frais et achats** : charges récurrentes (mensuelles, trimestrielles, ponctuelles) et achats ponctuels, avec historique de tarifs.
@@ -32,15 +32,15 @@ En cours de développement.
 
 ### Tableau de bord
 
-Organisé en trois blocs :
+Organisé pour ne jamais confondre deux lectures du même mois :
 
-- **3 KPIs principaux** : CA TTC encaissé · Charges & achats payés ce mois (URSSAF m-2 + TVA m-1 + frais + achats + CFE) · Revenu net (CA − tout ce qui est sorti du compte).
-- **Revenus en attente / à venir** (bande ambrée séparée) : KPI cumulé des factures émises non payées, dépliable sur le prévisionnel du mois suivant. Clairement marqué « n'entre pas dans tes chiffres » : aucune influence sur le CA, l'URSSAF ou la trésorerie.
-- **Provision à mettre de côté** (fond ambré, visuellement séparé) : total à provisionner avec le détail par poste (URSSAF, TVA, frais & achats, CFE) et les dates d'échéance.
-- **Trésorerie + Camembert** (deux colonnes) :
-  - À gauche : cascade détaillée (CA TTC → URSSAF m-2 → TVA m-1 → CFE → Frais récurrents → Achats ponctuels = Revenu net), puis bloc **Trésorerie disponible** = solde de début de mois (saisi par l'utilisateur) + revenu net du mois, avec verdict en couleur.
-  - À droite : camembert de répartition avec toggle **Mois / Année**. En mode Mois : valeurs réellement payées ce mois. En mode Année : provisions cumulées depuis janvier.
-- **Synthèse annuelle** : chiffres cumulés (CA, TVA, URSSAF, frais & achats, CFE, revenu net cumulé), projection annuelle avec écart N-1, et histogramme du revenu net (vue par mois ou par année).
+- **Bandeau** : le CA encaissé (HT en grand, TTC en petit) et un total **Factures en attente** (émises, pas encore encaissées).
+- **Deux cascades en miroir** :
+  - **Trésorerie** (« ce qui bouge sur ton compte ce mois ») : CA TTC − TVA (m-1) − URSSAF (m-2) − frais − CFE = **ton revenu net ce mois**. Une ligne compacte ajoute le solde du mois dernier pour afficher le **solde réel**.
+  - **Revenu réel** (« ce que ton activité du mois te rapporte vraiment ») : CA TTC − TVA et URSSAF *du mois en cours* (provisionnées) − frais lissés = **ton bénéfice réel**. Rappel : ce chiffre n'apparaît jamais sur le compte, les impôts étant prélevés en différé.
+- **Colonne gauche (trésorerie réelle)** : barre **« Où part mon argent ? »** (répartition de ce qui sort vraiment ce mois, avec « ce qui te reste ») et un **mini-calendrier** des prélèvements autour d'aujourd'hui (points par type, détail au clic).
+- **Colonne droite (à venir)** : carte **« À mettre de côté »** (URSSAF/TVA du mois, payées plus tard, avec dates) et carte **Prévisionnel** (revenus attendus le mois suivant, supposés non encaissés).
+- **Synthèse annuelle** : cascade cumulée et histogramme, avec un toggle **Trésorerie / Réel** qui bascule les deux ensemble (cash réellement payé chaque mois vs charges rattachées au mois qui les génère).
 
 ### Factures
 
@@ -65,7 +65,7 @@ Anticiper des revenus futurs que les logiciels comptables ne permettent pas d'en
 - **TVA nette à reverser** : TVA collectée − TVA déductible.
 - **CFE** : voir ci-dessous.
 - **Impôt sur le revenu** : affiche le **CA HT cumulé sur l'année** à reporter sur la déclaration de revenus, avec une note d'aide adaptée au profil (versement libératoire ou abattement forfaitaire).
-- Un bandeau "Total à mettre de côté ce mois" (URSSAF + TVA + CFE). Les provisions de frais n'apparaissent plus ici (elles sont gérées dans la carte Rentabilité du tableau de bord).
+- Un bandeau "Total à mettre de côté ce mois" (URSSAF + TVA + CFE). Les provisions de frais n'apparaissent plus ici (elles sont gérées dans la carte Revenu réel du tableau de bord).
 
 ### CFE — Cotisation Foncière des Entreprises
 
@@ -87,6 +87,7 @@ Anticiper des revenus futurs que les logiciels comptables ne permettent pas d'en
 
 ## Fait récemment
 
+- **Refonte du tableau de bord — trésorerie vs revenu réel** : deux cascades en miroir clairement nommées (fini la confusion « Revenu net » qui désignait deux chiffres différents), décalage URSSAF rendu visible, champ solde du mois dernier qui donne le solde réel. Le camembert devient une barre « où part mon argent », ajout d'un mini-calendrier interactif des prélèvements, colonne droite « à mettre de côté » + prévisionnel, et synthèse annuelle basculable Trésorerie/Réel. Remplace l'ancien tableau à 3 KPIs et le bloc de projection annuelle.
 - **Factures en attente + revenus prévisionnels** : statut payé/en attente sur les factures (le CA et l'URSSAF ne comptent que les factures payées), date de paiement distincte, nouvel onglet Prévisionnel (revenus à venir + conversion en facture en attente), et sur le tableau de bord un KPI factures en attente + carte repliable du prévisionnel du mois suivant.
 - **Onglet Calendrier** (nouvel onglet, dernier de la barre) : regroupe tous les prélèvements — URSSAF, TVA, CFE et charges récurrentes — avec leurs dates exactes. Vue mensuelle en grille (même structure que le calendrier des frais) et vue annuelle en cartes fixes avec scroll interne. Le calendrier a été retiré de l'onglet "Frais et achats" qui affiche désormais uniquement le tableau.
 - **Refonte complète du tableau de bord** : 3 KPIs clairs (CA, Charges payées, Revenu net) + carte Provision séparée (fond ambré) + bloc Trésorerie avec cascade détaillée + camembert avec toggle Mois/Année.
@@ -126,7 +127,7 @@ Aujourd'hui les données vivent dans le `localStorage` du navigateur (export/imp
 
 Ajouter des informations d'aide (infobulles ou encadrés explicatifs) sur les notions qui ne sont pas évidentes pour un débutant : CFE, base déclarée, versement libératoire, TVA à reverser, etc.
 
-_Partiellement fait :_ phrases explicatives sur les cartes Trésorerie et Rentabilité, et note d'aide sur l'impôt sur le revenu (versement libératoire / abattement). Reste à couvrir les autres notions.
+_Partiellement fait :_ phrases explicatives sur les cartes Trésorerie et Revenu réel, et note d'aide sur l'impôt sur le revenu (versement libératoire / abattement). Reste à couvrir les autres notions.
 
 ### Modèles de factures récurrentes
 
@@ -134,10 +135,12 @@ Permettre d'enregistrer un modèle de facture (client, lignes, montants) pour le
 
 ### Logique de calcul — FAIT
 
-**Revenu net** = CA TTC encaissé − URSSAF (m-2) − TVA (m-1) − CFE − frais récurrents débités ce mois − achats ponctuels. C'est ce qui reste sur le compte après toutes les sorties réelles du mois.
+**Revenu net du mois (Trésorerie)** = CA TTC encaissé − URSSAF (m-2) − TVA (m-1) − CFE − frais débités ce mois. C'est ce qui reste réellement sur le compte après toutes les sorties du mois.
 
-**Trésorerie disponible** = solde du compte au 1er du mois (saisi par l'utilisateur) + revenu net du mois.
+**Bénéfice réel (Revenu réel)** = CA TTC − URSSAF et TVA *du mois en cours* (provisionnées) − frais lissés. Ce que l'activité du mois rapporte vraiment, indépendamment du décalage de prélèvement. Ce chiffre n'apparaît jamais tel quel sur le compte.
 
-**Provisions** (carte ambrée, séparée) = URSSAF + TVA + frais lissés + CFE du mois en cours, avec dates d'échéance. Ce sont les montants à mettre de côté maintenant pour les prélèvements futurs.
+**Solde réel** = solde du compte au 1er du mois (saisi par l'utilisateur) + revenu net du mois.
+
+**À mettre de côté** = URSSAF + TVA + frais lissés + CFE du mois en cours, avec dates d'échéance. Les montants à bloquer maintenant pour les prélèvements futurs.
 
 Les décalages de prélèvement (jour et nombre de mois pour l'URSSAF et la TVA) sont réglables dans "Profil & paramètres".
