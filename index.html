@@ -6,33 +6,51 @@
 <title>MicroCompte v2 · Gestion micro-entreprise 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
 /* ============================================================
    MicroCompte — outil de gestion micro-entreprise
    Design sobre & professionnel
    ============================================================ */
 :root{
-  --bg:#e9e7df;
-  --card:#ffffff;
-  --ink:#2a2922;
-  --soft:#5d5b4d;
-  --faint:#9a9783;
-  --line:#e3e1d6;
-  --line-2:#d2cfc1;
-  --primary:#57563f;
-  --primary-d:#403f30;
-  --primary-soft:#ecebe1;
-  --pos:#57563f;
-  --pos-soft:#e9ecdd;
-  --neg:#94614e;
-  --neg-soft:#f1e8e2;
-  --prov:#8a7733;
-  --prov-soft:#f1ecd7;
-  --shadow:0 1px 2px rgba(45,43,30,.05), 0 2px 8px rgba(45,43,30,.05);
-  --radius:12px;
-  --font:"Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* ── Variables historiques de l'app, remappées sur le tableau-kit ── */
+  --bg:#f3f3ef;                /* canvas */
+  --card:#ffffff;              /* paper */
+  --ink:#2d2b1e;
+  --soft:#6f6d5e;
+  --faint:#a3a194;
+  --line:rgba(45,43,30,.10);
+  --line-2:rgba(45,43,30,.16);
+  --primary:#2d2b1e;           /* accent fort = encre ; le citron vit sur --accent */
+  --primary-d:#2d2b1e;
+  --primary-soft:#eaece9;      /* fond doux NEUTRE (gris) — le citron vif vit sur --accent */
+  --pos:#2d2b1e;               /* montants positifs : encre (cf. capture) */
+  --pos-soft:#d9efd9;
+  --neg:#b04a60;               /* montants négatifs : rose du kit */
+  --neg-soft:#f4dbe1;
+  --prov:#1d3f3b;              /* ancien ocre → bleu d'eau du kit */
+  --prov-soft:#d0ece7;
+  --shadow:0 1px 2px rgba(45,43,30,0.03), 0 14px 34px -22px rgba(45,43,30,0.28);
+  --radius:14px;
+  --font:"Onest", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-title:"Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Design system « tableau-kit » ── */
+  --accent:#ECFF8C; --accent-ink:#2D2B1E; --accent-soft:#f4ffc6;
+  --canvas:#f3f3ef; --paper:#ffffff;
+  --blue:#d0ece7; --blue-ink:#1d3f3b;
+  --grey:#eaece9; --dark:#2d2b1e; --dark-2:#3a3829;
+  --ink-soft:#6f6d5e; --ink-faint:#a3a194;
+  --on-dark:#f0efe6; --on-dark-soft:#b0ae9d; --on-dark-faint:#76735f;
+  --line-soft:rgba(45,43,30,0.06); --line-dark:rgba(240,239,230,0.14);
+  --pos-bg:#d9efd9; --pos-ink:#2f7d46; --neg-bg:#f4dbe1; --neg-ink:#b04a60;
+  --r-card:24px; --r-inner:16px; --r-pill:999px;
+  --shadow-dark:0 1px 2px rgba(0,0,0,0.10), 0 22px 46px -24px rgba(45,43,30,0.55);
+  --seg-poche:var(--accent); --seg-tva:#ffffff; --seg-urssaf:#80c8c0; --seg-frais:#d4d6cf;
+  --charge-blue:#5cb7b0;
 }
+[data-accent="bleu"]{ --accent:#bbe4dd; --accent-ink:#1b403b; --accent-soft:#def0ec; }
+[data-accent="ardoise"]{ --accent:#2D2B1E; --accent-ink:#ECFF8C; --accent-soft:#44402d; }
 *{box-sizing:border-box;}
 html,body{margin:0;height:100%;}
 body{
@@ -44,7 +62,9 @@ body{
   -webkit-font-smoothing:antialiased;
   font-variant-numeric:tabular-nums;
 }
-.num{font-variant-numeric:tabular-nums;}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+h1,h2,h3,.big,.num{font-family:var(--font-title);}
+.tk{min-height:100vh;}
 button{font-family:inherit;}
 input,select{font-family:inherit;font-size:14px;color:var(--ink);}
 
@@ -58,8 +78,8 @@ input,select{font-family:inherit;font-size:14px;color:var(--ink);}
   display:flex;align-items:center;gap:11px;
 }
 .logo .mk{
-  width:36px;height:36px;border-radius:10px;
-  background:var(--primary);color:#fff;display:grid;place-items:center;
+  width:38px;height:38px;border-radius:12px;
+  background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;
   font-weight:700;font-size:18px;letter-spacing:-.5px;
 }
 .logo .nm{font-weight:700;font-size:17px;letter-spacing:-.2px;}
@@ -78,33 +98,37 @@ input,select{font-family:inherit;font-size:14px;color:var(--ink);}
 
 /* ---------- tabs ---------- */
 .tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);
-  border-radius:12px;padding:5px;box-shadow:var(--shadow);width:fit-content;margin-bottom:16px;}
+  border-radius:var(--r-pill);padding:6px;box-shadow:var(--shadow);width:fit-content;margin-bottom:16px;}
 .tab{
-  border:none;background:transparent;color:var(--soft);font-weight:600;font-size:14px;
-  padding:9px 18px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;
+  border:none;background:transparent;color:var(--ink-soft);font-weight:600;font-size:14px;
+  padding:9px 18px;border-radius:var(--r-pill);cursor:pointer;display:flex;align-items:center;gap:8px;
+  transition:background .18s ease,color .18s ease;
 }
-.tab:hover{color:var(--ink);}
-.tab.on{background:var(--primary);color:#fff;box-shadow:0 1px 2px rgba(20,40,70,.2);}
+.tab:hover{color:var(--ink);background:var(--grey);}
+.tab.on,.tab.on:hover{background:var(--accent);color:var(--accent-ink);box-shadow:none;}
 .tab .ic{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;}
 
 /* ---------- month nav ---------- */
-.monthnav{display:flex;align-items:center;gap:6px;margin-bottom:18px;}
+.monthnav{display:flex;align-items:center;gap:8px;margin-bottom:18px;}
 .monthnav .mbtn{
-  width:34px;height:34px;border-radius:9px;border:1px solid #d8ca87;background:var(--prov-soft);
-  display:grid;place-items:center;cursor:pointer;color:#7a6a25;box-shadow:var(--shadow);
+  width:36px;height:36px;border-radius:var(--r-inner);border:1px solid var(--line);background:var(--card);
+  display:grid;place-items:center;cursor:pointer;color:var(--ink-soft);box-shadow:var(--shadow);
+  transition:background .16s ease,border-color .16s ease,color .16s ease;
 }
-.monthnav .mbtn:hover:not(:disabled){border-color:#c0b06a;color:#5a4e1a;}
+.monthnav .mbtn:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft);color:var(--ink);}
 .monthnav .mbtn:disabled{opacity:.4;cursor:not-allowed;}
 .monthnav .mbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;}
 .monthnav .mlabel{
-  min-width:188px;text-align:center;font-weight:700;font-size:16px;letter-spacing:-.2px;
-  background:var(--prov-soft);color:#7a6a25;border:1px solid #d8ca87;border-radius:9px;padding:7px 16px;box-shadow:var(--shadow);
+  min-width:188px;text-align:center;font-weight:600;font-size:16px;letter-spacing:-.2px;font-family:var(--font-title);
+  background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-inner);padding:8px 16px;box-shadow:var(--shadow);
 }
-.monthnav .today{margin-left:6px;font-size:12px;color:var(--primary);font-weight:600;cursor:pointer;
-  border:1px solid var(--line);background:var(--card);border-radius:8px;padding:7px 11px;box-shadow:var(--shadow);}
+.monthnav .today{margin-left:6px;font-size:12px;color:var(--ink-soft);font-weight:600;cursor:pointer;
+  border:1px solid var(--line);background:var(--card);border-radius:var(--r-inner);padding:8px 12px;box-shadow:var(--shadow);
+  transition:background .16s ease,border-color .16s ease,color .16s ease;}
+.monthnav .today:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--ink);}
 
 /* ---------- card ---------- */
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);}
 .card-h{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line);}
 .card-h h2{margin:0;font-size:15px;font-weight:700;}
 .card-h .sub{font-size:12.5px;color:var(--faint);margin-left:auto;}
@@ -163,7 +187,7 @@ select.cell-in{appearance:none;cursor:pointer;
 .viewseg button{border:none;background:transparent;font:inherit;font-weight:600;font-size:13px;color:var(--soft);
   padding:6px 12px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
 .viewseg button:hover{color:var(--ink);}
-.viewseg button.on{background:#fff;color:var(--primary-d);box-shadow:0 1px 2px rgba(20,40,70,.12);}
+.viewseg button.on{background:var(--accent);color:var(--accent-ink);box-shadow:none;}
 .viewseg button svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;}
 .viewseg.sm button{padding:5px 14px;font-size:12.5px;}
 
@@ -348,6 +372,10 @@ select.cell-in{appearance:none;cursor:pointer;
 .stat .sub{font-size:12.5px;color:var(--faint);margin-top:7px;}
 .stat.warn{background:var(--neg-soft);border-color:#e3d2c8;}
 .stat.good{background:var(--pos-soft);border-color:#d3dcc2;}
+.stat--ca{background:var(--accent);border-color:transparent;}
+.stat--ca .cap{color:rgba(45,43,30,.6);}
+.stat--ca .big{color:var(--accent-ink);}
+.stat--ca .sub{color:rgba(45,43,30,.6);}
 .hero-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:stretch;}
 
 /* cascade clarity tags */
@@ -401,11 +429,52 @@ select.cell-in{appearance:none;cursor:pointer;
 .chart-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;}
 .bars2{display:flex;align-items:flex-end;gap:7px;height:150px;}
 .bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end;}
-.bcol .bar{width:100%;max-width:30px;border-radius:5px 5px 0 0;background:#cdc6af;min-height:3px;transition:height .25s;}
-.bcol .bar.on{background:var(--pos);}
-.bcol .bar.neg{background:var(--neg-soft);border:1px solid var(--neg);}
+.bcol{position:relative;}
+.bcol .bar{position:relative;width:100%;max-width:30px;border-radius:8px 8px 0 0;background:var(--seg-frais);min-height:3px;transition:height .25s,opacity .16s;}
+.bcol .bar.on{background:var(--accent);}
+.bcol .bar.neg{background:var(--neg-bg);border:1px solid var(--neg-ink);}
+.bars2.faded .bcol:not(.hot) .bar{opacity:.32;}
 .bcol .ml{font-size:10px;color:var(--faint);text-transform:uppercase;}
-.bcol .ml.on{color:var(--pos);font-weight:800;}
+.bcol .ml.on{color:var(--ink);font-weight:800;}
+.ytip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:var(--dark);color:var(--on-dark);border-radius:12px;padding:8px 12px;display:flex;flex-direction:column;gap:2px;align-items:center;box-shadow:var(--shadow-dark);white-space:nowrap;z-index:6;pointer-events:none;animation:ytipIn .13s ease both;}
+.ytip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--dark);}
+.ytip-lbl{font-size:11px;color:var(--on-dark-soft);text-transform:capitalize;}
+.ytip-val{font-size:15px;font-weight:700;}
+@keyframes ytipIn{from{opacity:0;transform:translate(-50%,4px);}to{opacity:1;transform:translate(-50%,0);}}
+/* ---------- histogramme annuel empilé (tableau-kit) ---------- */
+.annual{padding:18px 2px 0;}
+.annual-plot{position:relative;display:flex;align-items:flex-end;gap:10px;height:230px;padding-bottom:30px;}
+.annual-grid{position:absolute;left:0;right:0;height:1px;background:var(--line-soft);}
+.annual-col{position:relative;flex:1;display:flex;align-items:flex-end;justify-content:center;align-self:stretch;}
+.abar{width:30px;display:flex;flex-direction:column-reverse;gap:3px;}
+.aseg{width:30px;border-radius:9px;transition:opacity .16s ease;}
+.aseg--poche{background:var(--seg-poche);}
+.aseg--urssaf{background:var(--seg-urssaf);}
+.aseg--frais{background:var(--seg-frais);}
+.abar--future{opacity:.5;}
+.abar--future .aseg{background:repeating-linear-gradient(45deg,var(--grey) 0 4px,#e0e2dc 4px 8px);}
+.annual-col[data-on] .abar:not([data-hot]) .aseg{opacity:.28;}
+.annual-x{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-size:11.5px;color:var(--ink-faint);font-weight:500;}
+.annual-tip{position:absolute;z-index:25;width:188px;background:var(--dark);color:var(--on-dark);border-radius:14px;padding:10px 13px 11px;box-shadow:var(--shadow-dark);pointer-events:none;animation:tipIn .13s ease both;}
+.annual-tip::after{content:"";position:absolute;top:100%;border:7px solid transparent;border-top-color:var(--dark);}
+.annual-tip--center{left:50%;transform:translateX(-50%);}
+.annual-tip--center::after{left:50%;margin-left:-7px;}
+.annual-tip--left{left:-2px;}
+.annual-tip--left::after{left:16px;}
+.annual-tip--right{right:-2px;}
+.annual-tip--right::after{right:16px;}
+@keyframes tipIn{from{opacity:0;}to{opacity:1;}}
+.annual-tip-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid var(--line-dark);}
+.annual-tip-month{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--on-dark-soft);}
+.annual-tip-ht{font-family:var(--font-title);font-weight:700;font-size:16px;color:var(--on-dark);white-space:nowrap;}
+.annual-tip-ht-lbl{font-size:10px;color:var(--on-dark-faint);font-weight:600;}
+.annual-tip-rows{display:flex;flex-direction:column;gap:6px;}
+.annual-tip-row{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:12px;color:var(--on-dark-soft);}
+.annual-tip-row > span:first-child{display:inline-flex;align-items:center;gap:8px;}
+.annual-tip-row .num{color:var(--on-dark);font-weight:600;}
+.chart-legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line-soft);}
+.lg{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);font-weight:500;}
+.bk{width:12px;height:12px;border-radius:4px;flex-shrink:0;}
 .donut2{width:200px;height:200px;border-radius:50%;position:relative;flex:none;}
 .donut2::after{content:"";position:absolute;inset:40px;border-radius:50%;background:#fff;}
 .dlegend{display:flex;flex-direction:column;gap:11px;}
@@ -436,16 +505,16 @@ select.cell-in{appearance:none;cursor:pointer;
 
 /* ---------- dashboard — layout ---------- */
 .dash-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
-.prov-card{background:var(--prov-soft);border:1px solid #d8ca87;border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;}
-.prov-card .cap{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#7a6a25;font-weight:700;}
-.prov-card .big{font-size:30px;font-weight:800;letter-spacing:-.6px;line-height:1;color:var(--prov);margin:9px 0 14px;}
+.prov-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:20px 22px;}
+.prov-card .cap{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;}
+.prov-card .big{font-size:30px;font-weight:800;letter-spacing:-.6px;line-height:1;color:var(--ink);margin:9px 0 14px;font-family:var(--font-title);}
 .prov-detail{display:flex;gap:10px 28px;flex-wrap:wrap;}
 .prov-pi{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--soft);}
 .prov-pi b{color:var(--prov);font-weight:700;margin-left:4px;}
 .prov-pi .swatch{width:9px;height:9px;border-radius:3px;flex:none;display:inline-block;}
 .dash-main{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:stretch;}
 .treso-cascade{display:flex;flex-direction:column;}
-.treso-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13.5px;}
+.treso-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
 .treso-row .lab{color:var(--soft);display:flex;align-items:center;gap:7px;}
 .treso-row .op{width:20px;height:20px;border-radius:50%;background:var(--neg-soft);color:var(--neg);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;}
 .treso-row .op.neutral{background:transparent;border:1.5px dashed var(--line-2);color:var(--soft);}
@@ -457,6 +526,66 @@ select.cell-in{appearance:none;cursor:pointer;
 .donut-legend{display:flex;flex-direction:column;gap:9px;width:100%;}
 .donut-legend .li{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--soft);}
 .donut-legend .swatch{width:11px;height:11px;border-radius:3px;flex:none;display:inline-block;}
+/* ---------- barre « où part mon argent » (tableau-kit) ---------- */
+.spend{display:flex;flex-direction:column;gap:16px;}
+.spend-bar{display:flex;gap:5px;height:52px;}
+.spend-seg{min-width:0;height:100%;border:none;cursor:pointer;padding:0;border-radius:10px;overflow:hidden;display:grid;place-items:center;font-family:var(--font-title);font-weight:600;font-size:12px;color:rgba(45,43,30,.6);transition:transform .16s ease,opacity .16s ease,box-shadow .16s ease;}
+.spend-bar[data-on] .spend-seg:not([data-active]){opacity:.42;}
+.spend-seg[data-active]{transform:translateY(-3px);box-shadow:var(--shadow);}
+.spend-seg:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+.spend-legend{display:flex;flex-wrap:wrap;gap:7px;}
+.spend-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 13px 7px 10px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--paper);cursor:pointer;font:inherit;font-size:12.5px;font-weight:500;color:var(--ink-soft);transition:border-color .16s,color .16s,background .16s;}
+.spend-chip:hover{color:var(--ink);}
+.spend-chip[data-active]{border-color:var(--ink);color:var(--ink);background:var(--canvas);}
+.spend-dot{width:11px;height:11px;border-radius:4px;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(45,43,30,.12);}
+.spend-detail{display:flex;align-items:center;gap:16px;background:var(--canvas);border-radius:var(--r-inner);padding:16px 18px;min-height:74px;}
+.spend-detail-dot{width:14px;height:38px;border-radius:6px;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(45,43,30,.12);}
+.spend-detail-main{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;}
+.spend-detail-name{font-size:15px;font-weight:600;color:var(--ink);}
+.spend-detail-note{font-size:12.5px;color:var(--ink-soft);}
+.spend-detail-num{text-align:right;flex-shrink:0;display:flex;flex-direction:column;gap:3px;}
+.spend-detail-val{font-family:var(--font-title);font-weight:700;font-size:22px;color:var(--ink);}
+.spend-detail-pct{font-size:11.5px;font-weight:600;color:var(--ink-faint);letter-spacing:.03em;white-space:nowrap;}
+.spend-seg--outline{color:var(--ink-soft);box-shadow:inset 0 0 0 1.5px var(--line);}
+.spend-seg--outline[data-active]{box-shadow:inset 0 0 0 1.5px var(--line),var(--shadow);}
+.spend-dot{box-shadow:inset 0 0 0 1px rgba(45,43,30,.14);}
+.panel-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px;}
+.panel-title{font-size:18px;font-weight:600;margin:0;}
+.panel-kicker{font-size:13px;color:var(--ink-soft);max-width:54ch;margin:6px 0 0;line-height:1.5;}
+.panel-kpi{text-align:right;margin-left:auto;}
+.panel-kpi-lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);}
+.panel-kpi-row{display:flex;align-items:baseline;justify-content:flex-end;gap:9px;margin-top:7px;}
+.panel-kpi-val{font-family:var(--font-title);font-weight:700;font-size:30px;line-height:1;color:var(--ink);}
+.panel-kpi-sub{font-size:12px;color:var(--ink-faint);margin-top:6px;}
+/* ---------- mini-calendrier des prélèvements (tableau-kit) ---------- */
+.calcard{background:var(--grey);border-radius:var(--r-card);box-shadow:var(--shadow);padding:22px 22px 18px;display:flex;flex-direction:column;gap:16px;}
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.cal-head-left{display:flex;align-items:center;gap:10px;}
+.cal-ico{width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none;}
+.cal-ico svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;}
+.cal-title{font-size:14px;font-weight:600;color:var(--ink);}
+.cal-month{display:inline-flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-pill);padding:8px 14px;font-size:13px;font-weight:600;font-family:var(--font-title);}
+.cal-strip{display:flex;gap:9px;overflow-x:auto;padding:2px 1px 6px;scroll-behavior:smooth;scrollbar-width:none;}
+.cal-strip::-webkit-scrollbar{display:none;}
+.cal-day{flex:0 0 auto;width:50px;height:78px;border-radius:var(--r-pill);border:none;cursor:pointer;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-family:var(--font-title);transition:background .16s,transform .16s,height .16s;}
+.cal-day:hover{transform:translateY(-2px);}
+.cal-day-dow{font-family:var(--font);font-size:11px;font-weight:500;color:var(--ink-faint);}
+.cal-day-num{font-size:18px;font-weight:600;}
+.cal-day-dot{width:6px;height:6px;border-radius:50%;background:transparent;}
+.cal-day.has-event .cal-day-dot{background:var(--seg-urssaf);}
+.cal-day.is-today:not(.selected){box-shadow:inset 0 0 0 1.5px var(--ink-faint);}
+.cal-day.selected{background:var(--accent);color:var(--accent-ink);height:88px;}
+.cal-day.selected .cal-day-dow{color:rgba(45,43,30,.6);}
+.cal-day.selected .cal-day-dot{background:var(--accent-ink);}
+.cal-detail{background:var(--paper);border-radius:var(--r-inner);padding:14px 16px;min-height:58px;display:flex;flex-direction:column;gap:6px;justify-content:center;}
+.cal-detail-day{font-size:11.5px;font-weight:600;color:var(--ink-faint);letter-spacing:.04em;text-transform:uppercase;}
+.cal-detail-row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px;}
+.cal-detail-name{display:flex;align-items:center;gap:8px;color:var(--ink);min-width:0;}
+.cal-detail-val{font-family:var(--font-title);font-weight:700;font-size:15px;color:var(--ink);white-space:nowrap;}
+.cal-detail-empty{font-size:13px;color:var(--ink-faint);}
+.cal-dots{display:flex;justify-content:center;gap:7px;}
+.cal-dots i{width:6px;height:6px;border-radius:50%;background:var(--line-2);transition:background .16s,width .16s;}
+.cal-dots i.on{background:var(--ink-soft);width:18px;border-radius:var(--r-pill);}
 /* synthèse annuelle fusionnée : chiffres à gauche, histogramme à droite */
 .synth-split{display:grid;grid-template-columns:1fr 1.15fr;gap:26px;align-items:start;}
 .synth-figures{min-width:0;}
@@ -879,7 +1008,7 @@ const FREQ_META = {
   ponctuelle:    { color: "#577389", label: "Ponctuel" }
 };
 // Palette sémantique unique — utilisée pour les barres, l'histogramme ET le camembert
-const SEG_COLORS = { urssaf: "#94614e", tva: "#577389", decaisse: "#8a7733", achat: "#5c7a6b", provision: "#bca96a", cfe: "#7a6b8a", net: "#57563f" };
+const SEG_COLORS = { urssaf: "#80c8c0", tva: "#5cb7b0", decaisse: "#d4d6cf", achat: "#c2c4bb", provision: "#e6e8e0", cfe: "#9aa39c", net: "#ECFF8C" };
 // le camembert reprend exactement la même palette (plus de teintes séparées)
 const DONUT_COLORS = SEG_COLORS;
 
@@ -919,43 +1048,182 @@ function MiniDashCalendar({ mIndex, charges, profile, cfeAnnuel = 0, facturesByM
   const selDate = new Date(YEAR, mIndex, sel);
   const selLabel = `${WD[selDate.getDay()]} ${sel} ${MONTHS[mIndex].toLowerCase()}`;
 
+  const stripRef = React.useRef(null);
+  React.useEffect(() => {
+    const el = stripRef.current && stripRef.current.querySelector(".cal-day.selected");
+    if (el) el.scrollIntoView({ inline: "center", block: "nearest" });
+  }, [sel, mIndex]);
+  const DOW = ["D", "L", "M", "M", "J", "V", "S"];
+  const eventDays = days.filter((d) => (byDay[d] || []).length > 0);
+
   return (
-    <div className="card" style={{ display: "flex", flexDirection: "column" }}>
-      <div className="card-h"><h2>Prélèvements à venir</h2><span className="sub">{MONTHS[mIndex].toLowerCase()}</span></div>
-      <div className="card-b">
-        <div style={{ display: "flex", gap: 2 }}>
-          {days.map((d) => {
-            const items = byDay[d] || [];
-            const isToday = isThisMonth && d === today;
-            const isSel = d === sel;
-            return (
-              <button type="button" key={d} onClick={() => setSel(d)}
-                style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", padding: "4px 0", fontFamily: "inherit" }}>
-                <span style={{ width: 30, height: 30, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
-                  color: isSel ? "#fff" : (isToday ? "var(--pos)" : "var(--soft)"),
-                  background: isSel ? "var(--pos)" : "transparent",
-                  border: (isToday && !isSel) ? "1.5px solid var(--pos)" : "1.5px solid transparent",
-                  fontWeight: (isSel || isToday) ? 600 : 400 }}>{d}</span>
-                <span style={{ display: "flex", gap: 2, height: 5 }}>
-                  {items.slice(0, 3).map((it, i) => <span key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: it.color }}></span>)}
-                </span>
-              </button>
-            );
-          })}
+    <div className="calcard">
+      <div className="cal-head">
+        <div className="cal-head-left">
+          <span className="cal-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span>
+          <span className="cal-title">Prélèvements à venir</span>
         </div>
-        <div style={{ background: "var(--primary-soft)", borderRadius: 8, padding: "12px 14px", marginTop: 14 }}>
-          <div style={{ fontSize: 12, color: "var(--faint)", marginBottom: selItems.length ? 8 : 0 }}>{selLabel}</div>
-          {selItems.length > 0
-            ? selItems.map((it, i) =>
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, padding: "3px 0" }}>
-                  <span><span style={{ width: 11, height: 11, borderRadius: 3, background: it.color, display: "inline-block", marginRight: 7 }}></span>{it.libelle}</span>
-                  <b className="neg">−{eur0(it.montant)}</b>
-                </div>
-              )
-            : <div style={{ fontSize: 13, color: "var(--faint)" }}>Aucun prélèvement ce jour.</div>
-          }
+        <span className="cal-month">{MONTHS[mIndex]} {YEAR}</span>
+      </div>
+      <div className="cal-strip" ref={stripRef}>
+        {days.map((d) => {
+          const has = (byDay[d] || []).length > 0;
+          const isToday = isThisMonth && d === today;
+          const isSel = d === sel;
+          return (
+            <button type="button" key={d}
+              className={"cal-day" + (has ? " has-event" : "") + (isToday ? " is-today" : "") + (isSel ? " selected" : "")}
+              onClick={() => setSel(d)}>
+              <span className="cal-day-dow">{DOW[new Date(YEAR, mIndex, d).getDay()]}</span>
+              <span className="cal-day-num">{d}</span>
+              <span className="cal-day-dot"></span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="cal-detail">
+        <span className="cal-detail-day">{selLabel}</span>
+        {selItems.length > 0
+          ? selItems.map((it, i) =>
+              <div className="cal-detail-row" key={i}>
+                <span className="cal-detail-name"><i style={{ width: 11, height: 11, borderRadius: 3, background: it.color, display: "inline-block", flex: "none" }}></i>{it.libelle}</span>
+                <b className="cal-detail-val">−{eur0(it.montant)}</b>
+              </div>
+            )
+          : <span className="cal-detail-empty">Aucun prélèvement ce jour.</span>
+        }
+      </div>
+      {eventDays.length > 0 &&
+        <div className="cal-dots">
+          {eventDays.map((d) => <i key={d} className={d === sel ? "on" : ""}></i>)}
+        </div>}
+    </div>
+  );
+}
+
+function YearBars({ bars, max, smallAxis }) {
+  const [hot, setHot] = React.useState(null);
+  return (
+    <div className={"bars2" + (hot !== null ? " faded" : "")}>
+      {bars.map((b, i) => {
+        const h = Math.max(3, (Math.abs(b.value) / max) * 86);
+        return (
+          <div className={"bcol" + (i === hot ? " hot" : "")} key={i}
+            onMouseEnter={() => setHot(i)} onMouseLeave={() => setHot(null)}>
+            <div className={"bar" + (b.current ? " on" : "") + (b.value < 0 ? " neg" : "")} style={{ height: h + "px" }}>
+              {i === hot &&
+                <div className="ytip">
+                  <span className="ytip-lbl">{b.tip}</span>
+                  <span className="num ytip-val">{b.value < 0 ? "−" : ""}{eur0(Math.abs(b.value))}</span>
+                </div>}
+            </div>
+            <span className={"ml" + (b.current ? " on" : "")} style={smallAxis ? { fontSize: 9.5 } : undefined}>{b.axis}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const SHORT_MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
+
+function AnnualBars({ months, max }) {
+  const [hot, setHot] = React.useState(null);
+  const cats = [{ key: "poche", lbl: "Ma poche" }, { key: "urssaf", lbl: "URSSAF" }, { key: "frais", lbl: "Frais" }];
+  const INNER = 120;
+  return (
+    <div className="annual">
+      <div className="annual-plot">
+        {[0, 1, 2, 3].map((k) => <div key={k} className="annual-grid" style={{ bottom: 30 + k * (INNER / 3) }}></div>)}
+        {months.map((m, i) => {
+          const barH = (m.ht / max) * INNER;
+          const side = i <= 1 ? "left" : i >= months.length - 2 ? "right" : "center";
+          return (
+            <div key={i} className="annual-col" data-on={hot !== null ? "" : undefined}
+              onMouseEnter={() => setHot(i)} onMouseLeave={() => setHot(null)}>
+              {hot === i && !m.future &&
+                <div className={"annual-tip annual-tip--" + side} style={{ bottom: Math.min(barH + 14, 92) }}>
+                  <div className="annual-tip-head">
+                    <span className="annual-tip-month">{m.label}</span>
+                    <span className="annual-tip-ht">{eur0(m.ht)} <span className="annual-tip-ht-lbl">HT</span></span>
+                  </div>
+                  <div className="annual-tip-rows">
+                    {cats.map((c) =>
+                      <div className="annual-tip-row" key={c.key}>
+                        <span><i className="bk" style={{ background: "var(--seg-" + c.key + ")" }}></i>{c.lbl}</span>
+                        <span className="num">{eur0(m[c.key])}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>}
+              <div className={"abar" + (m.future ? " abar--future" : "")} data-hot={hot === i ? "" : undefined}>
+                {m.future
+                  ? <div className="aseg" style={{ height: 12 }}></div>
+                  : cats.map((c) => {
+                      const h = (m[c.key] / max) * INNER;
+                      return h > 0.8 ? <div key={c.key} className={"aseg aseg--" + c.key} style={{ height: h }}></div> : null;
+                    })}
+              </div>
+              <span className="annual-x">{m.label}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="chart-legend">
+        {cats.map((c) => <span className="lg" key={c.key}><i className="bk" style={{ background: "var(--seg-" + c.key + ")" }}></i>{c.lbl}</span>)}
+      </div>
+    </div>
+  );
+}
+
+function SpendBar({ segs, total, ttc }) {
+  const [hover, setHover] = React.useState(null);
+  if (!segs.length) return <div className="empty">Aucune donnée pour cette période.</div>;
+  const NOTES = {
+    net: "Ton revenu net, une fois la TVA, l'URSSAF et les frais déduits.",
+    urssaf: "Tes cotisations sociales, prélevées en différé.",
+    tva: "Encaissée pour l'État, elle n'a jamais été à toi.",
+    decaisse: "Tes charges récurrentes du mois (abonnements, assurance…).",
+    achat: "Tes achats ponctuels de ce mois.",
+    cfe: "Ta cotisation foncière des entreprises, due en fin d'année.",
+    provision: "Provision mise de côté pour plus tard.",
+  };
+  const COLOR = { net: "var(--seg-poche)", urssaf: "var(--seg-urssaf)", tva: "var(--seg-tva)", decaisse: "var(--seg-frais)", achat: "var(--seg-frais)", cfe: "var(--seg-frais)", provision: "var(--seg-frais)" };
+  const col = (k) => COLOR[k] || "var(--seg-frais)";
+  const defKey = segs.some((s) => s.key === "net") ? "net" : segs[segs.length - 1].key;
+  const activeKey = hover || defKey;
+  const active = segs.find((s) => s.key === activeKey) || segs[0];
+  const pctOf = (v) => Math.round((v / total) * 100);
+  const isOut = (k) => k !== "net";
+  return (
+    <div className="spend" onMouseLeave={() => setHover(null)}>
+      <div className="spend-bar" data-on={activeKey !== defKey ? "" : undefined}>
+        {segs.map((x) => (
+          <button key={x.key} type="button" className={"spend-seg" + (x.key === "tva" ? " spend-seg--outline" : "")} data-key={x.key}
+            data-active={x.key === activeKey ? "" : undefined}
+            style={{ flex: x.val, background: col(x.key) }}
+            onMouseEnter={() => setHover(x.key)}>{pctOf(x.val)}%</button>
+        ))}
+      </div>
+      <div className="spend-legend">
+        {segs.map((x) => (
+          <button key={x.key} type="button" className="spend-chip" data-key={x.key}
+            data-active={x.key === activeKey ? "" : undefined}
+            onMouseEnter={() => setHover(x.key)}>
+            <i className="spend-dot" style={{ background: col(x.key) }}></i>{x.lab}
+          </button>
+        ))}
+      </div>
+      <div className="spend-detail">
+        <i className="spend-detail-dot" style={{ background: col(active.key) }}></i>
+        <div className="spend-detail-main">
+          <span className="spend-detail-name">{active.lab}</span>
+          <span className="spend-detail-note">{NOTES[active.key] || ""}</span>
         </div>
-        <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "10px 0 0", textAlign: "center" }}>clique un jour pour voir le détail</p>
+        <div className="spend-detail-num">
+          <span className="num spend-detail-val">{isOut(active.key) ? "−" : ""}{eur0(active.val)}</span>
+          <span className="spend-detail-pct">{pctOf(active.val)} % du TTC</span>
+        </div>
       </div>
     </div>
   );
@@ -1026,12 +1294,12 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const maxYearNet = Math.max(1, ...yearlyData.map(d => Math.abs(d.net)));
 
   const segsMonth = [
-    { key: "net",      lab: "Ce qui te reste",  val: Math.max(0, netCash) },
-    { key: "urssaf",   lab: "URSSAF",           val: outUrssaf },
-    { key: "tva",      lab: "TVA",              val: outTva },
-    { key: "decaisse", lab: "Frais récurrents", val: outFraisRec },
-    { key: "achat",    lab: "Achats ponctuels", val: outAchats },
-    { key: "cfe",      lab: "CFE",              val: outCfe },
+    { key: "tva",      lab: "TVA collectée",      val: outTva },
+    { key: "urssaf",   lab: "Cotisations URSSAF", val: outUrssaf },
+    { key: "decaisse", lab: "Frais récurrents",   val: outFraisRec },
+    { key: "achat",    lab: "Achats ponctuels",   val: outAchats },
+    { key: "cfe",      lab: "CFE",                val: outCfe },
+    { key: "net",      lab: "Ce qui te reste",    val: Math.max(0, netCash) },
   ].filter(x => x.val > 0.005);
 
   // valeurs réellement payées cumul jan → mIndex (même logique que le mode mois)
@@ -1068,20 +1336,20 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
 
       {/* === Bandeau : CA encaissé + factures en attente === */}
       <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14, marginBottom: 16 }}>
-        <div className="card stat">
+        <div className="card stat stat--ca">
           <div className="card-b">
             <div className="cap">CA encaissé · {MONTHS[mIndex].toLowerCase()} {YEAR}</div>
-            <div className="big">{eur0(s.caHT)}{s.assujetti && <span style={{ fontSize: 15, fontWeight: 500, color: "var(--faint)" }}> HT</span>}</div>
+            <div className="big">{eur0(s.caHT)}{s.assujetti && <span style={{ fontSize: 15, fontWeight: 500, color: "rgba(45,43,30,.55)" }}> HT</span>}</div>
             <div className="sub">{s.assujetti ? `${eur0(s.caTTC)} TTC · ` : ""}{factures.length} facture{factures.length !== 1 ? "s" : ""}</div>
           </div>
         </div>
 
         {/* Factures en attente (stat simple) */}
-        <div className="card stat" style={{ background: "var(--prov-soft)", borderColor: "#d8ca87" }}>
+        <div className="card stat" style={{ background: "var(--blue)", borderColor: "transparent" }}>
           <div className="card-b">
-            <div className="cap" style={{ color: "#7a6a25" }}>Factures en attente</div>
+            <div className="cap" style={{ color: "var(--blue-ink)" }}>Factures en attente</div>
             <div className="big" style={{ color: "var(--prov)" }}>{eur0(attenteTotal)}</div>
-            <div className="sub" style={{ color: "#7a6a25" }}>émises, pas encore encaissées</div>
+            <div className="sub" style={{ color: "var(--blue-ink)" }}>émises, pas encore encaissées</div>
           </div>
         </div>
       </div>
@@ -1177,28 +1445,19 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
 
           {/* Où part mon argent ? (ce qui sort réellement du compte ce mois) */}
           <div className="card">
-            <div className="card-h"><h2>Où part mon argent ?</h2><span className="sub">ce mois</span></div>
             <div className="card-b">
-              {donutSegs.length > 0
-                ? <>
-                    <div style={{ display: "flex", height: 26, borderRadius: 6, overflow: "hidden", marginBottom: 16 }}>
-                      {donutSegs.map((x) =>
-                        <div key={x.key} title={`${x.lab} · ${eur0(x.val)}`} style={{ width: `${x.val / donutTot * 100}%`, background: DONUT_COLORS[x.key] }}></div>
-                      )}
-                    </div>
-                    <div className="donut-legend">
-                      {donutSegs.map((x) =>
-                        <div className="li" key={x.key}>
-                          <span className="swatch" style={{ background: DONUT_COLORS[x.key] }}></span>
-                          <span>{x.lab}</span>
-                          <span style={{ marginLeft: "auto", fontWeight: 700, color: "var(--ink)", whiteSpace: "nowrap" }}>{Math.round(x.val / donutTot * 100)}% · {eur0(x.val)}</span>
-                        </div>
-                      )}
-                    </div>
-                    <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "12px 0 0", textAlign: "center" }}>CA TTC encaissé ce mois · {eur0(ttc)}</p>
-                  </>
-                : <div className="empty">Aucune donnée pour cette période.</div>
-              }
+              <div className="panel-head" style={{ marginBottom: 18 }}>
+                <div>
+                  <h2 className="panel-title">Où part mon argent ce mois-ci ?</h2>
+                  <p className="panel-kicker">Tout ton encaissement TTC, réparti d'un coup d'œil. Survole un bloc pour le détail.</p>
+                </div>
+                <div className="panel-kpi">
+                  <div className="panel-kpi-lbl">CA encaissé · TTC</div>
+                  <div className="panel-kpi-row"><span className="num panel-kpi-val">{eur0(ttc)}</span></div>
+                  <div className="panel-kpi-sub">100 % de ce qui est entré</div>
+                </div>
+              </div>
+              <SpendBar segs={donutSegs} total={donutTot} ttc={ttc} />
             </div>
           </div>
 
@@ -1214,16 +1473,16 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
           <div className="prov-card">
             <div className="cap">À METTRE DE CÔTÉ CE MOIS</div>
             <div className="big">{eur0(charged)}</div>
-            <div style={{ fontSize: 12, color: "#9a8a35", marginBottom: 6, marginTop: -10 }}>l'URSSAF et la TVA de ce mois, payées plus tard</div>
+            <div style={{ fontSize: 12, color: "var(--ink-faint)", marginBottom: 6, marginTop: -10 }}>l'URSSAF et la TVA de ce mois, payées plus tard</div>
             <div className="prov-detail">
               {provUrssaf > 0 && <div className="prov-pi">
                 <span className="swatch" style={{ background: DONUT_COLORS.urssaf }}></span>
-                <span>URSSAF de {moisLabel(mIndex)} <em style={{ fontSize: 11, color: "#9a8a35", fontStyle: "normal" }}>prélevé le {urssafJour} {dueLabel(urssafDec)}</em></span>
+                <span>URSSAF de {moisLabel(mIndex)} <em style={{ fontSize: 11, color: "var(--ink-faint)", fontStyle: "normal" }}>prélevé le {urssafJour} {dueLabel(urssafDec)}</em></span>
                 <b>{eur0(provUrssaf)}</b>
               </div>}
               {s.assujetti && provTva > 0 && <div className="prov-pi">
                 <span className="swatch" style={{ background: DONUT_COLORS.tva }}></span>
-                <span>TVA de {moisLabel(mIndex)} <em style={{ fontSize: 11, color: "#9a8a35", fontStyle: "normal" }}>prélevée le {tvaJour} {dueLabel(tvaDec)}</em></span>
+                <span>TVA de {moisLabel(mIndex)} <em style={{ fontSize: 11, color: "var(--ink-faint)", fontStyle: "normal" }}>prélevée le {tvaJour} {dueLabel(tvaDec)}</em></span>
                 <b>{eur0(provTva)}</b>
               </div>}
               {provFrais > 0 && <div className="prov-pi">
@@ -1287,38 +1546,22 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
             </div>
             <div className="synth-graph">
               <div className="synth-graph-h">
-                <span className="cap">{synthFig.graphLabel} {histScope === "month" ? "par mois" : "par année"}</span>
+                <span className="cap">{histScope === "month" ? "CA HT par mois" : `${synthFig.graphLabel} par année`}</span>
                 <div className="viewseg sm" style={{ marginLeft: "auto" }}>
                   <button className={histScope === "month" ? "on" : ""} onClick={() => setHistScope("month")}>Mois</button>
                   <button className={histScope === "year" ? "on" : ""} onClick={() => setHistScope("year")}>Années</button>
                 </div>
               </div>
               {histScope === "month" ? (
-                <div className="bars2">
-                  {year.map((y, i) =>
-                  <div className="bcol" key={i} title={`${MONTHS[i]} : ${eur(barSeries[i])}`}>
-                    <div className={"bar" + (i === mIndex ? " on" : "") + (barSeries[i] < 0 ? " neg" : "")}
-                      style={{ height: Math.max(3, Math.abs(barSeries[i]) / maxAbsBars * 130) + "px" }}></div>
-                    <span className={"ml" + (i === mIndex ? " on" : "")}>{MONTHS[i].slice(0, 1)}</span>
-                  </div>
-                  )}
-                </div>
+                <AnnualBars
+                  months={year.map((y, i) => { const ur = y.cotis, fr = y.fraisLisse, ht = y.caHT; return { label: SHORT_MONTHS[i], poche: Math.max(0, ht - ur - fr), urssaf: ur, frais: fr, ht, future: !(ht > 0) }; })}
+                  max={Math.max(1, ...year.map((y) => y.caHT))} />
               ) : yearlyData.length < 2 ? (
                 <div className="empty" style={{ fontSize: 13 }}>
                   Renseignez vos données N-1 dans les paramètres (icône engrenage) pour activer cette vue.
                 </div>
               ) : (
-                <div className="bars2">
-                  {yearlyData.map((yd) =>
-                  <div className="bcol" key={yd.year} title={`${yd.year}${yd.isCurrent ? " (en cours)" : ""} : ${eur(yd.net)}`}>
-                    <div className={"bar" + (yd.isCurrent ? " on" : "") + (yd.net < 0 ? " neg" : "")}
-                      style={{ height: Math.max(3, Math.abs(yd.net) / maxYearNet * 130) + "px" }}></div>
-                    <span className={"ml" + (yd.isCurrent ? " on" : "")} style={{ fontSize: 9.5 }}>
-                      {yd.year}{yd.isCurrent ? "*" : ""}
-                    </span>
-                  </div>
-                  )}
-                </div>
+                <YearBars max={maxYearNet} smallAxis bars={yearlyData.map((yd) => ({ tip: `${yd.year}${yd.isCurrent ? " (en cours)" : ""}`, axis: `${yd.year}${yd.isCurrent ? "*" : ""}`, value: yd.net, current: yd.isCurrent }))} />
               )}
             </div>
           </div>
@@ -2867,7 +3110,7 @@ function App() {
   ];
 
   return (
-    <div className="app">
+    <div className="app tk" data-accent="citron">
       <div className="appbar">
         <div className="logo">
           <div className="mk">€</div>
