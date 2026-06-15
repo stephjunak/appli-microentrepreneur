@@ -376,6 +376,21 @@ select.cell-in{appearance:none;cursor:pointer;
 .stat--ca .cap{color:rgba(45,43,30,.6);}
 .stat--ca .big{color:var(--accent-ink);}
 .stat--ca .sub{color:rgba(45,43,30,.6);}
+.col-head{font-size:12px;font-weight:700;color:var(--soft);padding:0 2px 2px;}
+.col-head span{font-weight:400;color:var(--faint);}
+.hero-kpi .card-b{padding:18px 20px 16px;}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.hero-kpi .cap{font-size:12.5px;color:var(--soft);font-weight:600;}
+.hero-kpi .big{font-size:34px;font-weight:800;letter-spacing:-.6px;line-height:1;margin-top:8px;}
+.hero-sub{font-size:12px;color:var(--faint);margin-top:7px;line-height:1.45;}
+.hero-badge{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap;}
+.hero-badge.up{background:var(--pos-soft);color:var(--pos);}
+.hero-badge.down{background:var(--neg-soft);color:var(--neg);}
+.hero-badge.neutral{background:var(--grey);color:var(--soft);}
+.kpi-detail{position:relative;display:inline-flex;margin-top:12px;cursor:pointer;outline:none;}
+.kpi-detail-trig{font-size:12px;color:var(--primary);font-weight:600;}
+.kpi-tip{position:absolute;top:calc(100% + 8px);left:0;min-width:250px;background:var(--card);border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);z-index:20;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .12s ease,transform .12s ease;}
+.kpi-detail:hover .kpi-tip,.kpi-detail:focus .kpi-tip,.kpi-detail:focus-within .kpi-tip{opacity:1;visibility:visible;transform:translateY(0);}
 .hero-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:stretch;}
 
 /* cascade clarity tags */
@@ -513,6 +528,7 @@ select.cell-in{appearance:none;cursor:pointer;
 .prov-pi b{color:var(--prov);font-weight:700;margin-left:4px;}
 .prov-pi .swatch{width:9px;height:9px;border-radius:3px;flex:none;display:inline-block;}
 .dash-main{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:stretch;}
+.dash-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .treso-cascade{display:flex;flex-direction:column;}
 .treso-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
 .treso-row .lab{color:var(--soft);display:flex;align-items:center;gap:7px;}
@@ -596,6 +612,7 @@ select.cell-in{appearance:none;cursor:pointer;
   .dash-kpi-row{grid-template-columns:1fr;}
   .dash-main{grid-template-columns:1fr;}
   .synth-split{grid-template-columns:1fr;}
+  .dash-2col{grid-template-columns:1fr;}
 }
 
 
@@ -900,6 +917,7 @@ function computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel = 0
 
   return {
     assujetti, lib, caHT, tvaCollectee, caTTC, byCat,
+    nbFactures: factures.length,
     cotisLines, totalCotis,
     decaisseLines, provisionLines, totalDecaisse, totalProvision,
     cfeProv, fraisLisse, charged,
@@ -913,14 +931,13 @@ function computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel = 0
 function computeYear({ facturesByMonth, charges, profile, cfeAnnuel = 0, urssafHistory = {} }) {
   const out = [];
   for (let i = 0; i < 12; i++) {
-    const fs = facturesByMonth[`${YEAR}-${pad2(i)}`] || [];
     const s = computeMonth({ facturesByMonth, charges, profile, mIndex: i, cfeAnnuel, urssafHistory });
     out.push({
       net: s.net, netPrudent: s.netPrudent, netLisse: s.netLisse, caHT: s.caHT, caTTC: s.caTTC,
       tva: s.tvaAreverser, cotis: s.totalCotis,
       decaisse: s.totalDecaisse, provision: s.totalProvision, fraisLisse: s.fraisLisse,
       cfe: s.cfeProv,
-      nbFactures: fs.length,
+      nbFactures: s.nbFactures,
     });
   }
   return out;
@@ -946,16 +963,17 @@ function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth, prev
 // totaux HT et TTC cumulés de toutes les factures EN ATTENTE de paiement, tous mois confondus.
 // Alimente le KPI du tableau de bord. La TVA n'est ajoutée au TTC que si l'utilisateur y est assujetti.
 function totalFacturesEnAttente(facturesByMonth, profile, urssafHistory = {}) {
-  let ht = 0, ttc = 0;
+  let ht = 0, ttc = 0, n = 0;
   Object.values(facturesByMonth || {}).forEach((list) => {
     (list || []).forEach((f) => {
       if (isPaid(f)) return;
       const t = factureTotals(f, profile, urssafHistory);
       ht += t.ht;
       ttc += profile && profile.tva ? t.ttc : t.ht;
+      n += 1;
     });
   });
-  return { ht, ttc };
+  return { ht, ttc, n };
 }
 
 // occurrences de prévisions tombant dans le mois mIndex de l'année courante.
@@ -1256,7 +1274,7 @@ function SpendBar({ segs, total, ttc }) {
   );
 }
 
-function DashboardTab({ facturesByMonth, factures, previsions = [], charges, profile, mIndex, cfeAnnuel = 0, urssafHistory = {}, soldeDebut, onSetSolde }) {
+function DashboardTab({ facturesByMonth, factures, previsions = [], charges, profile, mIndex, cfeAnnuel = 0, urssafHistory = {} }) {
   const s = computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel, urssafHistory });
   const year = computeYear({ facturesByMonth, charges, profile, cfeAnnuel, urssafHistory });
 
@@ -1264,6 +1282,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
 
   // ===== Revenus en attente / à venir (n'entrent PAS dans les chiffres réels) =====
   const attenteTotal = totalFacturesEnAttente(facturesByMonth, profile, urssafHistory);
+  const attenteS = attenteTotal.n !== 1 ? "s" : "";  // accord singulier/pluriel
   const nextIdx = mIndex + 1;
   const prevNext = nextIdx <= 11 ? expandPrevisions(previsions, nextIdx) : { items: [], total: 0 };
 
@@ -1273,6 +1292,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const urssafJour = profile.urssafJour || 5;
   const tvaJour    = profile.tvaJour || 15;
   const moisLabel   = (idx) => MONTHS[((idx % 12) + 12) % 12].toLowerCase();
+  const deMois      = (m) => /^[aâeéèiîoôuy]/.test(m) ? `d'${m}` : `de ${m}`;  // élision : "de avril" -> "d'avril"
   const originLabel = (off) => { const i = mIndex - off; return i < 0  ? `${moisLabel(i)} ${YEAR - 1}` : moisLabel(i); };
   const dueLabel    = (off) => { const i = mIndex + off; return i > 11 ? `${moisLabel(i)} ${YEAR + 1}` : moisLabel(i); };
 
@@ -1289,14 +1309,11 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const outFrais  = s.totalDecaisse;                // frais réellement débités ce mois
   const outCfe    = mIndex === 11 ? cfeAnnuel : 0;  // CFE prélevée en décembre
   const cashOut   = outUrssaf + outTva + outFrais + outCfe;
-  const soldeNum    = num(soldeDebut);
   // split frais décaissés : récurrents vs achats ponctuels
   const outFraisRec = s.decaisseLines.filter(ch => ch.frequence !== "ponctuelle").reduce((a,c) => a + c.montantCalc, 0);
   const outAchats   = s.decaisseLines.filter(ch => ch.frequence === "ponctuelle").reduce((a,c) => a + c.montantCalc, 0);
   // revenu net = CA TTC − tout ce qui sort du compte ce mois
   const netCash     = ttc - cashOut;
-  // trésorerie disponible = solde début de mois + revenu net
-  const tresoDisp   = soldeNum + netCash;
 
   // provisions du mois (à mettre de côté)
   const provUrssaf = s.totalCotis;
@@ -1350,114 +1367,122 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   // bascule trésorerie / réel pour la synthèse annuelle
   const synthFig = synthMode === "treso"
     ? { tva: yCumulTva, urssaf: yCumulUrssaf, frais: yCumulFrais, cfe: yCumulCfe, net: yCumulNet, netLabel: "Revenu net cumulé", graphLabel: "Revenu net" }
-    : { tva: ys.tva,    urssaf: ys.cotis,    frais: ys.fraisLisse, cfe: ys.cfe, net: ys.netLisse, netLabel: "Bénéfice réel cumulé", graphLabel: "Bénéfice réel" };
+    : { tva: ys.tva,    urssaf: ys.cotis,    frais: ys.fraisLisse, cfe: ys.cfe, net: ys.netLisse, netLabel: "Résultat net cumulé", graphLabel: "Résultat net" };
   const barSeries  = synthMode === "treso" ? tresoByMonth : year.map((y) => y.netLisse);
   const maxAbsBars = Math.max(1, ...barSeries.map((v) => Math.abs(v)));
 
   const donutSegs = segsMonth;
   const donutTot  = donutSegs.reduce((a,x) => a + x.val, 0) || 1;
 
+  // cartes héros : écart du revenu net vs mois précédent + part du résultat sur le CA HT
+  const prevNetCash = mIndex > 0 ? tresoByMonth[mIndex - 1] : null;
+  const revPct = (prevNetCash != null && Math.abs(prevNetCash) > 0.005)
+    ? Math.round((netCash - prevNetCash) / Math.abs(prevNetCash) * 100) : null;
+  const resPct = s.caHT > 0.005 ? Math.round(s.netLisse / s.caHT * 100) : null;
+
   return (
     <div className="dash">
 
-      {/* === Bandeau : CA encaissé + factures en attente === */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14, marginBottom: 16 }}>
-        <div className="card stat stat--ca">
-          <div className="card-b">
-            <div className="cap">CA encaissé · {MONTHS[mIndex].toLowerCase()} {YEAR}</div>
-            <div className="big">{eur0(s.caHT)}{s.assujetti && <span style={{ fontSize: 15, fontWeight: 500, color: "rgba(45,43,30,.55)" }}> HT</span>}</div>
-            <div className="sub">{s.assujetti ? `${eur0(s.caTTC)} TTC · ` : ""}{factures.length} facture{factures.length !== 1 ? "s" : ""}</div>
-          </div>
-        </div>
-
-        {/* Factures en attente (stat simple) */}
-        <div className="card stat" style={{ background: "var(--blue)", borderColor: "transparent" }}>
-          <div className="card-b">
-            <div className="cap" style={{ color: "var(--blue-ink)" }}>Factures en attente</div>
-            <div className="big" style={{ color: "var(--prov)" }}>{eur0(attenteTotal.ht)}{s.assujetti && <span style={{ fontSize: 15, fontWeight: 500, color: "rgba(45,43,30,.55)" }}> HT</span>}</div>
-            <div className="sub" style={{ color: "var(--blue-ink)" }}>{s.assujetti ? `${eur0(attenteTotal.ttc)} TTC · ` : ""}émises, pas encore encaissées</div>
-          </div>
-        </div>
+      {/* === En-têtes de colonnes : Trésorerie (présent) | Résultat prévisionnel (futur) === */}
+      <div className="dash-2col" style={{ marginBottom: 8 }}>
+        <div className="col-head">Trésorerie <span>· les mouvements sur ton compte ce mois</span></div>
+        <div className="col-head">Résultat prévisionnel <span>· les entrées/sorties à anticiper</span></div>
       </div>
 
-      {/* === Rangée 1 : Trésorerie | Revenu réel === */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
+      {/* === Cartes héros : Revenu net | Résultat net (cascade en infobulle) === */}
+      <div className="dash-2col" style={{ marginBottom: 14 }}>
 
-        {/* Trésorerie : ce qui bouge réellement sur le compte ce mois */}
-        <div className="card">
-          <div className="card-h"><h2>Trésorerie</h2><span className="sub">ce qui bouge sur ton compte ce mois</span></div>
+        {/* Revenu net (trésorerie) */}
+        <div className="card hero-kpi">
           <div className="card-b">
-            <div className="treso-cascade">
-              <div className="treso-row ca-row">
-                <span className="lab">CA TTC encaissé</span>
-                <b className="pos">{eur0(ttc)}</b>
-              </div>
-              {s.assujetti && outTva > 0 && <div className="treso-row">
-                <span className="lab">− TVA de {originLabel(tvaDec)}</span>
-                <b className="neg">−{eur0(outTva)}</b>
-              </div>}
-              {outUrssaf > 0 && <div className="treso-row">
-                <span className="lab">− URSSAF de {originLabel(urssafDec)}</span>
-                <b className="neg">−{eur0(outUrssaf)}</b>
-              </div>}
-              {outFrais > 0 && <div className="treso-row">
-                <span className="lab">− Frais de {moisLabel(mIndex)}</span>
-                <b className="neg">−{eur0(outFrais)}</b>
-              </div>}
-              {outCfe > 0 && <div className="treso-row">
-                <span className="lab">− CFE</span>
-                <b className="neg">−{eur0(outCfe)}</b>
-              </div>}
-              <div className="treso-row net-row">
-                <span className="lab">Ton revenu net ce mois</span>
-                <b className={netCash >= 0 ? "pos" : "neg"}>{eur0(netCash)}</b>
-              </div>
+            <div className="hero-top">
+              <span className="cap">Revenu net</span>
+              {revPct != null && <span className={"hero-badge " + (revPct >= 0 ? "up" : "down")}>{revPct >= 0 ? "+" : ""}{revPct}% vs {moisLabel(mIndex - 1)}</span>}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--line)" }}>
-              <label style={{ fontSize: 12.5, color: "var(--soft)", whiteSpace: "nowrap" }}>+ Solde du mois dernier</label>
-              <input className="in" type="number" step="0.01" placeholder="0"
-                value={soldeDebut === undefined || soldeDebut === null ? "" : soldeDebut}
-                onChange={(e) => onSetSolde(e.target.value)}
-                style={{ width: 90, height: 30, padding: "4px 8px", fontSize: 13 }} />
-              <span style={{ marginLeft: "auto", textAlign: "right", whiteSpace: "nowrap" }}>
-                <span style={{ fontSize: 11, color: "var(--faint)", display: "block", lineHeight: 1.2 }}>Solde réel</span>
-                <b className={tresoDisp >= 0 ? "pos" : "neg"} style={{ fontSize: 15 }}>{eur0(tresoDisp)}</b>
-              </span>
+            <div className={"big" + (netCash >= 0 ? "" : " neg")}>{eur0(netCash)}</div>
+            <div className="hero-sub">ce qui reste vraiment sur ton compte ce mois</div>
+            <div className="kpi-detail" tabIndex={0}>
+              <span className="kpi-detail-trig">détail du calcul ▾</span>
+              <div className="kpi-tip">
+                <div className="treso-cascade">
+                  <div className="treso-row ca-row"><span className="lab">CA TTC encaissé</span><b className="pos">{eur0(ttc)}</b></div>
+                  {s.assujetti && outTva > 0 && <div className="treso-row"><span className="lab">− TVA {deMois(originLabel(tvaDec))}</span><b className="neg">−{eur0(outTva)}</b></div>}
+                  {outUrssaf > 0 && <div className="treso-row"><span className="lab">− URSSAF {deMois(originLabel(urssafDec))}</span><b className="neg">−{eur0(outUrssaf)}</b></div>}
+                  {outFrais > 0 && <div className="treso-row"><span className="lab">− Frais {deMois(moisLabel(mIndex))}</span><b className="neg">−{eur0(outFrais)}</b></div>}
+                  {outCfe > 0 && <div className="treso-row"><span className="lab">− CFE</span><b className="neg">−{eur0(outCfe)}</b></div>}
+                  <div className="treso-row net-row"><span className="lab">Revenu net ce mois</span><b className={netCash >= 0 ? "pos" : "neg"}>{eur0(netCash)}</b></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Revenu réel : ce que l'activité du mois gagne vraiment */}
-        <div className="card">
-          <div className="card-h"><h2>Revenu réel</h2><span className="sub">ce que ton activité du mois te rapporte vraiment</span></div>
+        {/* Résultat net (prévisionnel) */}
+        <div className="card hero-kpi">
           <div className="card-b">
-            <div className="treso-cascade">
-              <div className="treso-row ca-row">
-                <span className="lab">CA TTC encaissé</span>
-                <b className="pos">{eur0(ttc)}</b>
-              </div>
-              {s.assujetti && provTva > 0 && <div className="treso-row">
-                <span className="lab">− TVA de {moisLabel(mIndex)}</span>
-                <b className="neg">−{eur0(provTva)}</b>
-              </div>}
-              {provUrssaf > 0 && <div className="treso-row">
-                <span className="lab">− URSSAF de {moisLabel(mIndex)}</span>
-                <b className="neg">−{eur0(provUrssaf)}</b>
-              </div>}
-              {provFrais > 0 && <div className="treso-row">
-                <span className="lab">− Frais de {moisLabel(mIndex)}</span>
-                <b className="neg">−{eur0(provFrais)}</b>
-              </div>}
-              {provCfe > 0 && <div className="treso-row">
-                <span className="lab">− CFE (part du mois)</span>
-                <b className="neg">−{eur0(provCfe)}</b>
-              </div>}
-              <div className="treso-row net-row">
-                <span className="lab">Ton bénéfice réel</span>
-                <b className={s.netLisse >= 0 ? "pos" : "neg"}>{eur0(s.netLisse)}</b>
+            <div className="hero-top">
+              <span className="cap">Résultat net</span>
+              {resPct != null && <span className="hero-badge neutral">{resPct}% du CA HT</span>}
+            </div>
+            <div className={"big" + (s.netLisse >= 0 ? "" : " neg")}>{eur0(s.netLisse)}</div>
+            <div className="hero-sub">ce que ton activité gagne vraiment, impôts à venir déduits</div>
+            <div className="kpi-detail" tabIndex={0}>
+              <span className="kpi-detail-trig">détail du calcul ▾</span>
+              <div className="kpi-tip">
+                <div className="treso-cascade">
+                  <div className="treso-row ca-row"><span className="lab">CA TTC encaissé</span><b className="pos">{eur0(ttc)}</b></div>
+                  {s.assujetti && provTva > 0 && <div className="treso-row"><span className="lab">− TVA {deMois(moisLabel(mIndex))}</span><b className="neg">−{eur0(provTva)}</b></div>}
+                  {provUrssaf > 0 && <div className="treso-row"><span className="lab">− URSSAF {deMois(moisLabel(mIndex))}</span><b className="neg">−{eur0(provUrssaf)}</b></div>}
+                  {provFrais > 0 && <div className="treso-row"><span className="lab">− Frais {deMois(moisLabel(mIndex))}</span><b className="neg">−{eur0(provFrais)}</b></div>}
+                  {provCfe > 0 && <div className="treso-row"><span className="lab">− CFE (part du mois)</span><b className="neg">−{eur0(provCfe)}</b></div>}
+                  <div className="treso-row net-row"><span className="lab">Résultat net</span><b className={s.netLisse >= 0 ? "pos" : "neg"}>{eur0(s.netLisse)}</b></div>
+                </div>
+                <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "8px 0 0" }}>Tu ne verras jamais ce chiffre sur ton compte : les impôts sont prélevés en différé.</p>
               </div>
             </div>
-            <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "10px 0 0" }}>Tu ne verras jamais ce chiffre car les impôts sont prélevés en différé.</p>
+          </div>
+        </div>
+
+      </div>
+
+      {/* === 4 KPI : 2 « sur ton compte » (gauche) | 2 « à venir » (droite) === */}
+      <div className="dash-2col" style={{ marginBottom: 16 }}>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          {/* CA encaissé */}
+          <div className="card stat">
+            <div className="card-b">
+              <div className="cap">Chiffre d'affaires encaissé</div>
+              <div className="big">{eur0(s.caHT)}{s.assujetti && <span style={{ fontSize: 15, fontWeight: 500, color: "var(--faint)" }}> HT</span>}</div>
+              <div className="sub">{s.assujetti ? `${eur0(s.caTTC)} TTC · ` : ""}{s.nbFactures} facture{s.nbFactures !== 1 ? "s" : ""}</div>
+            </div>
+          </div>
+          {/* Prélèvements et frais : tout ce qui sort du compte ce mois, TVA comprise */}
+          <div className="card stat">
+            <div className="card-b">
+              <div className="cap">Prélèvements et frais</div>
+              <div className="big">{eur0(cashOut)}</div>
+              <div className="sub">inclut la TVA, qui ne fait que transiter</div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          {/* À mettre de côté */}
+          <div className="card stat">
+            <div className="card-b">
+              <div className="cap">À mettre de côté</div>
+              <div className="big">{eur0(charged)}</div>
+              <div className="sub">URSSAF &amp; TVA de ce mois, payées plus tard</div>
+            </div>
+          </div>
+          {/* Factures en attente */}
+          <div className="card stat">
+            <div className="card-b">
+              <div className="cap">Factures en attente</div>
+              <div className="big">{eur0(attenteTotal.ht)}{s.assujetti && <span style={{ fontSize: 15, fontWeight: 500, color: "var(--faint)" }}> HT</span>}</div>
+              <div className="sub">{s.assujetti ? `${eur0(attenteTotal.ttc)} TTC · ` : ""}{attenteTotal.n} facture{attenteS}, pas encore encaissée{attenteS}</div>
+            </div>
           </div>
         </div>
 
@@ -1499,16 +1524,22 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
           <div className="prov-card">
             <div className="cap">À METTRE DE CÔTÉ CE MOIS</div>
             <div className="big">{eur0(charged)}</div>
-            <div style={{ fontSize: 12, color: "var(--ink-faint)", marginBottom: 6, marginTop: -10 }}>l'URSSAF et la TVA de ce mois, payées plus tard</div>
+            <div style={{ fontSize: 12, color: "var(--ink-faint)", marginBottom: 10, marginTop: -10 }}>l'URSSAF et la TVA de ce mois, payées plus tard</div>
+            <div style={{ display: "flex", height: 5, borderRadius: 999, overflow: "hidden", marginBottom: 14, background: "var(--line)" }}>
+              {provUrssaf > 0 && <div style={{ flex: provUrssaf, background: DONUT_COLORS.urssaf }} />}
+              {s.assujetti && provTva > 0 && <div style={{ flex: provTva, background: DONUT_COLORS.tva }} />}
+              {provFrais > 0 && <div style={{ flex: provFrais, background: DONUT_COLORS.decaisse }} />}
+              {provCfe > 0 && <div style={{ flex: provCfe, background: DONUT_COLORS.cfe }} />}
+            </div>
             <div className="prov-detail">
               {provUrssaf > 0 && <div className="prov-pi">
                 <span className="swatch" style={{ background: DONUT_COLORS.urssaf }}></span>
-                <span>URSSAF de {moisLabel(mIndex)} <em style={{ fontSize: 11, color: "var(--ink-faint)", fontStyle: "normal" }}>prélevé le {urssafJour} {dueLabel(urssafDec)}</em></span>
+                <span>URSSAF {deMois(moisLabel(mIndex))} <em style={{ fontSize: 11, color: "var(--ink-faint)", fontStyle: "normal" }}>prélevé le {urssafJour} {dueLabel(urssafDec)}</em></span>
                 <b>{eur0(provUrssaf)}</b>
               </div>}
               {s.assujetti && provTva > 0 && <div className="prov-pi">
                 <span className="swatch" style={{ background: DONUT_COLORS.tva }}></span>
-                <span>TVA de {moisLabel(mIndex)} <em style={{ fontSize: 11, color: "var(--ink-faint)", fontStyle: "normal" }}>prélevée le {tvaJour} {dueLabel(tvaDec)}</em></span>
+                <span>TVA {deMois(moisLabel(mIndex))} <em style={{ fontSize: 11, color: "var(--ink-faint)", fontStyle: "normal" }}>prélevée le {tvaJour} {dueLabel(tvaDec)}</em></span>
                 <b>{eur0(provTva)}</b>
               </div>}
               {provFrais > 0 && <div className="prov-pi">
@@ -1555,7 +1586,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
         <div className="card-h"><h2>Synthèse {YEAR}</h2><span className="sub">cumul jan → {MONTHS[mIndex].slice(0, 4).toLowerCase()}.</span>
           <div className="viewseg sm" style={{ marginLeft: "auto" }}>
             <button className={synthMode === "treso" ? "on" : ""} onClick={() => setSynthMode("treso")}>Trésorerie</button>
-            <button className={synthMode === "reel" ? "on" : ""} onClick={() => setSynthMode("reel")}>Réel</button>
+            <button className={synthMode === "reel" ? "on" : ""} onClick={() => setSynthMode("reel")}>Résultat</button>
           </div>
         </div>
         <div className="card-b">
@@ -3124,11 +3155,6 @@ function App() {
     ? { ...c, tarifsHistory: (c.tarifsHistory || []).filter(t => t.from !== from) }
     : c));
 
-  // ----- solde de trésorerie au 1er du mois (saisi, par mois) -----
-  const [soldes, setSoldes] = React.useState(() => load("mef2:soldes", {}));
-  React.useEffect(() => save("mef2:soldes", soldes), [soldes]);
-  const setSolde = (val) => setSoldes((p) => ({ ...p, [key]: val }));
-
   // ----- CFE -----
   const [cfeData, setCfeData] = React.useState(() => load("mef2:cfe", {}));
   React.useEffect(() => save("mef2:cfe", cfeData), [cfeData]);
@@ -3141,7 +3167,7 @@ function App() {
 
   // ----- export / import -----
   const exportJSON = () => {
-    const blob = new Blob([JSON.stringify({ version: 2, profile, facturesByMonth, previsions, charges, cfe: cfeData, soldes, urssafHistory, tvaConfig }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ version: 2, profile, facturesByMonth, previsions, charges, cfe: cfeData, urssafHistory, tvaConfig }, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `microcompte-${YEAR}.json`;
@@ -3159,7 +3185,6 @@ function App() {
         if (d.previsions) setPrevisions(d.previsions);
         if (d.charges) setCharges(d.charges);
         if (d.cfe) setCfeData(d.cfe);
-        if (d.soldes) setSoldes(d.soldes);
         if (d.urssafHistory) setUrssafHistory(d.urssafHistory);
         if (d.tvaConfig) setTvaConfig(d.tvaConfig);
         alert("Données importées avec succès.");
@@ -3210,7 +3235,7 @@ function App() {
         <button className="mbtn" disabled={m === 11} onClick={() => goMonth(1)}>{Chev("M9 18l6-6-6-6")}</button>
       </div>
 
-      {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} previsions={previsions} charges={charges} profile={profile} mIndex={m} cfeAnnuel={cfeAnnuel} urssafHistory={urssafHistory} soldeDebut={soldes[key]} onSetSolde={setSolde} />}
+      {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} previsions={previsions} charges={charges} profile={profile} mIndex={m} cfeAnnuel={cfeAnnuel} urssafHistory={urssafHistory} />}
       {ui.tab === "factures" && <FacturesTab factures={factures} facturesByMonth={facturesByMonth} charges={charges} profile={profile} mIndex={m}
         onSaveInv={saveInv} onRemoveInv={removeInv} onMarkPaid={markFactPaid} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />}
       {ui.tab === "previsionnel" && <PrevisionnelTab previsions={previsions} facturesByMonth={facturesByMonth} profile={profile}
