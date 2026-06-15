@@ -620,6 +620,16 @@ select.cell-in{appearance:none;cursor:pointer;
 .tariff-status.current{background:var(--pos);color:#fff;}
 .tariff-status.future{background:var(--prov);color:#fff;}
 .tariff-status.past{background:var(--line-2);color:var(--soft);}
+/* badge "Payée" survolable : infobulle date d'encaissement + pastille horloge si encaissé un autre mois */
+.inv-paid{position:relative;display:inline-flex;align-items:center;gap:6px;cursor:default;outline:none;}
+.inv-clock{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:999px;background:var(--prov-soft);color:var(--prov);}
+.inv-clock svg{width:13px;height:13px;}
+.inv-tip{position:absolute;top:calc(100% + 9px);right:0;background:var(--dark);color:var(--on-dark);border-radius:12px;padding:8px 12px;box-shadow:var(--shadow-dark);white-space:nowrap;z-index:20;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .12s ease,transform .12s ease;}
+.inv-paid:hover .inv-tip,.inv-paid:focus .inv-tip,.inv-paid:focus-within .inv-tip{opacity:1;visibility:visible;transform:translateY(0);}
+.inv-tip::after{content:"";position:absolute;bottom:100%;right:26px;border:6px solid transparent;border-bottom-color:var(--dark);}
+.inv-tip-d{display:block;font-size:12.5px;}
+.inv-tip-m{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--prov-soft);margin-top:2px;}
+.inv-tip-m svg{width:13px;height:13px;}
 .tariff-from{color:var(--soft);}
 .tariff-val{font-size:14px;font-weight:700;color:var(--ink);}
 .tariff-pct{font-size:11px;font-weight:700;padding:2px 6px;border-radius:5px;white-space:nowrap;}
@@ -796,6 +806,16 @@ function chargeLisse(charge, mIndex) {
 // une facture = { id, date, datePaiement?, client, statut?, lines:[{id,description,categorie,montant,tva}] }
 // statut : "paye" (défaut) ou "attente". Une facture en attente n'entre pas dans le CA encaissé.
 function isPaid(f) { return f.statut !== "attente"; }
+// mois d'encaissement (YYYY-MM) d'une facture : sa date de paiement, ou à défaut sa date
+// d'émission (rétrocompat : une facture payée sans datePaiement reste rattachée à son mois d'émission).
+function moisEncaissement(f) { return (f.datePaiement || f.date || "").slice(0, 7); }
+// factures réellement encaissées dans le mois mIndex (peu importe leur mois d'émission).
+function facturesEncaissees(facturesByMonth, mIndex) {
+  const target = `${YEAR}-${pad2(mIndex)}`, out = [];
+  Object.values(facturesByMonth || {}).forEach((list) =>
+    (list || []).forEach((f) => { if (isPaid(f) && moisEncaissement(f) === target) out.push(f); }));
+  return out;
+}
 // tolère l'ancien format plat (une ligne par facture)
 function linesOf(f) {
   if (Array.isArray(f.lines)) return f.lines;
@@ -818,15 +838,16 @@ function factureTotals(f, profile, urssafHistory = {}) {
 }
 
 // calcule tout le résumé d'un mois
-function computeMonth({ factures, charges, profile, mIndex, cfeAnnuel = 0, urssafHistory = {} }) {
+function computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel = 0, urssafHistory = {} }) {
   const assujetti = !!profile.tva;
   const lib = !!profile.liberatoire;
   const monthDateStr = `${YEAR}-${pad2(mIndex)}-01`;
 
-  // --- CA & TVA (uniquement les factures PAYÉES : une facture en attente n'est pas encaissée) ---
+  // --- CA & TVA : factures réellement ENCAISSÉES ce mois (par date de paiement, pas d'émission) ---
+  const factures = facturesEncaissees(facturesByMonth, mIndex);
   let caHT = 0, tvaCollectee = 0;
   const byCat = {};                                 // cat -> base HT
-  factures.filter(isPaid).forEach((f) => {
+  factures.forEach((f) => {
     linesOf(f).forEach((l) => {
       const ht = num(l.montant);
       caHT += ht;
@@ -893,7 +914,7 @@ function computeYear({ facturesByMonth, charges, profile, cfeAnnuel = 0, urssafH
   const out = [];
   for (let i = 0; i < 12; i++) {
     const fs = facturesByMonth[`${YEAR}-${pad2(i)}`] || [];
-    const s = computeMonth({ factures: fs, charges, profile, mIndex: i, cfeAnnuel, urssafHistory });
+    const s = computeMonth({ facturesByMonth, charges, profile, mIndex: i, cfeAnnuel, urssafHistory });
     out.push({
       net: s.net, netPrudent: s.netPrudent, netLisse: s.netLisse, caHT: s.caHT, caTTC: s.caTTC,
       tva: s.tvaAreverser, cotis: s.totalCotis,
@@ -922,18 +943,19 @@ function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth, prev
   return acc;
 }
 
-// total TTC cumulé de toutes les factures EN ATTENTE de paiement, tous mois confondus.
-// Alimente le KPI du tableau de bord. La TVA n'est ajoutée que si l'utilisateur y est assujetti.
+// totaux HT et TTC cumulés de toutes les factures EN ATTENTE de paiement, tous mois confondus.
+// Alimente le KPI du tableau de bord. La TVA n'est ajoutée au TTC que si l'utilisateur y est assujetti.
 function totalFacturesEnAttente(facturesByMonth, profile, urssafHistory = {}) {
-  let total = 0;
+  let ht = 0, ttc = 0;
   Object.values(facturesByMonth || {}).forEach((list) => {
     (list || []).forEach((f) => {
       if (isPaid(f)) return;
       const t = factureTotals(f, profile, urssafHistory);
-      total += profile && profile.tva ? t.ttc : t.ht;
+      ht += t.ht;
+      ttc += profile && profile.tva ? t.ttc : t.ht;
     });
   });
-  return total;
+  return { ht, ttc };
 }
 
 // occurrences de prévisions tombant dans le mois mIndex de l'année courante.
@@ -964,7 +986,7 @@ window.MEF = {
   RATES, CATS, TVA_RATES, MONTHS, YEAR,
   pad2, monthKey, uid, eur, eur0, pct, num,
   load, save, appToday, TODAY, tariffAt, tariffForMonth, rateAt, nextDebitDate, chargeImpact, chargeLisse, computeMonth, computeYear, computeYearSummary,
-  linesOf, factureTotals, isPaid, totalFacturesEnAttente, expandPrevisions,
+  linesOf, factureTotals, isPaid, moisEncaissement, totalFacturesEnAttente, expandPrevisions,
 };
 
 
@@ -975,7 +997,7 @@ window.MEF = {
    ============================================================ */
 const { RATES, CATS, TVA_RATES, MONTHS, YEAR, eur, eur0, pct, num, uid, pad2,
   appToday, TODAY, tariffAt, tariffForMonth, rateAt, nextDebitDate, chargeImpact, computeMonth, computeYear, computeYearSummary, linesOf, factureTotals,
-  isPaid, totalFacturesEnAttente, expandPrevisions } = window.MEF;
+  isPaid, moisEncaissement, totalFacturesEnAttente, expandPrevisions } = window.MEF;
 
 const CATS_META = [
   { key: "BNC",        label: "BNC (régime général)" },
@@ -1050,8 +1072,13 @@ function MiniDashCalendar({ mIndex, charges, profile, cfeAnnuel = 0, facturesByM
 
   const stripRef = React.useRef(null);
   React.useEffect(() => {
-    const el = stripRef.current && stripRef.current.querySelector(".cal-day.selected");
-    if (el) el.scrollIntoView({ inline: "center", block: "nearest" });
+    const strip = stripRef.current;
+    if (!strip) return;
+    const el = strip.querySelector(".cal-day.selected");
+    if (!el) return;
+    // centre le jour sélectionné dans la bande, sans déclencher de scroll vertical de la page
+    const sRect = strip.getBoundingClientRect(), eRect = el.getBoundingClientRect();
+    strip.scrollLeft += (eRect.left - sRect.left) - (sRect.width - eRect.width) / 2;
   }, [sel, mIndex]);
   const DOW = ["D", "L", "M", "M", "J", "V", "S"];
   const eventDays = days.filter((d) => (byDay[d] || []).length > 0);
@@ -1230,7 +1257,7 @@ function SpendBar({ segs, total, ttc }) {
 }
 
 function DashboardTab({ facturesByMonth, factures, previsions = [], charges, profile, mIndex, cfeAnnuel = 0, urssafHistory = {}, soldeDebut, onSetSolde }) {
-  const s = computeMonth({ factures, charges, profile, mIndex, cfeAnnuel, urssafHistory });
+  const s = computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel, urssafHistory });
   const year = computeYear({ facturesByMonth, charges, profile, cfeAnnuel, urssafHistory });
 
   const ttc = s.caTTC; // CA encaissé ce mois (TTC), point de départ commun
@@ -1253,8 +1280,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const pastMonth = (off) => {
     const i = mIndex - off;
     if (i < 0) return null; // activité de l'année précédente, non disponible
-    const fs = facturesByMonth[`${YEAR}-${pad2(i)}`] || [];
-    return computeMonth({ factures: fs, charges, profile, mIndex: i, cfeAnnuel, urssafHistory });
+    return computeMonth({ facturesByMonth, charges, profile, mIndex: i, cfeAnnuel, urssafHistory });
   };
   const sUrssafPast = pastMonth(urssafDec);
   const sTvaPast    = pastMonth(tvaDec);
@@ -1348,8 +1374,8 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
         <div className="card stat" style={{ background: "var(--blue)", borderColor: "transparent" }}>
           <div className="card-b">
             <div className="cap" style={{ color: "var(--blue-ink)" }}>Factures en attente</div>
-            <div className="big" style={{ color: "var(--prov)" }}>{eur0(attenteTotal)}</div>
-            <div className="sub" style={{ color: "var(--blue-ink)" }}>émises, pas encore encaissées</div>
+            <div className="big" style={{ color: "var(--prov)" }}>{eur0(attenteTotal.ht)}{s.assujetti && <span style={{ fontSize: 15, fontWeight: 500, color: "rgba(45,43,30,.55)" }}> HT</span>}</div>
+            <div className="sub" style={{ color: "var(--blue-ink)" }}>{s.assujetti ? `${eur0(attenteTotal.ttc)} TTC · ` : ""}émises, pas encore encaissées</div>
           </div>
         </div>
       </div>
@@ -1575,7 +1601,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
 /* FACTURES — une facture, plusieurs lignes (taux différents) */
 /* ========================================================== */
 // Carte facture en lecture seule. Modification via le crayon (ouvre InvoiceModal).
-function InvoiceCard({ f, profile, onEdit, onRemoveInv, onMarkPaid, urssafHistory = {} }) {
+function InvoiceCard({ f, profile, mIndex, onEdit, onRemoveInv, onMarkPaid, urssafHistory = {} }) {
   const assujetti = !!profile.tva;
   const t = factureTotals(f, profile, urssafHistory);
   const lines = linesOf(f);
@@ -1583,6 +1609,13 @@ function InvoiceCard({ f, profile, onEdit, onRemoveInv, onMarkPaid, urssafHistor
   const dateLabel = f.date
     ? new Date(f.date + "T00:00:00").toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
     : "Date manquante";
+  // date d'encaissement (réelle ou présumée = date d'émission) + repérage d'un encaissement hors du mois affiché
+  const dp = f.datePaiement || f.date;
+  const paidLabel = dp
+    ? new Date(dp + "T00:00:00").toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+    : null;
+  const autreMois = !attente && dp && mIndex != null && dp.slice(0, 7) !== `${YEAR}-${pad2(mIndex)}`;
+  const moisEncLabel = autreMois ? MONTHS[parseInt(dp.slice(5, 7), 10) - 1].toLowerCase() : "";
   return (
     <div className="card invoice">
       <div className="inv-h">
@@ -1590,7 +1623,17 @@ function InvoiceCard({ f, profile, onEdit, onRemoveInv, onMarkPaid, urssafHistor
         <span style={{ flex: 1, fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {f.client || <em style={{ color: "var(--faint)", fontWeight: 400 }}>Sans client</em>}
         </span>
-        <span className={"tariff-status " + (attente ? "future" : "current")} style={{ flex: "none" }}>{attente ? "En attente de paiement" : "Payée"}</span>
+        {attente
+          ? <span className="tariff-status future" style={{ flex: "none" }}>En attente de paiement</span>
+          : <span className="inv-paid" style={{ flex: "none" }} tabIndex={0}>
+              <span className="tariff-status current">Payée</span>
+              {autreMois && <span className="inv-clock">{Icon.clock}</span>}
+              {paidLabel &&
+                <span className="inv-tip" role="tooltip">
+                  <span className="inv-tip-d">Encaissée le {paidLabel}</span>
+                  {autreMois && <span className="inv-tip-m">{Icon.clock} comptée en {moisEncLabel}</span>}
+                </span>}
+            </span>}
         {attente && onMarkPaid &&
           <button className="btn" style={{ flex: "none", padding: "4px 10px", fontSize: 12 }} onClick={() => onMarkPaid(f.id)}>Marquer payée</button>}
         <div className="inv-net">Net estimé <b>{eur(t.net)}</b></div>
@@ -1754,7 +1797,7 @@ function InvoiceModal({ initial, profile, urssafHistory = {}, tvaConfig, onSave,
 }
 
 function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSaveInv, onRemoveInv, onMarkPaid, urssafHistory = {}, tvaConfig }) {
-  const s = computeMonth({ factures, charges, profile, mIndex, urssafHistory });
+  const s = computeMonth({ facturesByMonth, charges, profile, mIndex, urssafHistory });
   const ttc = s.caTTC;
   const allClients = [...new Set(Object.values(facturesByMonth || {}).flat().map(f => f.client).filter(Boolean))].sort();
   // montant des factures du mois encore en attente de paiement (non comptées dans l'encaissé)
@@ -1764,6 +1807,10 @@ function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSa
   }, 0);
   // modal : null = fermé ; { inv: null } = nouvelle facture ; { inv: facture } = modification
   const [modal, setModal] = React.useState(null);
+  // filtre d'affichage de la liste (n'affecte ni la synthèse ni les totaux)
+  const [filtre, setFiltre] = React.useState("toutes");
+  const facturesAffichees = factures.filter((f) =>
+    filtre === "toutes" ? true : filtre === "paye" ? isPaid(f) : !isPaid(f));
 
   return (
     <div>
@@ -1785,14 +1832,25 @@ function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSa
       </div>
       }
       <button className="addrow accent" style={{ marginBottom: 14 }} onClick={() => setModal({ inv: null })}>{Icon.plus} Nouvelle facture</button>
+      {factures.length > 0 &&
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <span style={{ fontSize: 13, color: "var(--soft)" }}>Afficher</span>
+        <div className="viewseg sm">
+          <button className={filtre === "toutes" ? "on" : ""} onClick={() => setFiltre("toutes")}>Toutes</button>
+          <button className={filtre === "attente" ? "on" : ""} onClick={() => setFiltre("attente")}>En attente</button>
+          <button className={filtre === "paye" ? "on" : ""} onClick={() => setFiltre("paye")}>Payées</button>
+        </div>
+      </div>}
       <div className="stack">
         {factures.length === 0 &&
         <div className="card"><div className="empty" style={{ padding: "40px 10px" }}>Aucune facture ce mois. Créez votre première facture — elle peut contenir plusieurs lignes à taux différents.</div></div>
         }
-        {factures.map((f) =>
-        <InvoiceCard key={f.id} f={f} profile={profile}
+        {facturesAffichees.map((f) =>
+        <InvoiceCard key={f.id} f={f} profile={profile} mIndex={mIndex}
         onEdit={(inv) => setModal({ inv })} onRemoveInv={onRemoveInv} onMarkPaid={onMarkPaid} urssafHistory={urssafHistory} />
         )}
+        {factures.length > 0 && facturesAffichees.length === 0 &&
+        <div className="card"><div className="empty" style={{ padding: "30px 10px" }}>Aucune facture {filtre === "attente" ? "en attente de paiement" : "payée"} ce mois.</div></div>}
       </div>
       {modal &&
       <InvoiceModal initial={modal.inv} profile={profile} urssafHistory={urssafHistory} tvaConfig={tvaConfig}
@@ -1961,8 +2019,7 @@ function allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, ur
   // 2. URSSAF (cotisations de m-urssafDec)
   const uSrc = m - urssafDec;
   if (uSrc >= 0) {
-    const fs = facturesByMonth[`${YEAR}-${pad2(uSrc)}`] || [];
-    const s  = computeMonth({ factures: fs, charges, profile, mIndex: uSrc, cfeAnnuel, urssafHistory });
+    const s  = computeMonth({ facturesByMonth, charges, profile, mIndex: uSrc, cfeAnnuel, urssafHistory });
     if (s.totalCotis > 0.005)
       add(urssafJour, { libelle: `URSSAF (activité ${MONTHS[uSrc].toLowerCase()})`,
                         montant: s.totalCotis, color: PAY_COLORS.urssaf, type: "urssaf" });
@@ -1972,8 +2029,7 @@ function allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, ur
   if (assujetti) {
     const tSrc = m - tvaDec;
     if (tSrc >= 0) {
-      const fs = facturesByMonth[`${YEAR}-${pad2(tSrc)}`] || [];
-      const s  = computeMonth({ factures: fs, charges, profile, mIndex: tSrc, cfeAnnuel, urssafHistory });
+      const s  = computeMonth({ facturesByMonth, charges, profile, mIndex: tSrc, cfeAnnuel, urssafHistory });
       if (s.tvaAreverser > 0.005)
         add(tvaJour, { libelle: `TVA (activité ${MONTHS[tSrc].toLowerCase()})`,
                        montant: s.tvaAreverser, color: PAY_COLORS.tva, type: "tva" });
@@ -2710,7 +2766,7 @@ function Section({ title, amount, color, open, onToggle, children }) {
 
 function ChargesProvisionsTab({ factures, facturesByMonth = {}, charges, profile, mIndex, cfeData = {}, onUpdateCfe, urssafHistory = {} }) {
   const cfeAnnuel = num(cfeData.montant) || 0;
-  const s = computeMonth({ factures, charges, profile, mIndex, cfeAnnuel, urssafHistory });
+  const s = computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel, urssafHistory });
   const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: 11, cfeAnnuel, urssafHistory });
   const caHTannuel = ys.caHT;
   const [open, setOpen] = React.useState({ urssaf: false, tva: false, cfe: false });
