@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tableau-kit — référence vivante</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tableau-kit.css" />
+<style>
+  /* styles propres à la PAGE de référence (hors kit) */
+  body { background: var(--canvas); }
+  .ref { max-width: 1180px; margin: 0 auto; padding: 56px 40px 100px; }
+  .ref-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 8px; }
+  .ref-head h1 { font-family: "Space Grotesk"; font-size: 34px; font-weight: 700; letter-spacing: -0.8px; margin: 0; }
+  .ref-head p { color: var(--ink-soft); margin: 8px 0 0; max-width: 60ch; }
+  .ref-accent { display: inline-flex; gap: 6px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 5px; }
+  .ref-accent button { border: none; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 14px; border-radius: var(--r-pill); background: none; color: var(--ink-soft); }
+  .ref-accent button.on { background: var(--accent); color: var(--accent-ink); }
+  .ref-section { margin-top: 52px; }
+  .ref-label { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .ref-label h2 { font-family: "Space Grotesk"; font-size: 14px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin: 0; color: var(--ink); }
+  .ref-label span { font-size: 13px; color: var(--ink-faint); }
+  .ref-note { font-size: 12.5px; color: var(--ink-faint); margin: 14px 0 0; font-style: italic; }
+  .ref-grid { display: grid; gap: 18px; }
+  .ref-2 { grid-template-columns: 1.55fr 1fr; align-items: start; }
+  .ref-2 > * { min-width: 0; }
+  .ref-2 > * { min-width: 0; } /* indispensable : laisse les colonnes rétrécir (calendrier scrollable) */
+  @media (max-width: 900px) { .ref-2 { grid-template-columns: 1fr; } }
+  /* palette */
+  .sw-row { display: flex; flex-wrap: wrap; gap: 14px; }
+  .sw { width: 132px; }
+  .sw-chip { height: 64px; border-radius: 14px; border: 1px solid var(--line); }
+  .sw-name { font-size: 12.5px; font-weight: 600; margin-top: 8px; }
+  .sw-hex { font-family: "Space Grotesk"; font-size: 11.5px; color: var(--ink-faint); }
+  /* type specimens */
+  .type-row { display: flex; align-items: baseline; gap: 18px; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+  .type-row:last-child { border: none; }
+  .type-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); width: 130px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="tk" data-accent="citron" id="tk">
+<div class="ref">
+
+  <div class="ref-head">
+    <div>
+      <h1>Tableau-kit — référence vivante</h1>
+      <p>Chaque bloc ci-dessous est <strong>du vrai code qui tourne</strong> : survole les barres et l'histogramme, clique le menu, le toggle et les jours du calendrier. C'est précisément ce qu'une capture d'écran ne montre pas.</p>
+    </div>
+    <div class="ref-accent" id="accent-switch">
+      <button class="on" data-acc="citron">Citron</button>
+      <button data-acc="bleu">Bleu</button>
+      <button data-acc="ardoise">Ardoise</button>
+    </div>
+  </div>
+
+  <!-- ════ PALETTE ════ -->
+  <section class="ref-section">
+    <div class="ref-label"><h2>Palette</h2><span>tokens — voir <code>:root</code> dans tableau-kit.css</span></div>
+    <div class="sw-row">
+      <div class="sw"><div class="sw-chip" style="background:var(--accent)"></div><div class="sw-name">Accent / citron</div><div class="sw-hex">--accent</div></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--blue)"></div><div class="sw-name">Bleu</div><div class="sw-hex">--blue</div></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--grey)"></div><div class="sw-name">Gris</div><div class="sw-hex">--grey</div></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--dark)"></div><div class="sw-name">Sombre</div><div class="sw-hex">--dark</div></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--paper)"></div><div class="sw-name">Papier</div><div class="sw-hex">--paper</div></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--seg-urssaf)"></div><div class="sw-name">URSSAF</div><div class="sw-hex">--seg-urssaf</div></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--seg-frais)"></div><div class="sw-name">Frais</div><div class="sw-hex">--seg-frais</div></div>
+      <div class="sw"><div class="sw-chip" style="background:var(--charge-blue)"></div><div class="sw-name">Charges (donut)</div><div class="sw-hex">--charge-blue</div></div>
+    </div>
+  </section>
+
+  <!-- ════ TYPOGRAPHIE ════ -->
+  <section class="ref-section">
+    <div class="ref-label"><h2>Typographie</h2><span>Space Grotesk (titres + chiffres) · Onest (texte)</span></div>
+    <div class="type-row"><span class="type-tag">Titre H1</span><h1 style="margin:0">Bonjour Camille</h1></div>
+    <div class="type-row"><span class="type-tag">Chiffre clé</span><span class="num" style="font-family:'Space Grotesk';font-weight:700;font-size:40px">3 095 €</span></div>
+    <div class="type-row"><span class="type-tag">Panel title</span><span class="panel-title">Où part mon argent ce mois-ci ?</span></div>
+    <div class="type-row"><span class="type-tag">Corps</span><span style="color:var(--ink-soft)">Tout ton encaissement TTC, réparti d'un coup d'œil.</span></div>
+    <div class="type-row"><span class="type-tag">Kicker / label</span><span class="kpi-label" style="color:var(--ink-faint)">CA encaissé · TTC</span></div>
+  </section>
+
+  <!-- ════ MENU + KPI ════ -->
+  <section class="ref-section">
+    <div class="ref-label"><h2>Menu & cartes KPI</h2><span>la reliure citron glisse vers l'onglet cliqué</span></div>
+    <div class="ref-grid ref-2">
+      <div class="ref-grid" style="gap:18px">
+        <!-- KPI Net + donut -->
+        <div class="kpi kpi--net netcard">
+          <div class="netcard-main">
+            <div class="kpi-top"><span class="kpi-ico">${ICOCHART}</span><span class="kpi-label">Revenu net ce mois</span></div>
+            <div class="num kpi-value">3 095 €</div>
+            <div class="netcard-legend">
+              <span class="lg"><i class="bk" style="background:var(--accent)"></i>Ce qui te reste</span>
+              <span class="lg"><i class="bk" style="background:var(--charge-blue)"></i>Charges & impôts</span>
+            </div>
+          </div>
+          <div data-tk-donut><script type="application/json">{"pct":52,"label":"de charges"}</script></div>
+        </div>
+        <div class="kpi-pair">
+          <div class="kpi kpi--ca">
+            <div class="kpi-top"><span class="kpi-ico">${ICOWALLET}</span><span class="kpi-label">CA encaissé · TTC</span></div>
+            <div class="num kpi-value">6 480 €</div>
+            <div class="kpi-foot">Tout ce qui est entré, TVA comprise.</div>
+          </div>
+          <div class="kpi kpi--dep">
+            <div class="kpi-top"><span class="kpi-ico">${ICOOUT}</span><span class="kpi-label">Charges & frais</span></div>
+            <div class="num kpi-value">−3 385 €</div>
+            <div class="kpi-foot">TVA · URSSAF · frais</div>
+          </div>
+        </div>
+      </div>
+      <!-- menu latéral -->
+      <nav class="nav" data-tk-nav style="background:var(--canvas);padding:14px 0 14px 14px;border-radius:var(--r-card)">
+        <span class="nav-spine"></span>
+        <button class="nav-item active"><span class="nav-ico">${ICOGRID}</span><span class="nav-label">Tableau de bord</span></button>
+        <button class="nav-item"><span class="nav-ico">${ICOWALLET}</span><span class="nav-label">Encaissements</span></button>
+        <button class="nav-item"><span class="nav-ico">${ICOINV}</span><span class="nav-label">Factures</span></button>
+        <button class="nav-item"><span class="nav-ico">${ICOCHART}</span><span class="nav-label">Analyses</span></button>
+        <button class="nav-item"><span class="nav-ico">${ICOCOG}</span><span class="nav-label">Réglages</span></button>
+      </nav>
+    </div>
+  </section>
+
+  <!-- ════ OÙ PART MON ARGENT ════ -->
+  <section class="ref-section">
+    <div class="ref-label"><h2>Barre « où part mon argent »</h2><span>survole un segment ou une puce</span></div>
+    <section class="panel">
+      <div class="panel-head" style="flex-wrap:nowrap">
+        <div style="min-width:0"><h3 class="panel-title">Où part mon argent ce mois-ci ?</h3>
+          <p class="panel-kicker">Tout ton encaissement TTC, réparti d'un coup d'œil. Survole un bloc pour le détail.</p></div>
+        <div class="panel-kpi"><div class="panel-kpi-lbl">CA encaissé · TTC</div>
+          <div class="panel-kpi-row"><span class="num panel-kpi-val">6 480 €</span></div>
+          <div class="panel-kpi-sub">100 % de ce qui est entré</div></div>
+      </div>
+      <div class="spend">
+        <script type="application/json">{
+          "tva":{"name":"TVA collectée","val":1080,"pct":17,"out":true,"note":"Tu l'as encaissée pour l'État, elle n'a jamais été à toi."},
+          "urssaf":{"name":"Cotisations URSSAF","val":1145,"pct":18,"out":true,"note":"≈ 21 % de ton chiffre d'affaires hors taxes."},
+          "frais":{"name":"Frais","val":1160,"pct":18,"out":true,"note":"Logiciels, assurance, abonnement pro, matériel et fournitures."},
+          "poche":{"name":"Ce qui te reste","val":3095,"pct":48,"out":false,"note":"Ton revenu net, une fois la TVA, les cotisations et les frais déduits."}
+        }</script>
+        <div class="spend-bar" data-tk-spendbar data-default="poche">
+          <button class="spend-seg spend-seg--outline" data-key="tva" style="flex:1080;background:var(--seg-tva)">17%</button>
+          <button class="spend-seg" data-key="urssaf" style="flex:1145;background:var(--seg-urssaf)">18%</button>
+          <button class="spend-seg" data-key="frais" style="flex:1160;background:var(--seg-frais)">18%</button>
+          <button class="spend-seg" data-key="poche" style="flex:3095;background:var(--seg-poche)">48%</button>
+        </div>
+        <div class="spend-legend">
+          <button class="spend-chip" data-key="tva"><i class="spend-dot" style="background:var(--seg-tva)"></i>TVA collectée</button>
+          <button class="spend-chip" data-key="urssaf"><i class="spend-dot" style="background:var(--seg-urssaf)"></i>Cotisations URSSAF</button>
+          <button class="spend-chip" data-key="frais"><i class="spend-dot" style="background:var(--seg-frais)"></i>Frais</button>
+          <button class="spend-chip" data-key="poche"><i class="spend-dot" style="background:var(--seg-poche)"></i>Ce qui te reste</button>
+        </div>
+        <div class="spend-detail" data-tk-detail></div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ════ HISTOGRAMME + DARK CARD ════ -->
+  <section class="ref-section">
+    <div class="ref-label"><h2>Histogramme & flux</h2><span>survole une barre → infobulle sombre en fondu</span></div>
+    <div class="ref-grid ref-2">
+      <section class="panel">
+        <div class="panel-head"><div><h3 class="panel-title">Mon année 2026</h3>
+          <p class="panel-kicker">Chaque barre = le CA HT d'un mois, découpé en ma poche · URSSAF · frais.</p></div>
+          <div class="panel-kpi"><div class="panel-kpi-lbl">CA HT cumulé · 2026</div>
+            <div class="panel-kpi-row"><span class="num panel-kpi-val">29 100 €</span><span class="badge badge--pos">▲ +20,7 %</span></div>
+            <div class="panel-kpi-sub">vs 6 mois 2025</div></div>
+        </div>
+        <div data-tk-histogram><script type="application/json">{
+          "cats":[{"key":"poche","cls":"poche","lbl":"Ma poche"},{"key":"urssaf","cls":"urssaf","lbl":"URSSAF"},{"key":"frais","cls":"frais","lbl":"Frais"}],
+          "data":[
+            {"label":"Jan","ht":4100,"segs":{"poche":2640,"urssaf":870,"frais":590}},
+            {"label":"Fév","ht":4400,"segs":{"poche":2867,"urssaf":933,"frais":600}},
+            {"label":"Mar","ht":5100,"segs":{"poche":3404,"urssaf":1081,"frais":615}},
+            {"label":"Avr","ht":4800,"segs":{"poche":3162,"urssaf":1018,"frais":620}},
+            {"label":"Mai","ht":5300,"segs":{"poche":3546,"urssaf":1124,"frais":630}},
+            {"label":"Juin","ht":5400,"segs":{"poche":3615,"urssaf":1145,"frais":640}},
+            {"label":"Juil"},{"label":"Août"},{"label":"Sep"},{"label":"Oct"},{"label":"Nov"},{"label":"Déc"}
+          ]
+        }</script></div>
+      </section>
+      <section class="darkcard">
+        <div class="dark-head"><span class="dark-title">Sorties à venir</span>
+          <span class="num dark-amount">−3 385 €</span></div>
+        <div class="segbar">
+          <div class="segbar-piece" style="flex:1080;background:var(--seg-tva)"></div>
+          <div class="segbar-piece" style="flex:1145;background:var(--seg-urssaf)"></div>
+          <div class="segbar-piece" style="flex:1160;background:var(--seg-frais)"></div>
+        </div>
+        <div class="dark-list">
+          <div class="dark-line"><span class="dark-line-name"><b>TVA collectée</b><span class="dark-line-date">5 juillet 2026</span></span><span class="num dark-line-val">−1 080 €</span></div>
+          <div class="dark-line"><span class="dark-line-name"><b>Cotisations URSSAF</b><span class="dark-line-date">15 août 2026</span></span><span class="num dark-line-val">−1 145 €</span></div>
+          <div class="dark-line"><span class="dark-line-name"><b>Frais</b><span class="dark-line-date">vers le 3 du mois</span></span><span class="num dark-line-val">−1 160 €</span></div>
+        </div>
+        <div class="seg" data-tk-seg data-i="1">
+          <span class="seg-thumb"></span>
+          <button>ENTRÉES</button>
+          <button class="on">SORTIES</button>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ════ BILAN (barres horizontales) + CALENDRIER ════ -->
+  <section class="ref-section">
+    <div class="ref-label"><h2>Barres horizontales & calendrier</h2><span>clique un jour → il grandit ; ouvre le menu mois</span></div>
+    <div class="ref-grid ref-2">
+      <section class="panel">
+        <div class="panel-head"><div><h3 class="panel-title">Bilan annuel 2026</h3>
+          <p class="panel-kicker">Cumulé sur les 6 premiers mois : ce qui est entré (HT) et ce qui en sort.</p></div></div>
+        <div class="flow">
+          <div class="flow-row"><span class="flow-name">CA HT cumulé</span>
+            <span class="flow-track"><span class="flow-fill flow-fill--ca" style="width:100%"></span></span>
+            <span class="num flow-val">29 100 €</span></div>
+          <div class="flow-row"><span class="flow-name">URSSAF cumulé</span>
+            <span class="flow-track"><span class="flow-fill flow-fill--urssaf" style="width:21%"></span></span>
+            <span class="num flow-val">−6 171 €</span></div>
+          <div class="flow-row"><span class="flow-name">Frais cumulés</span>
+            <span class="flow-track"><span class="flow-fill flow-fill--frais" style="width:12.7%"></span></span>
+            <span class="num flow-val">−3 695 €</span></div>
+          <div class="flow-row flow-row--net"><span class="flow-name">Ma poche (cumulé)</span>
+            <span class="flow-track"><span class="flow-fill flow-fill--net" style="width:66%"></span></span>
+            <span class="num flow-val">19 234 €</span></div>
+        </div>
+      </section>
+      <section data-tk-calendar><script type="application/json">{
+        "title":"Prochain prélèvement",
+        "months":[
+          {"key":"juin","label":"Juin 2026","daysInMonth":30,"firstDow":0,"focus":12,"events":{"3":{"name":"Frais récurrents","val":640},"12":{"name":"Achats du mois","val":520}}},
+          {"key":"juil","label":"Juillet 2026","daysInMonth":31,"firstDow":2,"focus":5,"events":{"3":{"name":"Frais récurrents","val":640},"5":{"name":"TVA à reverser","val":1080}}},
+          {"key":"aout","label":"Août 2026","daysInMonth":31,"firstDow":5,"focus":15,"events":{"3":{"name":"Frais récurrents","val":640},"15":{"name":"Cotisations URSSAF","val":1145}}}
+        ]
+      }</script></section>
+    </div>
+    <p class="ref-note">Toutes ces interactions sont câblées par <code>tableau-kit.js</code> via les attributs <code>data-tk-*</code>. Aucun framework requis.</p>
+  </section>
+
+</div>
+</div>
+
+<script>
+  /* icônes injectées dans le markup ci-dessus (placeholders ${...}) — AVANT le kit */
+  var ICONS = {
+    ICOGRID:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>',
+    ICOWALLET:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.3" fill="currentColor" stroke="none"/></svg>',
+    ICOINV:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7M9 8h4"/></svg>',
+    ICOCHART:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+    ICOCOG:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>',
+    ICOOUT:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 12h7M12 9l3 3-3 3"/></svg>'
+  };
+  document.getElementById('tk').innerHTML = Object.keys(ICONS).reduce(function (h, k) {
+    return h.split('${' + k + '}').join(ICONS[k]);
+  }, document.getElementById('tk').innerHTML);
+</script>
+<script src="tableau-kit.js"></script>
+<script>
+  /* sélecteur de thème (data-accent) */
+  document.getElementById('accent-switch').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    document.getElementById('tk').setAttribute('data-accent', b.dataset.acc);
+    this.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+  });
+</script>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#ECFF8C"/><rect x="30" y="30" width="40" height="40" rx="10" fill="#2D2B1E"/></svg>
+</template>
+</body>
+</html>

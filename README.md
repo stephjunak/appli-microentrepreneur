@@ -13,7 +13,14 @@ Les deux sont utiles, mais doivent rester visuellement séparés. Le but est que
 
 ## Statut
 
-En cours de développement.
+En cours de développement, et en ligne depuis le 13 juin 2026.
+
+## En ligne
+
+- **App** : https://stephjunak.github.io/appli-microentrepreneur/
+- **Dépôt** : https://github.com/stephjunak/appli-microentrepreneur (public)
+- Hébergée gratuitement via GitHub Pages. Les données restent dans le `localStorage` du navigateur, rien de personnel n'est stocké sur GitHub.
+- **Publier une nouvelle version** : committer les changements puis `git push` sur la branche `main`. GitHub Pages se redéploie automatiquement en ~30 s.
 
 ## Fichiers
 
@@ -87,6 +94,8 @@ Anticiper des revenus futurs que les logiciels comptables ne permettent pas d'en
 
 ## Fait récemment
 
+- **Restyling visuel complet du Tableau de bord** : design « tableau-kit » appliqué (polices Space Grotesk/Onest, couleurs citron `#ECFF8C` pour les éléments actifs, cartes arrondies, fond crème). Barre « où part mon argent » avec infobulle au survol, mini-calendrier des prélèvements animé, histogramme annuel avec infobulle sombre et toggle glissant Trésorerie/Réel. CSS du kit inliné, logique et données inchangées. Déployé sur GitHub Pages (commit `cbc9bee`). Les autres onglets héritent des fondations (fond, polices, cartes) mais seront peaufinés séparément.
+- **Mise en ligne (GitHub Pages)** : dépôt public créé et app déployée sur https://stephjunak.github.io/appli-microentrepreneur/. Accessible depuis n'importe quel navigateur, données toujours locales.
 - **Refonte du tableau de bord — trésorerie vs revenu réel** : deux cascades en miroir clairement nommées (fini la confusion « Revenu net » qui désignait deux chiffres différents), décalage URSSAF rendu visible, champ solde du mois dernier qui donne le solde réel. Le camembert devient une barre « où part mon argent », ajout d'un mini-calendrier interactif des prélèvements, colonne droite « à mettre de côté » + prévisionnel, et synthèse annuelle basculable Trésorerie/Réel. Remplace l'ancien tableau à 3 KPIs et le bloc de projection annuelle.
 - **Factures en attente + revenus prévisionnels** : statut payé/en attente sur les factures (le CA et l'URSSAF ne comptent que les factures payées), date de paiement distincte, nouvel onglet Prévisionnel (revenus à venir + conversion en facture en attente), et sur le tableau de bord un KPI factures en attente + carte repliable du prévisionnel du mois suivant.
 - **Onglet Calendrier** (nouvel onglet, dernier de la barre) : regroupe tous les prélèvements — URSSAF, TVA, CFE et charges récurrentes — avec leurs dates exactes. Vue mensuelle en grille (même structure que le calendrier des frais) et vue annuelle en cartes fixes avec scroll interne. Le calendrier a été retiré de l'onglet "Frais et achats" qui affiche désormais uniquement le tableau.
@@ -96,6 +105,13 @@ Anticiper des revenus futurs que les logiciels comptables ne permettent pas d'en
 - Sessions précédentes : moteur de calcul `chargeLisse`/`netLisse`, onglets renommés, déclarations regroupées dans "Impôts & déclarations mensuelles".
 
 ## Améliorations à venir
+
+### filtre d'affichage des factures
+Dans l'onglet factures, mettre un filtre d'affichage des factures "toutes", "en attente", "payées"
+
+
+### Restyling des autres onglets (Factures, Prévisionnel, Frais & achats, Impôts, Calendrier) et modale Profil
+Appliquer le même design tableau-kit que le Tableau de bord : fondations déjà héritées (fond, polices, cartes), reste à peaufiner les états actifs/sélectionnés (citron vif), les infobulles, et les composants propres à chaque onglet.
 
 ### Gestion dynamique des années (chantier de fond)
 
@@ -144,3 +160,4 @@ Permettre d'enregistrer un modèle de facture (client, lignes, montants) pour le
 **À mettre de côté** = URSSAF + TVA + frais lissés + CFE du mois en cours, avec dates d'échéance. Les montants à bloquer maintenant pour les prélèvements futurs.
 
 Les décalages de prélèvement (jour et nombre de mois pour l'URSSAF et la TVA) sont réglables dans "Profil & paramètres".
+
