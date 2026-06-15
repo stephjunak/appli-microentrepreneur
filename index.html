@@ -1800,22 +1800,27 @@ function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSa
   const s = computeMonth({ facturesByMonth, charges, profile, mIndex, urssafHistory });
   const ttc = s.caTTC;
   const allClients = [...new Set(Object.values(facturesByMonth || {}).flat().map(f => f.client).filter(Boolean))].sort();
-  // montant des factures du mois encore en attente de paiement (non comptées dans l'encaissé)
-  const attenteMontant = factures.filter((f) => !isPaid(f)).reduce((a, f) => {
-    const tt = factureTotals(f, profile, urssafHistory);
-    return a + (s.assujetti ? tt.ttc : tt.ht);
-  }, 0);
+  // En attente : toutes les factures non payées, quel que soit le mois d'émission
+  // (indépendant du mois sélectionné). Triées par date d'émission.
+  const enAttente = Object.values(facturesByMonth || {}).flat()
+    .filter((f) => !isPaid(f))
+    .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+  // Encaissées : factures payées dont l'encaissement (date de paiement) tombe sur le
+  // mois sélectionné, quel que soit leur mois d'émission. Triées par date de paiement.
+  const target = `${YEAR}-${pad2(mIndex)}`;
+  const encaissees = Object.values(facturesByMonth || {}).flat()
+    .filter((f) => isPaid(f) && moisEncaissement(f) === target)
+    .sort((a, b) => (a.datePaiement || a.date || "").localeCompare(b.datePaiement || b.date || ""));
+  // montant total des factures en attente, tous mois confondus (pour la synthèse)
+  const att = totalFacturesEnAttente(facturesByMonth, profile, urssafHistory);
+  const attenteMontant = s.assujetti ? att.ttc : att.ht;
   // modal : null = fermé ; { inv: null } = nouvelle facture ; { inv: facture } = modification
   const [modal, setModal] = React.useState(null);
-  // filtre d'affichage de la liste (n'affecte ni la synthèse ni les totaux)
-  const [filtre, setFiltre] = React.useState("toutes");
-  const facturesAffichees = factures.filter((f) =>
-    filtre === "toutes" ? true : filtre === "paye" ? isPaid(f) : !isPaid(f));
 
   return (
     <div>
       <datalist id="mef-clients">{allClients.map(c => <option key={c} value={c} />)}</datalist>
-      {factures.length > 0 &&
+      {(encaissees.length > 0 || attenteMontant > 0) &&
       <div className="card" style={{ marginBottom: 14 }}>
         <div className="card-h"><h2>Synthèse du mois</h2></div>
         <div className="card-b">
@@ -1832,25 +1837,30 @@ function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSa
       </div>
       }
       <button className="addrow accent" style={{ marginBottom: 14 }} onClick={() => setModal({ inv: null })}>{Icon.plus} Nouvelle facture</button>
-      {factures.length > 0 &&
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-        <span style={{ fontSize: 13, color: "var(--soft)" }}>Afficher</span>
-        <div className="viewseg sm">
-          <button className={filtre === "toutes" ? "on" : ""} onClick={() => setFiltre("toutes")}>Toutes</button>
-          <button className={filtre === "attente" ? "on" : ""} onClick={() => setFiltre("attente")}>En attente</button>
-          <button className={filtre === "paye" ? "on" : ""} onClick={() => setFiltre("paye")}>Payées</button>
-        </div>
-      </div>}
+
+      {/* En attente de paiement : toutes, quel que soit le mois d'émission */}
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, margin: "2px 2px 10px" }}>
+        <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>En attente de paiement</h2>
+        <span style={{ fontSize: 12.5, color: "var(--faint)" }}>quel que soit le mois</span>
+      </div>
+      <div className="stack" style={{ marginBottom: 24 }}>
+        {enAttente.length === 0
+          ? <div className="card"><div className="empty" style={{ padding: "24px 10px" }}>Aucune facture en attente. Tout est encaissé.</div></div>
+          : enAttente.map((f) =>
+            <InvoiceCard key={f.id} f={f} profile={profile} mIndex={mIndex}
+            onEdit={(inv) => setModal({ inv })} onRemoveInv={onRemoveInv} onMarkPaid={onMarkPaid} urssafHistory={urssafHistory} />)}
+      </div>
+
+      {/* Encaissées sur le mois sélectionné (par date de paiement) */}
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, margin: "2px 2px 10px" }}>
+        <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Encaissées en {MONTHS[mIndex].toLowerCase()}</h2>
+      </div>
       <div className="stack">
-        {factures.length === 0 &&
-        <div className="card"><div className="empty" style={{ padding: "40px 10px" }}>Aucune facture ce mois. Créez votre première facture — elle peut contenir plusieurs lignes à taux différents.</div></div>
-        }
-        {facturesAffichees.map((f) =>
-        <InvoiceCard key={f.id} f={f} profile={profile} mIndex={mIndex}
-        onEdit={(inv) => setModal({ inv })} onRemoveInv={onRemoveInv} onMarkPaid={onMarkPaid} urssafHistory={urssafHistory} />
-        )}
-        {factures.length > 0 && facturesAffichees.length === 0 &&
-        <div className="card"><div className="empty" style={{ padding: "30px 10px" }}>Aucune facture {filtre === "attente" ? "en attente de paiement" : "payée"} ce mois.</div></div>}
+        {encaissees.length === 0
+          ? <div className="card"><div className="empty" style={{ padding: "24px 10px" }}>Aucune facture encaissée en {MONTHS[mIndex].toLowerCase()}.</div></div>
+          : encaissees.map((f) =>
+            <InvoiceCard key={f.id} f={f} profile={profile} mIndex={mIndex}
+            onEdit={(inv) => setModal({ inv })} onRemoveInv={onRemoveInv} onMarkPaid={onMarkPaid} urssafHistory={urssafHistory} />)}
       </div>
       {modal &&
       <InvoiceModal initial={modal.inv} profile={profile} urssafHistory={urssafHistory} tvaConfig={tvaConfig}
@@ -3038,10 +3048,15 @@ function App() {
   const m = ui.month;
   const key = monthKey(m);
   const factures = facturesByMonth[key] || [];
-  const setList = (list) => setFB((p) => ({ ...p, [key]: list }));
 
   // ----- factures (invoices w/ lines) -----
-  const removeInv = (id) => setList(factures.filter((f) => f.id !== id));
+  // Supprime une facture quel que soit son mois (l'onglet Factures affiche désormais
+  // des factures de plusieurs mois : en attente tous mois + encaissées du mois courant).
+  const removeInv = (id) => setFB((p) => {
+    const next = {};
+    for (const k of Object.keys(p)) next[k] = (p[k] || []).filter((f) => f.id !== id);
+    return next;
+  });
   // Enregistre une facture (création ou modification) dans le bucket du mois de sa date.
   // Gère le changement de mois : la facture est retirée de tout autre bucket.
   const saveInv = (inv) => setFB((p) => {
