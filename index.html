@@ -115,7 +115,7 @@ input,select{font-family:inherit;font-size:14px;color:var(--ink);}
   display:grid;place-items:center;cursor:pointer;color:var(--ink-soft);box-shadow:var(--shadow);
   transition:background .16s ease,border-color .16s ease,color .16s ease;
 }
-.monthnav .mbtn:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft);color:var(--ink);}
+.monthnav .mbtn:hover:not(:disabled){border-color:var(--accent);background:var(--accent);color:var(--accent-ink);}
 .monthnav .mbtn:disabled{opacity:.4;cursor:not-allowed;}
 .monthnav .mbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;}
 .monthnav .mlabel{
@@ -125,7 +125,7 @@ input,select{font-family:inherit;font-size:14px;color:var(--ink);}
 .monthnav .today{margin-left:6px;font-size:12px;color:var(--ink-soft);font-weight:600;cursor:pointer;
   border:1px solid var(--line);background:var(--card);border-radius:var(--r-inner);padding:8px 12px;box-shadow:var(--shadow);
   transition:background .16s ease,border-color .16s ease,color .16s ease;}
-.monthnav .today:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--ink);}
+.monthnav .today:hover{border-color:var(--accent);background:var(--accent);color:var(--accent-ink);}
 
 /* ---------- card ---------- */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);}
@@ -248,8 +248,8 @@ select.cell-in{appearance:none;cursor:pointer;
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
   padding:3px 9px;border-radius:999px;white-space:nowrap;}
 .badge.cat{background:#eef1f5;color:var(--soft);}
-.badge.decaisse{background:var(--neg-soft);color:var(--neg);}
-.badge.provision{background:var(--prov-soft);color:var(--prov);font-style:italic;cursor:help;}
+.badge.decaisse{background:rgba(92,183,176,.16);color:#2c6b64;}
+.badge.provision{background:var(--grey);color:var(--ink-soft);font-style:italic;cursor:help;}
 .badge svg{width:12px;height:12px;}
 
 /* ---------- recap strip ---------- */
@@ -667,14 +667,42 @@ select.cell-in{appearance:none;cursor:pointer;
 .cat-move-btn{background:none;border:none;cursor:pointer;padding:2px;opacity:.3;display:inline-flex;align-items:center;flex:none;}
 .cat-move-btn:hover{opacity:.9;}
 .cat-move-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;}
-.grand-total-row td{font-weight:700;font-size:13.5px;padding:10px 12px;background:var(--pos-soft);border-top:2px solid var(--pos);text-align:right;}
-.grand-total-row .total-val{color:var(--pos);font-size:15px;margin-left:6px;}
-.tariff-add{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;background:var(--prov-soft);border:1px solid #e2d9b3;border-radius:9px;}
+.grand-total-row td{font-weight:700;font-size:13.5px;padding:10px 12px;background:var(--primary-soft);border-top:2px solid var(--line-2);text-align:right;}
+.grand-total-row .total-val{color:var(--ink);font-size:22px;margin-left:8px;font-family:var(--font-title);letter-spacing:-.4px;}
+.tariff-add{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;background:var(--primary-soft);border:1px solid var(--line-2);border-radius:9px;}
 .tariff-add-label{font-size:13px;color:var(--primary-d);font-weight:600;white-space:nowrap;}
 .tariff-add .cell-in{background:#fff;border-color:var(--line-2);box-shadow:0 1px 2px rgba(45,43,30,.06);}
 .tariff-add .cell-in:hover{border-color:var(--primary);}
 .tariff-add input.cell-in[type=date]{color:var(--ink);}
 .next-debit{font-size:13px;font-weight:600;color:var(--ink);}
+/* ── Onglet Frais : barre catégories (décaissé/provision) + totaux, façon kit ── */
+.frais-head{display:flex;align-items:stretch;gap:20px;margin-bottom:18px;flex-wrap:wrap;}
+.frais-head-bar{flex:1;min-width:240px;display:flex;flex-direction:column;gap:11px;justify-content:center;}
+.frais-bar{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--grey);gap:2px;}
+.frais-bar .fb-seg{min-width:3px;transition:flex .25s ease;}
+.frais-bar .fb-seg--prov{opacity:.42;}
+.frais-bar-empty{flex:1;}
+.frais-legend{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:12.5px;color:var(--ink-soft);}
+.frais-legend .fb-li{display:inline-flex;align-items:center;gap:6px;}
+.frais-legend .fb-li b{color:var(--ink);font-weight:700;}
+.frais-legend .fb-dot{width:10px;height:10px;border-radius:3px;flex:none;}
+.frais-legend .fb-meta{display:inline-flex;align-items:center;gap:5px;color:var(--faint);font-size:11.5px;margin-left:2px;}
+.frais-legend .fb-key{width:10px;height:10px;border-radius:3px;flex:none;background:var(--ink-soft);}
+.frais-legend .fb-key--prov{opacity:.42;}
+.frais-head-total{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;padding-left:20px;border-left:1px solid var(--line);min-width:148px;}
+.frais-head-total .lab{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);}
+.frais-head-total .val{font-family:var(--font-title);font-size:30px;font-weight:800;letter-spacing:-.6px;color:var(--ink);line-height:1.15;}
+.frais-foot{margin-top:16px;padding-top:18px;border-top:1px solid var(--line);text-align:center;}
+.frais-foot .fft-val{font-family:var(--font-title);font-size:34px;font-weight:800;letter-spacing:-.8px;color:var(--ink);line-height:1;}
+.frais-foot .fft-sub{margin-top:9px;display:flex;justify-content:center;flex-wrap:wrap;gap:6px 12px;font-size:13px;color:var(--ink-soft);}
+.frais-foot .fft-sub b{color:var(--ink);font-weight:700;}
+.frais-foot .dot-sep{color:var(--faint);}
+.prix-ttc{font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink);font-size:13px;white-space:nowrap;cursor:help;}
+.prix-ttc--prov{color:var(--ink-soft);font-style:italic;font-weight:500;display:inline-flex;align-items:center;gap:4px;justify-content:flex-end;}
+.prix-ttc--prov svg{width:12px;height:12px;opacity:.7;stroke:currentColor;fill:none;}
+/* champs numériques : retirer les petites flèches haut/bas */
+.cell-in.num::-webkit-inner-spin-button,.cell-in.num::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+.cell-in.num{-moz-appearance:textfield;appearance:textfield;}
 </style>
 </head>
 <body>
@@ -2393,97 +2421,26 @@ function TariffHistory({ charge, onAddTariff, onRemoveTariff }) {
   );
 }
 
-const CAT_PALETTE = ["#8a7733","#94614e","#577389","#57563f","#5d5b4d","#7a5c8a","#3a7a6f","#b06030"];
+const CAT_PALETTE = ["#5cb7b0","#7f9c93","#8aa0b8","#b0a884","#6f9d8a","#a89bb0","#c0926a","#7d8a99"];
 
-function CategoryDonut({ charges, mIndex, scope, categories }) {
-  const computeByCat = (m, inclProv) => {
-    const byCat = {};
-    charges.forEach(ch => {
-      const imp = chargeImpact(ch, m);
-      const amount = imp.decaisse + (inclProv ? imp.provision : 0);
-      if (amount > 0) byCat[ch.categorie] = (byCat[ch.categorie] || 0) + amount;
-    });
-    return byCat;
-  };
-
-  const isMonth = !scope || scope === "month";
-  let byCat = {};
-  if (isMonth) {
-    byCat = computeByCat(mIndex, true);
-  } else {
-    for (let m = 0; m < 12; m++) {
-      const mc = computeByCat(m, false);
-      Object.entries(mc).forEach(([k, v]) => { byCat[k] = (byCat[k] || 0) + v; });
-    }
-  }
-
-  const total = Object.values(byCat).reduce((s, v) => s + v, 0);
-  if (total === 0) return null;
-
-  const slices = categories
-    .map((cat, i) => ({ cat, amount: byCat[cat] || 0, color: CAT_PALETTE[i % CAT_PALETTE.length] }))
-    .filter(s => s.amount > 0);
-
-  // conic-gradient
-  const GAP = 0.5, half = GAP / 2;
-  let acc = 0;
-  const positions = slices.map(s => {
-    const from = acc / total * 100; acc += s.amount; const to = acc / total * 100;
-    return { ...s, from, to };
-  });
-  let stopList = [];
-  if (positions.length > 1) {
-    stopList.push(`#fff 0% ${half}%`);
-    positions.forEach((p, i) => {
-      const a = i === 0 ? half : p.from + half;
-      const b = i === positions.length - 1 ? 100 - half : p.to - half;
-      stopList.push(`${p.color} ${a}% ${b}%`);
-      if (i < positions.length - 1) stopList.push(`#fff ${p.to - half}% ${p.to + half}%`);
-    });
-    stopList.push(`#fff ${100 - half}% 100%`);
-  } else {
-    stopList.push(`${positions[0].color} 0% 100%`);
-  }
-  const donutBg = `conic-gradient(${stopList.join(", ")})`;
-
-  return (
-    <div style={{ display:"flex", alignItems:"center", gap:28, marginTop:18, paddingTop:16, borderTop:"1px solid var(--line)", flexWrap:"wrap" }}>
-      <div className="donut2" style={{ background:donutBg, width:152, height:152, flex:"none" }} />
-      <div style={{ flex:1, minWidth:160 }}>
-        <div style={{ fontSize:11, fontWeight:700, letterSpacing:".05em", textTransform:"uppercase", color:"var(--faint)", marginBottom:10 }}>
-          Répartition par catégorie
-        </div>
-        <div className="dlegend">
-          {slices.map(s => (
-            <div className="li" key={s.cat}>
-              <span className="sw2" style={{ background:s.color }} />
-              <span>{s.cat} · <b>{eur0(s.amount)}</b></span>
-              <span style={{ color:"var(--faint)", fontSize:11.5, marginLeft:4 }}>({Math.round(s.amount / total * 100)} %)</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div style={{ textAlign:"right", flexShrink:0 }}>
-        <div style={{ fontSize:11, fontWeight:700, letterSpacing:".05em", textTransform:"uppercase", color:"var(--faint)", marginBottom:6 }}>
-          {isMonth ? `Impact total — ${MONTHS[mIndex]}` : `Total décaissé — ${YEAR}`}
-        </div>
-        <div style={{ fontSize:30, fontWeight:800, letterSpacing:"-.6px", color:"var(--neg)", lineHeight:1 }}>{eur0(total)}</div>
-      </div>
-    </div>
-  );
-}
+// (Camembert CategoryDonut retiré : remplacé par la barre catégories en haut et les totaux.)
 
 // Modale de création d'un frais ou d'un achat. Brouillon local : rien n'est créé tant qu'on n'a pas validé.
-function FraisModal({ categories, profile, tvaConfig, onSave, onClose }) {
+function FraisModal({ categories, profile, tvaConfig, charge, onSave, onUpdate, onClose }) {
   const assujetti = !!profile.tva;
   const activeTvaRates = tvaConfig || TVA_RATES;
   const isPonctuelCat = (cat) => (cat || "").toLowerCase().includes("ponctuel");
   const firstCat = categories[0] || "";
-  const [draft, setDraft] = React.useState(() => ({
+  const isEdit = !!charge;
+  const [draft, setDraft] = React.useState(() => isEdit ? {
+    libelle: charge.libelle || "", categorie: charge.categorie || firstCat,
+    frequence: charge.frequence || "mensuelle",
+    montant: tariffAt(charge, TODAY), date: charge.date || TODAY, tva: charge.tva || 0,
+  } : {
     libelle: "", categorie: firstCat,
     frequence: isPonctuelCat(firstCat) ? "ponctuelle" : "mensuelle",
     montant: "", date: TODAY, tva: 0,
-  }));
+  });
   const setField = (f, v) => setDraft(d => ({ ...d, [f]: v }));
   const onCat = (cat) => setDraft(d => ({ ...d, categorie: cat,
     frequence: isPonctuelCat(cat) ? "ponctuelle" : (d.frequence === "ponctuelle" ? "mensuelle" : d.frequence) }));
@@ -2492,20 +2449,36 @@ function FraisModal({ categories, profile, tvaConfig, onSave, onClose }) {
   const save = () => {
     if (!canSave) return;
     const date = draft.date || TODAY;
-    onSave({
-      id: uid(), libelle: draft.libelle.trim(), montant: "",
-      categorie: draft.categorie || firstCat,
-      tarifsHistory: [{ montant: draft.montant, from: date }],
-      frequence: draft.frequence,
-      jour: parseInt(date.slice(8, 10), 10) || 1,
-      date, tva: assujetti ? draft.tva : 0,
-    });
+    if (isEdit) {
+      onUpdate(charge.id, "libelle", draft.libelle.trim());
+      onUpdate(charge.id, "categorie", draft.categorie || firstCat);
+      onUpdate(charge.id, "frequence", draft.frequence);
+      onUpdate(charge.id, "tva", assujetti ? draft.tva : 0);
+      const sorted = (charge.tarifsHistory || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
+      let appIdx = sorted.reduce((best, t, i) => t.from <= TODAY ? i : best, -1);
+      if (appIdx < 0) appIdx = 0;
+      const newHist = sorted.length
+        ? sorted.map((t, i) => i === appIdx ? { ...t, montant: draft.montant } : t)
+        : [{ montant: draft.montant, from: date }];
+      onUpdate(charge.id, "tarifsHistory", newHist);
+      onUpdate(charge.id, "date", date);
+      onClose();
+    } else {
+      onSave({
+        id: uid(), libelle: draft.libelle.trim(), montant: "",
+        categorie: draft.categorie || firstCat,
+        tarifsHistory: [{ montant: draft.montant, from: date }],
+        frequence: draft.frequence,
+        jour: parseInt(date.slice(8, 10), 10) || 1,
+        date, tva: assujetti ? draft.tva : 0,
+      });
+    }
   };
   return (
     <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ width: "min(560px, 100%)" }}>
         <div className="modal-h">
-          <h3>Nouveau frais ou achat</h3>
+          <h3>{isEdit ? "Modifier le frais" : "Nouveau frais ou achat"}</h3>
           <button className="x" onClick={onClose}>✕</button>
         </div>
         <div className="modal-b">
@@ -2554,7 +2527,7 @@ function FraisModal({ categories, profile, tvaConfig, onSave, onClose }) {
         </div>
         <div className="modal-f">
           <button className="btn ghost" onClick={onClose}>Annuler</button>
-          <button className="btn pri" disabled={!canSave} style={{ marginLeft: "auto" }} onClick={save}>Valider</button>
+          <button className="btn pri" disabled={!canSave} style={{ marginLeft: "auto" }} onClick={save}>{isEdit ? "Enregistrer" : "Valider"}</button>
         </div>
       </div>
     </div>);
@@ -2563,110 +2536,51 @@ function FraisModal({ categories, profile, tvaConfig, onSave, onClose }) {
 function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory, tvaConfig }) {
   const activeTvaRates = tvaConfig || TVA_RATES;
   const [tarifsOpen, setTarifsOpen] = React.useState({});
-  const [movingId, setMovingId] = React.useState(null);
-  const [modalOpen, setModalOpen] = React.useState(false);
+  const [modal, setModal] = React.useState(null);
   const [newCat, setNewCat] = React.useState("");
   const toggleTarifs = (id) => setTarifsOpen(o => ({ ...o, [id]: !o[id] }));
-
-  const libelleCell = (ch) => (
-    <td>
-      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        <input className="cell-in" placeholder="Ex : Assurance RC pro" value={ch.libelle}
-          onChange={(e) => onUpdate(ch.id, "libelle", e.target.value)} style={{ flex: 1 }} />
-        {movingId === ch.id
-          ? <select className="cell-in" style={{ width: 160, fontSize: 11.5 }} value={ch.categorie || ""}
-              onChange={e => { onUpdate(ch.id, "categorie", e.target.value); setMovingId(null); }}
-              onBlur={() => setMovingId(null)} autoFocus>
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          : <button className="cat-move-btn" title="Changer de catégorie" onClick={() => setMovingId(ch.id)}>{Icon.tag}</button>}
-      </div>
-    </td>
-  );
-
-  const montantCell = (ch) => (
-    <td>
-      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        <input className="cell-in num" type="number" step="0.01" placeholder="0,00"
-          style={{ flex: 1, minWidth: 0 }} value={tariffAt(ch, TODAY)}
-          onChange={(e) => {
-            const sorted = (ch.tarifsHistory || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
-            let appIdx = sorted.reduce((best, t, i) => t.from <= TODAY ? i : best, -1);
-            if (appIdx < 0) appIdx = 0;
-            onUpdate(ch.id, "tarifsHistory", sorted.map((t, i) => i === appIdx ? { ...t, montant: e.target.value } : t));
-          }} />
-        {(() => {
-          const hasFuture = (ch.tarifsHistory || []).some(t => t.from > TODAY);
-          return (
-            <button className={"tariff-btn" + (tarifsOpen[ch.id] ? " on" : "") + (hasFuture ? " pending" : "")}
-              title={hasFuture ? "Changement de tarif à venir" : "Gérer les variations de tarif"}
-              onClick={() => toggleTarifs(ch.id)}>
-              {Icon.clock}
-            </button>
-          );
-        })()}
-      </div>
-      {profile.tva && (
-        <select className="cell-in cat-select" value={ch.tva || 0}
-          onChange={e => onUpdate(ch.id, "tva", parseFloat(e.target.value))}
-          style={{ marginTop: 4 }} title="TVA sur cet achat">
-          {activeTvaRates.map(tv => <option key={tv.v} value={tv.v}>TVA {tv.label}</option>)}
-        </select>
-      )}
-    </td>
-  );
+  const freqLabels = { mensuelle: "Mensuelle", trimestrielle: "Trimestrielle", annuelle: "Annuelle", ponctuelle: "Achat ponctuel" };
 
   const renderRow = (ch) => {
     const imp = chargeImpact(ch, mIndex);
     const isPonctuel = ch.frequence === "ponctuelle";
+    const hasFuture = (ch.tarifsHistory || []).some(t => t.from > TODAY);
     return (
       <React.Fragment key={ch.id}>
         <tr style={imp.active ? null : { opacity: .55 }}>
-          {libelleCell(ch)}
-          {isPonctuel
-            ? <td>
-                <input className="cell-in num" type="number" step="0.01" placeholder="0,00"
-                  value={tariffAt(ch, TODAY)}
-                  onChange={(e) => {
-                    const sorted = (ch.tarifsHistory || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
-                    let appIdx = sorted.reduce((best, t, i) => t.from <= TODAY ? i : best, -1);
-                    if (appIdx < 0) appIdx = 0;
-                    onUpdate(ch.id, "tarifsHistory", sorted.map((t, i) => i === appIdx ? { ...t, montant: e.target.value } : t));
-                  }} />
-                {profile.tva && (
-                  <select className="cell-in cat-select" value={ch.tva || 0}
-                    onChange={e => onUpdate(ch.id, "tva", parseFloat(e.target.value))}
-                    style={{ marginTop: 4 }} title="TVA sur cet achat">
-                    {activeTvaRates.map(tv => <option key={tv.v} value={tv.v}>TVA {tv.label}</option>)}
-                  </select>
-                )}
-              </td>
-            : montantCell(ch)}
-          {isPonctuel
-            ? <td><span className="badge cat" style={{ fontSize: 11 }}>Achat ponctuel</span></td>
-            : <td><select className="cell-in" value={ch.frequence} onChange={(e) => onUpdate(ch.id, "frequence", e.target.value)}>
-                <option value="mensuelle">Mensuelle</option>
-                <option value="trimestrielle">Trimestrielle</option>
-                <option value="annuelle">Annuelle</option>
-              </select></td>}
-          <td><input className="cell-in" type="date" value={ch.date}
-            onChange={(e) => onUpdate(ch.id, "date", e.target.value)}
-            title={isPonctuel ? "Date de l'achat" : "Depuis le"} /></td>
+          <td><span style={{ fontWeight: 600 }}>{ch.libelle || <em style={{ color: "var(--faint)", fontWeight: 400 }}>Sans libellé</em>}</span></td>
+          <td className="num">
+            <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
+              <span className="prix-ttc">{eur(tariffAt(ch, TODAY))}</span>
+              {!isPonctuel &&
+                <button className={"tariff-btn" + (tarifsOpen[ch.id] ? " on" : "") + (hasFuture ? " pending" : "")}
+                  title={hasFuture ? "Changement de tarif à venir" : "Historique des tarifs et date de début"}
+                  onClick={() => toggleTarifs(ch.id)}>{Icon.clock}</button>}
+            </div>
+            {profile.tva && ch.tva > 0 && <div style={{ fontSize: 11, color: "var(--soft)", textAlign: "right", marginTop: 2 }}>TVA {Math.round(ch.tva * 100)} %</div>}
+          </td>
+          <td>{isPonctuel
+            ? <span className="badge cat" style={{ fontSize: 11 }}>Achat ponctuel</span>
+            : <span style={{ fontSize: 13 }}>{freqLabels[ch.frequence] || ch.frequence}</span>}</td>
           <td>
             {isPonctuel ? <span style={{ color: "var(--soft)", fontSize: 12 }}>—</span>
               : imp.active ? <span className="next-debit">{fmtDate(nextDebitDate(ch))}</span>
               : <span className="badge cat">Pas encore actif</span>}
           </td>
-          <td>
-            {!imp.active ? <span className="badge cat">—</span>
-              : imp.decaisse > 0 ? <span className="badge decaisse">Décaissé{isPonctuel ? "" : "e"} · {eur0(imp.decaisse)}</span>
-              : <span className="badge provision">{Icon.clock} Provision · {eur0(imp.provision)}</span>}
+          <td className="num">
+            {!imp.active ? <span style={{ color: "var(--soft)" }}>—</span>
+              : imp.decaisse > 0
+                ? <span className="prix-ttc" title={`payé le ${parseInt(imp.dueDay, 10)} ${MONTHS[mIndex].toLowerCase()}`}>{eur0(imp.decaisse)}</span>
+                : <span className="prix-ttc prix-ttc--prov" title="provision mise de côté ce mois">{Icon.clock}{eur0(imp.provision)}</span>}
           </td>
-          <td className="c"><button className="del" title="Supprimer" onClick={() => onRemove(ch.id)}>{Icon.trash}</button></td>
+          <td className="c" style={{ whiteSpace: "nowrap" }}>
+            <button className="del" title="Modifier" onClick={() => setModal({ charge: ch })}>{Icon.pencil}</button>
+            <button className="del" title="Supprimer" onClick={() => onRemove(ch.id)}>{Icon.trash}</button>
+          </td>
         </tr>
         {!isPonctuel && tarifsOpen[ch.id] && (
           <tr key={ch.id + "-t"}>
-            <td colSpan={7} style={{ padding: "0 14px 14px", background: "var(--primary-soft)", borderBottom: "1px solid var(--line)" }}>
+            <td colSpan={6} style={{ padding: "0 14px 14px", background: "var(--primary-soft)", borderBottom: "1px solid var(--line)" }}>
               <TariffHistory charge={ch} onAddTariff={onAddTariff} onRemoveTariff={onRemoveTariff} />
             </td>
           </tr>
@@ -2689,17 +2603,52 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
   }, 0);
   const uncategorized = charges.filter(ch => !categories.includes(ch.categorie));
 
+  const splitFor = (list) => list.reduce((acc, ch) => {
+    const imp = chargeImpact(ch, mIndex);
+    if (imp.active) { acc.dec += imp.decaisse; acc.prov += imp.provision; }
+    return acc;
+  }, { dec: 0, prov: 0 });
+  const catSplit = [
+    ...categories.map((cat, i) => ({ cat, color: CAT_PALETTE[i % CAT_PALETTE.length], ...splitFor(charges.filter(ch => ch.categorie === cat)) })),
+    ...(uncategorized.length ? [{ cat: "Sans catégorie", color: "#b8bab2", ...splitFor(uncategorized) }] : []),
+  ].filter(r => r.dec + r.prov > 0);
+
   return (
     <div className="card">
-      <div className="card-h">
-        <h2>Frais récurrents</h2>
-        <span className="sub">impact sur {MONTHS[mIndex]} à droite</span>
-      </div>
       <div className="card-b">
-        <button className="addrow accent" style={{ marginBottom: 14 }} onClick={() => setModalOpen(true)}>{Icon.plus} Ajouter un frais</button>
-        {modalOpen && <FraisModal categories={categories} profile={profile} tvaConfig={tvaConfig}
-          onSave={(charge) => { onCreate(charge); setModalOpen(false); }}
-          onClose={() => setModalOpen(false)} />}
+        <div className="frais-head">
+          <div className="frais-head-bar">
+            <div className="frais-bar">
+              {catSplit.length === 0
+                ? <div className="fb-seg fb-seg--prov" style={{ flex: 1, background: "var(--grey)" }} />
+                : catSplit.map(r => (
+                    <React.Fragment key={r.cat}>
+                      {r.dec > 0 && <div className="fb-seg" style={{ flex: r.dec, background: r.color }}
+                        title={`${r.cat} · décaissé ${eur0(r.dec)}`} />}
+                      {r.prov > 0 && <div className="fb-seg fb-seg--prov" style={{ flex: r.prov, background: r.color }}
+                        title={`${r.cat} · à provisionner ${eur0(r.prov)}`} />}
+                    </React.Fragment>
+                  ))}
+            </div>
+            <div className="frais-legend">
+              {catSplit.map(r => (
+                <span className="fb-li" key={r.cat}><i className="fb-dot" style={{ background: r.color }} />{r.cat} · <b>{eur0(r.dec + r.prov)}</b></span>
+              ))}
+              {catSplit.length > 0 && (
+                <span className="fb-meta"><i className="fb-key" />décaissé<i className="fb-key fb-key--prov" />provision</span>
+              )}
+            </div>
+          </div>
+          <div className="frais-head-total">
+            <span className="lab">Total · {MONTHS[mIndex]}</span>
+            <span className="val">{eur0(grandTotal)}</span>
+          </div>
+        </div>
+        <button className="addrow accent" style={{ marginBottom: 14 }} onClick={() => setModal({})}>{Icon.plus} Ajouter un frais</button>
+        {modal && <FraisModal categories={categories} profile={profile} tvaConfig={tvaConfig} charge={modal.charge}
+          onSave={(charge) => { onCreate(charge); setModal(null); }}
+          onUpdate={onUpdate}
+          onClose={() => setModal(null)} />}
         <React.Fragment>
           <table className="tbl">
             <thead>
@@ -2707,10 +2656,9 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
                 <th>Libellé</th>
                 <th className="r" style={{ width: 130 }}>Montant</th>
                 <th style={{ width: 138 }}>Fréquence</th>
-                <th style={{ width: 150 }}>Depuis le / Date</th>
                 <th style={{ width: 170 }}>Prochain prélèvement</th>
-                <th style={{ width: 150 }}>Sur {MONTHS[mIndex].slice(0, 4)}.</th>
-                <th style={{ width: 36 }}></th>
+                <th className="r" style={{ width: 130 }}>prix TTC</th>
+                <th style={{ width: 72 }}></th>
               </tr>
             </thead>
             <tbody>
@@ -2722,42 +2670,29 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
                 }, 0);
                 return (
                   <React.Fragment key={cat}>
-                    <tr className="cat-group-hd"><td colSpan={7}>{cat}</td></tr>
+                    <tr className="cat-group-hd"><td colSpan={6}>{cat}</td></tr>
                     {catCharges.length === 0 && (
-                      <tr><td colSpan={7} style={{ padding: "6px 14px" }}><span style={{ color: "var(--soft)", fontSize: 12.5 }}>Aucun frais dans cette catégorie</span></td></tr>
+                      <tr><td colSpan={6} style={{ padding: "6px 14px" }}><span style={{ color: "var(--soft)", fontSize: 12.5 }}>Aucun frais dans cette catégorie</span></td></tr>
                     )}
                     {catCharges.map(renderRow)}
                     <tr className="cat-subtotal">
-                      <td colSpan={7}>{catCharges.length} frais · sous-total <span className="sub-val">{eur(catTotal)}</span></td>
+                      <td colSpan={6}>{catCharges.length} frais · sous-total <span className="sub-val">{eur(catTotal)}</span></td>
                     </tr>
                   </React.Fragment>
                 );
               })}
               {uncategorized.length > 0 && (
                 <React.Fragment>
-                  <tr className="cat-group-hd"><td colSpan={7}>Sans catégorie</td></tr>
+                  <tr className="cat-group-hd"><td colSpan={6}>Sans catégorie</td></tr>
                   {uncategorized.map(renderRow)}
-                  <tr className="cat-subtotal"><td colSpan={7}>{uncategorized.length} frais · sous-total <span className="sub-val">{eur(uncategorized.reduce((s, ch) => { const i = chargeImpact(ch, mIndex); return s + (i.active ? i.decaisse + i.provision : 0); }, 0))}</span></td></tr>
+                  <tr className="cat-subtotal"><td colSpan={6}>{uncategorized.length} frais · sous-total <span className="sub-val">{eur(uncategorized.reduce((s, ch) => { const i = chargeImpact(ch, mIndex); return s + (i.active ? i.decaisse + i.provision : 0); }, 0))}</span></td></tr>
                 </React.Fragment>
               )}
               <tr className="grand-total-row">
-                <td colSpan={7}>Total frais — {MONTHS[mIndex]} <span className="total-val">{eur(grandTotal)}</span></td>
+                <td colSpan={6}>Total frais — {MONTHS[mIndex]} <span className="total-val">{eur(grandTotal)}</span></td>
               </tr>
             </tbody>
           </table>
-
-          <div className="cal-foot" style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--line)" }}>
-            <div className="cal-legend">
-              <span><i style={{ background: "var(--neg)" }} />Décaissé</span>
-              <span><i style={{ background: "var(--prov)" }} />À provisionner</span>
-            </div>
-            <div className="cal-tot">
-              {totalProv > 0 && <span className="prov-note">+ {eur0(totalProv)} à provisionner</span>}
-              <span>Décaissé en {MONTHS[mIndex]} · <b>{eur0(totalDecaisse)}</b></span>
-            </div>
-          </div>
-
-          <CategoryDonut charges={charges} mIndex={mIndex} scope="month" categories={categories} />
 
           <div className="cat-manage">
             <div className="cat-manage-title">Gérer les catégories</div>
@@ -2779,9 +2714,9 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
           </div>
 
           <div className="hint" style={{ marginTop: 14 }}>
-            <b>Depuis le / Date</b> = date de début (récurrents) ou date d'achat (ponctuels). Cliquez sur la petite icône de catégorie à droite du libellé pour déplacer un frais.
+            Cliquez sur le <b>crayon</b> pour modifier un frais (libellé, montant, catégorie, fréquence, date de début).
             Une charge <b>trimestrielle</b> / <b>annuelle</b> est <i>décaissée</i> le mois de son échéance ; les autres mois, une <i>provision</i> est mise de côté.
-            Utilisez le bouton <b>horloge</b> pour enregistrer un changement de tarif futur.
+            Le bouton <b>horloge</b> affiche la date de début et l'historique des tarifs, et permet d'enregistrer un changement de tarif futur.
           </div>
         </React.Fragment>
       </div>
