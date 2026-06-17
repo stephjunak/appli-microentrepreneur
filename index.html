@@ -456,7 +456,7 @@ select.cell-in{appearance:none;cursor:pointer;
 @keyframes ytipIn{from{opacity:0;transform:translate(-50%,4px);}to{opacity:1;transform:translate(-50%,0);}}
 /* ---------- histogramme annuel empilé (tableau-kit) ---------- */
 .annual{padding:18px 2px 0;}
-.annual-plot{position:relative;display:flex;align-items:flex-end;gap:10px;height:230px;padding-bottom:30px;}
+.annual-plot{position:relative;display:flex;align-items:flex-end;gap:10px;height:170px;padding-bottom:30px;}
 .annual-grid{position:absolute;left:0;right:0;height:1px;background:var(--line-soft);}
 .annual-col{position:relative;flex:1;display:flex;align-items:flex-end;justify-content:center;align-self:stretch;}
 .abar{width:30px;display:flex;flex-direction:column-reverse;gap:3px;}
@@ -487,7 +487,7 @@ select.cell-in{appearance:none;cursor:pointer;
 .annual-tip-row .num{color:var(--on-dark);font-weight:600;}
 .chart-legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line-soft);}
 .lg{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);font-weight:500;}
-.bk{width:12px;height:12px;border-radius:4px;flex-shrink:0;}
+.bk{width:12px;height:12px;border-radius:4px;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(45,43,30,.14);}
 .hero-grid .card:last-child{display:flex;flex-direction:column;}
 .hero-grid .card:last-child .card-b{flex:1;display:flex;align-items:center;justify-content:center;gap:30px;min-height:236px;}
 
@@ -522,6 +522,14 @@ select.cell-in{appearance:none;cursor:pointer;
 .prov-pi .swatch{width:9px;height:9px;border-radius:3px;flex:none;display:inline-block;}
 .dash-main{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:stretch;}
 .dash-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.dash-hero3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch;}
+.dash-mid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;}
+.dash-mid .span2{grid-column:span 2;}
+/* cartes carrées, taille figée et uniforme (à mettre de côté · calendrier · factures · prévisionnel) */
+.sq{aspect-ratio:1/1;overflow:auto;}
+.dash-row3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;}
+.link-detail{margin-top:12px;background:none;border:none;padding:0;font:inherit;font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:color .16s;}
+.link-detail:hover{color:var(--ink);}
 .treso-cascade{display:flex;flex-direction:column;}
 .treso-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
 .treso-row .lab{color:var(--soft);display:flex;align-items:center;gap:7px;}
@@ -588,17 +596,45 @@ select.cell-in{appearance:none;cursor:pointer;
 .cal-dots{display:flex;justify-content:center;gap:7px;}
 .cal-dots i{width:6px;height:6px;border-radius:50%;background:var(--line-2);transition:background .16s,width .16s;}
 .cal-dots i.on{background:var(--ink-soft);width:18px;border-radius:var(--r-pill);}
-/* synthèse annuelle fusionnée : chiffres à gauche, histogramme à droite */
-.synth-split{display:grid;grid-template-columns:1fr 1.15fr;gap:26px;align-items:start;}
+/* synthèse annuelle fusionnée : histogramme (2/3) à gauche, chiffres (1/3) à droite */
+.synth-split{display:grid;grid-template-columns:2fr 1fr;gap:26px;align-items:start;}
+/* tableau de la synthèse : lignes avec barres de couleur, négatifs en noir, résultat mis en avant */
+.ysum2{display:flex;flex-direction:column;gap:13px;}
+.yrow2{display:flex;flex-direction:column;gap:7px;}
+.yrow2-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px;}
+.yrow2-top .lab{color:var(--soft);}
+.yrow2-top b{font-size:16px;font-weight:700;letter-spacing:-.2px;color:var(--ink);}
+.yrow2-bar{height:6px;border-radius:var(--r-pill);background:var(--line);overflow:hidden;}
+.yrow2-bar i{display:block;height:100%;border-radius:var(--r-pill);}
+.yrow2.tot{background:var(--primary-soft);border-radius:14px;padding:12px 14px;margin-top:2px;}
+.yrow2.tot .yrow2-top .lab{color:var(--ink);font-weight:600;}
+.yrow2.tot .yrow2-top b{font-size:21px;font-weight:800;letter-spacing:-.4px;}
+.yrow2.tot .yrow2-bar{background:rgba(45,43,30,.08);}
+/* toggle discret (Mois / Années) */
+.viewseg.ghost{background:transparent;padding:0;gap:14px;}
+.viewseg.ghost button{padding:3px 1px;font-size:11.5px;font-weight:600;color:var(--faint);border-radius:0;}
+.viewseg.ghost button:hover{color:var(--ink);background:transparent;}
+.viewseg.ghost button.on{background:transparent;color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent);}
 .synth-figures{min-width:0;}
 .synth-graph{min-width:0;display:flex;flex-direction:column;}
 .synth-graph-h{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
 .synth-graph-h .cap{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:700;}
+/* synthèse : sous-titre rapproché du titre + mention de la vue avec infobulle de précision */
+.synth-sub{margin-left:0 !important;}
+.synth-note{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--soft);margin:0 0 16px;}
+.synth-info{position:relative;display:inline-flex;cursor:help;outline:none;}
+.synth-info > i{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--faint);color:var(--faint);font-size:10px;font-weight:700;font-style:italic;font-family:var(--font-title);line-height:1;}
+.synth-info:hover > i,.synth-info:focus > i,.synth-info:focus-within > i{border-color:var(--ink);color:var(--ink);}
+.synth-info-tip{position:absolute;top:calc(100% + 8px);right:0;width:320px;max-width:78vw;background:var(--card);border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);z-index:25;font-size:12px;line-height:1.55;color:var(--ink-soft);opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .12s ease,transform .12s ease;}
+.synth-info:hover .synth-info-tip,.synth-info:focus .synth-info-tip,.synth-info:focus-within .synth-info-tip{opacity:1;visibility:visible;transform:translateY(0);}
 @media(max-width:720px){
   .dash-kpi-row{grid-template-columns:1fr;}
   .dash-main{grid-template-columns:1fr;}
   .synth-split{grid-template-columns:1fr;}
   .dash-2col{grid-template-columns:1fr;}
+  .dash-hero3{grid-template-columns:1fr;}
+  .dash-mid{grid-template-columns:1fr;}
+  .dash-row3{grid-template-columns:1fr;}
 }
 
 
@@ -1092,11 +1128,11 @@ function MiniDashCalendar({ mIndex, charges, profile, cfeAnnuel = 0, facturesByM
   const isThisMonth = now.getFullYear() === YEAR && now.getMonth() === mIndex;
   const today = isThisMonth ? now.getDate() : 1;
 
-  let start = Math.max(1, today - 5);
-  let end   = Math.min(daysInMonth, today + 5);
-  if (end - start < 10) {
-    if (start === 1) end = Math.min(daysInMonth, start + 10);
-    else if (end === daysInMonth) start = Math.max(1, end - 10);
+  let start = Math.max(1, today - 2);
+  let end   = Math.min(daysInMonth, today + 2);
+  if (end - start < 4) {
+    if (start === 1) end = Math.min(daysInMonth, start + 4);
+    else if (end === daysInMonth) start = Math.max(1, end - 4);
   }
   const days = [];
   for (let d = start; d <= end; d++) days.push(d);
@@ -1121,7 +1157,7 @@ function MiniDashCalendar({ mIndex, charges, profile, cfeAnnuel = 0, facturesByM
   const eventDays = days.filter((d) => (byDay[d] || []).length > 0);
 
   return (
-    <div className="calcard">
+    <div className="calcard sq">
       <div className="cal-head">
         <div className="cal-head-left">
           <span className="cal-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span>
@@ -1191,30 +1227,29 @@ function YearBars({ bars, max, smallAxis }) {
 
 const SHORT_MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
 
-function AnnualBars({ months, max }) {
+function AnnualBars({ months, max, cats, totalLabel = "HT" }) {
   const [hot, setHot] = React.useState(null);
-  const cats = [{ key: "poche", lbl: "Ma poche" }, { key: "urssaf", lbl: "URSSAF" }, { key: "frais", lbl: "Frais" }];
-  const INNER = 120;
+  const INNER = 130;
   return (
     <div className="annual">
       <div className="annual-plot">
         {[0, 1, 2, 3].map((k) => <div key={k} className="annual-grid" style={{ bottom: 30 + k * (INNER / 3) }}></div>)}
         {months.map((m, i) => {
-          const barH = (m.ht / max) * INNER;
+          const barH = (m.total / max) * INNER;
           const side = i <= 1 ? "left" : i >= months.length - 2 ? "right" : "center";
           return (
             <div key={i} className="annual-col" data-on={hot !== null ? "" : undefined}
               onMouseEnter={() => setHot(i)} onMouseLeave={() => setHot(null)}>
               {hot === i && !m.future &&
-                <div className={"annual-tip annual-tip--" + side} style={{ bottom: Math.min(barH + 14, 92) }}>
+                <div className={"annual-tip annual-tip--" + side} style={{ bottom: Math.min(barH + 14, INNER - 18) }}>
                   <div className="annual-tip-head">
                     <span className="annual-tip-month">{m.label}</span>
-                    <span className="annual-tip-ht">{eur0(m.ht)} <span className="annual-tip-ht-lbl">HT</span></span>
+                    <span className="annual-tip-ht">{eur0(m.total)} <span className="annual-tip-ht-lbl">{totalLabel}</span></span>
                   </div>
                   <div className="annual-tip-rows">
                     {cats.map((c) =>
                       <div className="annual-tip-row" key={c.key}>
-                        <span><i className="bk" style={{ background: "var(--seg-" + c.key + ")" }}></i>{c.lbl}</span>
+                        <span><i className="bk" style={{ background: c.color }}></i>{c.lbl}</span>
                         <span className="num">{eur0(m[c.key])}</span>
                       </div>
                     )}
@@ -1225,7 +1260,7 @@ function AnnualBars({ months, max }) {
                   ? <div className="aseg" style={{ height: 12 }}></div>
                   : cats.map((c) => {
                       const h = (m[c.key] / max) * INNER;
-                      return h > 0.8 ? <div key={c.key} className={"aseg aseg--" + c.key} style={{ height: h }}></div> : null;
+                      return h > 0.8 ? <div key={c.key} className="aseg" style={{ height: h, background: c.color, boxShadow: c.outline ? "inset 0 0 0 1.5px var(--line)" : undefined }}></div> : null;
                     })}
               </div>
               <span className="annual-x">{m.label}</span>
@@ -1234,7 +1269,7 @@ function AnnualBars({ months, max }) {
         })}
       </div>
       <div className="chart-legend">
-        {cats.map((c) => <span className="lg" key={c.key}><i className="bk" style={{ background: "var(--seg-" + c.key + ")" }}></i>{c.lbl}</span>)}
+        {cats.map((c) => <span className="lg" key={c.key}><i className="bk" style={{ background: c.color }}></i>{c.lbl}</span>)}
       </div>
     </div>
   );
@@ -1280,7 +1315,7 @@ function SpendBar({ segs, total, ttc, signed = true, pctLabel = "du TTC" }) {
   );
 }
 
-function DashboardTab({ facturesByMonth, factures, previsions = [], charges, profile, mIndex, cfeAnnuel = 0, urssafHistory = {} }) {
+function DashboardTab({ facturesByMonth, factures, previsions = [], charges, profile, mIndex, cfeAnnuel = 0, cfeValide = false, urssafHistory = {}, onGoTo }) {
   const s = computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel, urssafHistory });
   const year = computeYear({ facturesByMonth, charges, profile, cfeAnnuel, urssafHistory });
 
@@ -1330,6 +1365,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
 
   const [histScope,  setHistScope]  = React.useState("month");
   const [synthMode,  setSynthMode]  = React.useState("reel");
+  const [synthBase,  setSynthBase]  = React.useState("ttc"); // base HT / TTC, pilote graphe + détail de la synthèse
 
   // synthèse annuelle (cumul jusqu'au mois affiché)
   const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex, prevYear: (profile.prevYears || {})[YEAR - 1], cfeAnnuel, urssafHistory });
@@ -1380,6 +1416,36 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const donutSegs = segsMonth;
   const donutTot  = donutSegs.reduce((a,x) => a + x.val, 0) || 1;
 
+  // mention sous le titre de la synthèse : sens de la vue + précision sur le timing des charges
+  const moisAnPrec = (off) => `${MONTHS[(((-off) % 12) + 12) % 12].toLowerCase()} ${YEAR - 1}`;
+  const synthTagline = synthMode === "treso" ? "Les mouvements réels de ta trésorerie" : "La performance de ton activité";
+  const synthPrecision = synthMode === "treso"
+    ? `En vue "Trésorerie", on ne compte que ce qui est réellement sorti du compte. La TVA et l'URSSAF des derniers mois ne sont pas encore prélevées, donc absentes ici. À l'inverse, l'URSSAF de ${moisAnPrec(urssafDec)} et la TVA de ${moisAnPrec(tvaDec)} sont comptées, car prélevées en début d'année.`
+    : `En vue "Résultat", on déduit chaque mois les charges générées par l'activité (URSSAF, TVA), même si elles ne seront prélevées que plus tard. Les charges des deux derniers mois, incluant les provisions sur d'éventuels prélèvements annuels, sont donc déjà prises en compte, contrairement à la vue Trésorerie.`;
+
+  // base HT / TTC : uniformise le graphe ET le détail chiffré de la synthèse
+  const assujetti = !!profile.tva;
+  const baseTTC = synthBase === "ttc" || !assujetti; // sans TVA, HT = TTC
+  const synthIncome = baseTTC ? ys.caTTC : ys.caHT;
+  const showTvaRow = baseTTC && assujetti;
+  const synthNet = synthIncome - (showTvaRow ? synthFig.tva : 0) - synthFig.urssaf - synthFig.frais - synthFig.cfe;
+  const isTreso = synthMode === "treso";
+  const monthBars = year.map((y, i) => {
+    const u  = isTreso ? ((i - urssafDec >= 0) ? year[i - urssafDec].cotis : 0) : y.cotis;
+    const tv = !assujetti ? 0 : (isTreso ? ((i - tvaDec >= 0) ? year[i - tvaDec].tva : 0) : y.tva);
+    const fr = isTreso ? (y.decaisse + (i === 11 ? cfeAnnuel : 0)) : (y.fraisLisse + cfeAnnuel / 12);
+    const total = baseTTC ? y.caTTC : y.caHT;
+    const tva = baseTTC ? tv : 0;
+    return { label: SHORT_MONTHS[i], total, poche: Math.max(0, total - tva - u - fr), urssaf: u, tva, frais: fr, future: i > mIndex || !(total > 0) };
+  });
+  const monthMax = Math.max(1, ...year.map((y) => baseTTC ? y.caTTC : y.caHT));
+  const monthCats = [
+    { key: "poche",  lbl: "Ma poche", color: "var(--seg-poche)" },
+    { key: "frais",  lbl: "Frais",    color: "var(--seg-frais)" },
+    { key: "urssaf", lbl: "URSSAF",   color: "var(--seg-urssaf)" },
+    ...(showTvaRow ? [{ key: "tva", lbl: "TVA", color: "var(--seg-tva)", outline: true }] : []),
+  ];
+
   // cartes héros : écart du revenu net vs mois précédent + part du résultat sur le CA HT
   const prevNetCash = mIndex > 0 ? tresoByMonth[mIndex - 1] : null;
   const revPct = (prevNetCash != null && Math.abs(prevNetCash) > 0.005)
@@ -1389,14 +1455,17 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   return (
     <div className="dash">
 
-      {/* === En-têtes de colonnes : Trésorerie (présent) | Résultat prévisionnel (futur) === */}
-      <div className="dash-2col" style={{ marginBottom: 8 }}>
-        <div className="col-head">Trésorerie <span>· les mouvements sur ton compte ce mois</span></div>
-        <div className="col-head">Résultat prévisionnel <span>· les entrées/sorties à anticiper</span></div>
-      </div>
+      {/* === Cartes héros : CA · Revenu net · Résultat net === */}
+      <div className="dash-hero3" style={{ marginBottom: 14 }}>
 
-      {/* === Cartes héros : Revenu net | Résultat net (cascade en infobulle) === */}
-      <div className="dash-2col" style={{ marginBottom: 14 }}>
+        {/* Chiffre d'affaires encaissé */}
+        <div className="card hero-kpi">
+          <div className="card-b">
+            <div className="hero-top"><span className="cap">Chiffre d'affaires encaissé</span></div>
+            <div className="big">{eur0(s.caHT)}{s.assujetti && <span style={{ fontSize: 16, fontWeight: 500, color: "var(--faint)" }}> HT</span>}</div>
+            <div className="hero-sub">{s.assujetti ? `${eur0(s.caTTC)} TTC · ` : ""}{s.nbFactures} facture{s.nbFactures !== 1 ? "s" : ""} encaissée{s.nbFactures !== 1 ? "s" : ""}</div>
+          </div>
+        </div>
 
         {/* Revenu net (trésorerie) */}
         <div className="card hero-kpi">
@@ -1406,7 +1475,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
               {revPct != null && <span className={"hero-badge " + (revPct >= 0 ? "up" : "down")}>{revPct >= 0 ? "+" : ""}{revPct}% vs {moisLabel(mIndex - 1)}</span>}
             </div>
             <div className={"big" + (netCash >= 0 ? "" : " neg")}>{eur0(netCash)}</div>
-            <div className="hero-sub">ce qui reste vraiment sur ton compte ce mois</div>
+            <div className="hero-sub">Ce qui va rester de ton CA à la fin du mois après déduction des charges et frais prélevés ce mois</div>
             <div className="kpi-detail" tabIndex={0}>
               <span className="kpi-detail-trig">détail du calcul ▾</span>
               <div className="kpi-tip">
@@ -1431,7 +1500,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
               {resPct != null && <span className="hero-badge neutral">{resPct}% du CA HT</span>}
             </div>
             <div className={"big" + (s.netLisse >= 0 ? "" : " neg")}>{eur0(s.netLisse)}</div>
-            <div className="hero-sub">ce que ton activité gagne vraiment, impôts à venir déduits</div>
+            <div className="hero-sub">ce que ton activité gagne vraiment après déduction des charges à venir (payées en différé)</div>
             <div className="kpi-detail" tabIndex={0}>
               <span className="kpi-detail-trig">détail du calcul ▾</span>
               <div className="kpi-tip">
@@ -1451,57 +1520,11 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
 
       </div>
 
-      {/* === 4 KPI : 2 « sur ton compte » (gauche) | 2 « à venir » (droite) === */}
-      <div className="dash-2col" style={{ marginBottom: 16 }}>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-          {/* CA encaissé */}
-          <div className="card stat">
-            <div className="card-b">
-              <div className="cap">Chiffre d'affaires encaissé</div>
-              <div className="big">{eur0(s.caHT)}{s.assujetti && <span style={{ fontSize: 15, fontWeight: 500, color: "var(--faint)" }}> HT</span>}</div>
-              <div className="sub">{s.assujetti ? `${eur0(s.caTTC)} TTC · ` : ""}{s.nbFactures} facture{s.nbFactures !== 1 ? "s" : ""}</div>
-            </div>
-          </div>
-          {/* Prélèvements et frais : tout ce qui sort du compte ce mois, TVA comprise */}
-          <div className="card stat">
-            <div className="card-b">
-              <div className="cap">Prélèvements et frais</div>
-              <div className="big">{eur0(cashOut)}</div>
-              <div className="sub">inclut la TVA, qui ne fait que transiter</div>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-          {/* À mettre de côté */}
-          <div className="card stat">
-            <div className="card-b">
-              <div className="cap">À mettre de côté</div>
-              <div className="big">{eur0(charged)}</div>
-              <div className="sub">URSSAF &amp; TVA de ce mois, payées plus tard</div>
-            </div>
-          </div>
-          {/* Factures en attente */}
-          <div className="card stat">
-            <div className="card-b">
-              <div className="cap">Factures en attente</div>
-              <div className="big">{eur0(attenteTotal.ht)}{s.assujetti && <span style={{ fontSize: 15, fontWeight: 500, color: "var(--faint)" }}> HT</span>}</div>
-              <div className="sub">{s.assujetti ? `${eur0(attenteTotal.ttc)} TTC · ` : ""}{attenteTotal.n} facture{attenteS}, pas encore encaissée{attenteS}</div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* === Rangée 2-3 : colonne gauche (trésorerie) | colonne droite (à mettre de côté) === */}
-      <div className="dash-main">
-
-        {/* Colonne gauche : où part l'argent + calendrier des prélèvements */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* === Rangée du milieu : où part mon argent (2 col) · à mettre de côté (1 col) === */}
+      <div className="dash-mid">
 
           {/* Où part mon argent ? (ce qui sort réellement du compte ce mois) */}
-          <div className="card">
+          <div className="card span2">
             <div className="card-b">
               <div className="panel-head" style={{ marginBottom: 18 }}>
                 <div>
@@ -1518,19 +1541,11 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
             </div>
           </div>
 
-          {/* Calendrier des prélèvements */}
-          <MiniDashCalendar key={mIndex} mIndex={mIndex} charges={charges} profile={profile} cfeAnnuel={cfeAnnuel} facturesByMonth={facturesByMonth} urssafHistory={urssafHistory} />
-
-        </div>
-
-        {/* Colonne droite : à mettre de côté (provisions) */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-          {/* Provision */}
-          <div className="prov-card">
+          {/* À mettre de côté (provisions) */}
+          <div className="prov-card sq">
             <div className="cap">À METTRE DE CÔTÉ CE MOIS</div>
             <div className="big">{eur0(charged)}</div>
-            <div style={{ fontSize: 12, color: "var(--ink-faint)", marginBottom: 10, marginTop: -10 }}>l'URSSAF et la TVA de ce mois, payées plus tard</div>
+            <div style={{ fontSize: 12, color: "var(--ink-faint)", marginBottom: 10, marginTop: -10 }}>Certaines charges sont payées en différé, il faut l'anticiper</div>
             <div style={{ display: "flex", height: 5, borderRadius: 999, overflow: "hidden", marginBottom: 14, background: "var(--line)" }}>
               {provUrssaf > 0 && <div style={{ flex: provUrssaf, background: DONUT_COLORS.urssaf }} />}
               {s.assujetti && provTva > 0 && <div style={{ flex: provTva, background: DONUT_COLORS.tva }} />}
@@ -1561,8 +1576,26 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
             </div>
           </div>
 
+      </div>
+
+      {/* === Rangée du bas : calendrier · factures en attente · prévisionnel (3 col) === */}
+      <div className="dash-row3">
+
+          {/* Calendrier des prélèvements */}
+          <MiniDashCalendar key={mIndex} mIndex={mIndex} charges={charges} profile={profile} cfeAnnuel={cfeAnnuel} facturesByMonth={facturesByMonth} urssafHistory={urssafHistory} />
+
+          {/* Factures en attente */}
+          <div className="card hero-kpi sq">
+            <div className="card-b">
+              <div className="hero-top"><span className="cap">Factures en attente</span></div>
+              <div className="big">{eur0(attenteTotal.ht)}{s.assujetti && <span style={{ fontSize: 16, fontWeight: 500, color: "var(--faint)" }}> HT</span>}</div>
+              <div className="hero-sub">{s.assujetti ? `${eur0(attenteTotal.ttc)} TTC · ` : ""}{attenteTotal.n} facture{attenteS}, pas encore encaissée{attenteS}</div>
+              {attenteTotal.n > 0 && <button type="button" className="link-detail" onClick={() => onGoTo && onGoTo("factures")}>voir le détail →</button>}
+            </div>
+          </div>
+
           {/* Prévisionnel du mois suivant */}
-          <div className="card">
+          <div className="card sq">
             <div className="card-h"><h2>Prévisionnel</h2><span className="sub">revenus attendus en {moisLabel(nextIdx)}</span></div>
             <div className="card-b">
               <div className="treso-cascade">
@@ -1583,42 +1616,33 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
             </div>
           </div>
 
-        </div>
-
       </div>
 
       {/* Synthèse annuelle */}
       <div className="card">
-        <div className="card-h"><h2>Synthèse {YEAR}</h2><span className="sub">cumul jan → {MONTHS[mIndex].slice(0, 4).toLowerCase()}.</span>
+        <div className="card-h"><h2>Synthèse {YEAR}</h2><span className="sub synth-sub">cumul jan → {MONTHS[mIndex].slice(0, 4).toLowerCase()}.</span>
           <div className="viewseg sm" style={{ marginLeft: "auto" }}>
             <button className={synthMode === "treso" ? "on" : ""} onClick={() => setSynthMode("treso")}>Trésorerie</button>
             <button className={synthMode === "reel" ? "on" : ""} onClick={() => setSynthMode("reel")}>Résultat</button>
           </div>
+          {assujetti &&
+          <div className="viewseg sm ghost" style={{ marginLeft: 10 }}>
+            <button className={synthBase === "ttc" ? "on" : ""} onClick={() => setSynthBase("ttc")}>TTC</button>
+            <button className={synthBase === "ht" ? "on" : ""} onClick={() => setSynthBase("ht")}>HT</button>
+          </div>}
         </div>
         <div className="card-b">
           <div className="synth-split">
-            <div className="synth-figures">
-              <div className="ysum">
-                <div className="yrow"><span className="lab">CA encaissé (TTC)</span><b>{eur0(ys.caTTC)}</b></div>
-                {profile.tva && <div className="yrow"><span className="lab">TVA {synthMode === "treso" ? "payée" : "à reverser"}</span><b className="neg">−{eur0(synthFig.tva)}</b></div>}
-                <div className="yrow"><span className="lab">URSSAF</span><b className="neg">−{eur0(synthFig.urssaf)}</b></div>
-                <div className="yrow"><span className="lab">Frais &amp; achats</span><b className="neg">−{eur0(synthFig.frais)}</b></div>
-                {synthFig.cfe > 0 && <div className="yrow"><span className="lab">CFE</span><b className="neg">−{eur0(synthFig.cfe)}</b></div>}
-                <div className="yrow tot"><span className="lab">{synthFig.netLabel}</span><b className="pos">{eur0(synthFig.net)}</b></div>
-              </div>
-            </div>
             <div className="synth-graph">
               <div className="synth-graph-h">
-                <span className="cap">{histScope === "month" ? "CA HT par mois" : `${synthFig.graphLabel} par année`}</span>
-                <div className="viewseg sm" style={{ marginLeft: "auto" }}>
+                <span className="cap">{histScope === "month" ? (baseTTC ? "CA TTC par mois" : "CA HT par mois") : `${synthFig.graphLabel} par année`}</span>
+                <div className="viewseg sm ghost" style={{ marginLeft: "auto" }}>
                   <button className={histScope === "month" ? "on" : ""} onClick={() => setHistScope("month")}>Mois</button>
                   <button className={histScope === "year" ? "on" : ""} onClick={() => setHistScope("year")}>Années</button>
                 </div>
               </div>
               {histScope === "month" ? (
-                <AnnualBars
-                  months={year.map((y, i) => { const ur = y.cotis, fr = y.fraisLisse, ht = y.caHT; return { label: SHORT_MONTHS[i], poche: Math.max(0, ht - ur - fr), urssaf: ur, frais: fr, ht, future: !(ht > 0) }; })}
-                  max={Math.max(1, ...year.map((y) => y.caHT))} />
+                <AnnualBars months={monthBars} max={monthMax} cats={monthCats} totalLabel={baseTTC ? "TTC" : "HT"} />
               ) : yearlyData.length < 2 ? (
                 <div className="empty" style={{ fontSize: 13 }}>
                   Renseignez vos données N-1 dans les paramètres (icône engrenage) pour activer cette vue.
@@ -1626,6 +1650,33 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
               ) : (
                 <YearBars max={maxYearNet} smallAxis bars={yearlyData.map((yd) => ({ tip: `${yd.year}${yd.isCurrent ? " (en cours)" : ""}`, axis: `${yd.year}${yd.isCurrent ? "*" : ""}`, value: yd.net, current: yd.isCurrent }))} />
               )}
+            </div>
+            <div className="synth-figures">
+              <div className="synth-note">
+                <span>{synthTagline}</span>
+                <span className="synth-info" tabIndex={0} aria-label="Plus de détails sur le calcul">
+                  <i aria-hidden="true">i</i>
+                  <span className="synth-info-tip">{synthPrecision}</span>
+                </span>
+              </div>
+              <div className="ysum2">
+                {[
+                  { lab: baseTTC ? "CA encaissé (TTC)" : "CA encaissé (HT)", val: synthIncome, neg: false, color: "#b9bbb0", show: true },
+                  { lab: `TVA ${synthMode === "treso" ? "payée" : "à reverser"}`, val: synthFig.tva, neg: true, color: "var(--seg-tva)", outline: true, show: showTvaRow },
+                  { lab: "URSSAF", val: synthFig.urssaf, neg: true, color: "var(--seg-urssaf)", show: true },
+                  { lab: "Frais & achats", val: synthFig.frais, neg: true, color: "var(--seg-frais)", show: true },
+                  { lab: cfeValide ? "CFE" : "CFE estimée", val: synthFig.cfe, neg: true, color: "var(--seg-frais)", show: synthFig.cfe > 0 },
+                ].filter((r) => r.show).map((r, i) => (
+                  <div className="yrow2" key={i}>
+                    <div className="yrow2-top"><span className="lab">{r.lab}</span><b>{r.neg ? "−" : ""}{eur0(r.val)}</b></div>
+                    <div className="yrow2-bar"><i style={{ width: Math.min(100, Math.round(r.val / (synthIncome || 1) * 100)) + "%", background: r.color, boxShadow: r.outline ? "inset 0 0 0 1px var(--line-2)" : undefined }}></i></div>
+                  </div>
+                ))}
+                <div className="yrow2 tot">
+                  <div className="yrow2-top"><span className="lab">{synthFig.netLabel}</span><b>{eur0(synthNet)}</b></div>
+                  <div className="yrow2-bar"><i style={{ width: Math.min(100, Math.round(Math.max(0, synthNet) / (synthIncome || 1) * 100)) + "%", background: "var(--seg-poche)" }}></i></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -3201,7 +3252,7 @@ function App() {
         <button className="mbtn" disabled={m === 11} onClick={() => goMonth(1)}>{Chev("M9 18l6-6-6-6")}</button>
       </div>
 
-      {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} previsions={previsions} charges={charges} profile={profile} mIndex={m} cfeAnnuel={cfeAnnuel} urssafHistory={urssafHistory} />}
+      {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} previsions={previsions} charges={charges} profile={profile} mIndex={m} cfeAnnuel={cfeAnnuel} cfeValide={!!(cfeData[YEAR] || {}).valide} urssafHistory={urssafHistory} onGoTo={setTab} />}
       {ui.tab === "factures" && <FacturesTab factures={factures} facturesByMonth={facturesByMonth} charges={charges} profile={profile} mIndex={m}
         onSaveInv={saveInv} onRemoveInv={removeInv} onMarkPaid={markFactPaid} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />}
       {ui.tab === "previsionnel" && <PrevisionnelTab previsions={previsions} facturesByMonth={facturesByMonth} profile={profile}
