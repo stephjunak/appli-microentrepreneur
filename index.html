@@ -643,10 +643,16 @@ select.cell-in{appearance:none;cursor:pointer;
 .cat-select{font-size:11.5px !important;color:var(--soft) !important;padding:2px 6px !important;margin-top:3px;width:100%;}
 .cat-manage{margin-top:16px;padding:12px 14px;background:var(--primary-soft);border-radius:9px;border:1px solid var(--line-2);}
 .cat-manage-title{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:8px;}
-.cat-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
-.cat-chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;padding:3px 8px 3px 11px;border-radius:999px;background:var(--card);color:var(--primary-d);border:1px solid var(--line-2);}
-.cat-chip .xbtn{background:none;border:none;cursor:pointer;padding:0 1px;font-size:14px;line-height:1;color:var(--soft);}
-.cat-chip .xbtn:hover{color:#d9534f;}
+.cat-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.cat-row{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:12px;background:var(--card);border:1px solid var(--line-2);}
+.cat-row .cat-name{flex:1;font-size:13px;font-weight:500;color:var(--primary-d);}
+.cat-move{display:inline-flex;gap:2px;}
+.cat-move-btn{width:24px;height:22px;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--soft);cursor:pointer;display:grid;place-items:center;}
+.cat-move-btn:hover:not(:disabled){background:var(--accent);color:var(--accent-ink);}
+.cat-move-btn:disabled{opacity:.3;cursor:default;}
+.cat-move-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.4;}
+.cat-row .xbtn{background:none;border:none;cursor:pointer;padding:0 2px;font-size:15px;line-height:1;color:var(--soft);}
+.cat-row .xbtn:hover{color:#d9534f;}
 .cat-chip-count{font-size:11px;font-weight:700;color:var(--soft);background:var(--primary-soft);border-radius:999px;padding:1px 7px;}
 .cat-chip-lock{display:inline-grid;place-items:center;color:var(--faint);cursor:help;}
 .cat-chip-lock svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;}
@@ -679,6 +685,8 @@ select.cell-in{appearance:none;cursor:pointer;
 .ce-mois--out svg{stroke:#5cb7b0;stroke-width:2.2;}
 .frais-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
 .frais-toolbar-lab{font-size:12.5px;color:var(--soft);font-weight:600;}
+.frais-hide-empty{display:inline-flex;align-items:center;gap:9px;cursor:pointer;font-size:12.5px;color:var(--soft);font-weight:600;user-select:none;margin-left:6px;}
+.frais-hide-empty:hover{color:var(--ink);}
 /* champs numériques : retirer les petites flèches haut/bas */
 .cell-in.num::-webkit-inner-spin-button,.cell-in.num::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .cell-in.num{-moz-appearance:textfield;appearance:textfield;}
@@ -1047,7 +1055,9 @@ const Icon = {
   tag: <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/></svg>,
   pencil: <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" /></svg>,
   down: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flex: "none" }}><path d="M12 5v14M6 13l6 6 6-6" /></svg>,
-  lock: <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
+  lock: <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>,
+  chevUp: <svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" /></svg>,
+  chevDown: <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg>
 };
 // couleur de pastille par fréquence dans le calendrier
 const FREQ_META = {
@@ -2498,13 +2508,15 @@ function FraisModal({ categories, profile, tvaConfig, charge, onSave, onUpdate, 
     </div>);
 }
 
-function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory, tvaConfig }) {
+function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory, onMoveCategory, tvaConfig }) {
   const activeTvaRates = tvaConfig || TVA_RATES;
   const [tarifsOpen, setTarifsOpen] = React.useState({});
   const [modal, setModal] = React.useState(null);
   const [newCat, setNewCat] = React.useState("");
   const [groupBy, setGroupBy] = React.useState("cat");
   const [catModalOpen, setCatModalOpen] = React.useState(false);
+  const [hideEmpty, setHideEmpty] = React.useState(() => load("mef2:frais_hide_empty", false));
+  React.useEffect(() => save("mef2:frais_hide_empty", hideEmpty), [hideEmpty]);
   const toggleTarifs = (id) => setTarifsOpen(o => ({ ...o, [id]: !o[id] }));
   const freqLabels = { mensuelle: "Mensuel", trimestrielle: "Trimestriel", annuelle: "Annuel", ponctuelle: "Ponctuel" };
   const PERIODE = { mensuelle: "/mois", trimestrielle: "/trim", annuelle: "/an", ponctuelle: "" };
@@ -2579,7 +2591,7 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
     : [
         ...categories.map(cat => ({ key: cat, label: cat, items: visibleCharges.filter(ch => ch.categorie === cat) })),
         ...(uncategorized.length ? [{ key: "__uncat", label: "Sans catégorie", items: uncategorized }] : []),
-      ];
+      ].filter(g => !hideEmpty || g.items.length > 0);
   const catSplit = groups
     .map((g, i) => ({ cat: g.label, color: g.key === "__uncat" ? "#b8bab2" : CAT_PALETTE[i % CAT_PALETTE.length], ...splitFor(g.items) }))
     .filter(r => r.dec + r.prov > 0);
@@ -2621,6 +2633,12 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
               <button className={groupBy === "cat" ? "on" : ""} onClick={() => setGroupBy("cat")}>Catégorie</button>
               <button className={groupBy === "freq" ? "on" : ""} onClick={() => setGroupBy("freq")}>Fréquence</button>
             </div>
+            {groupBy === "cat" && (
+              <div className="frais-hide-empty" onClick={() => setHideEmpty(v => !v)} title="Masquer les catégories sans frais ce mois">
+                <span>Masquer les vides</span>
+                <button className={"sw" + (hideEmpty ? " on" : "")} tabIndex={-1} aria-hidden="true"></button>
+              </div>
+            )}
             <button className="btn cat-manage-btn" style={{ marginLeft: "auto" }} onClick={() => setCatModalOpen(true)}>{Icon.tag} Gérer les catégories</button>
           </div>
           <table className="tbl">
@@ -2666,20 +2684,24 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
                   <button className="x" onClick={() => setCatModalOpen(false)}>✕</button>
                 </div>
                 <div className="modal-b">
-                  <div className="cat-chips">
-                    {categories.map(c => {
+                  <div className="cat-list">
+                    {categories.map((c, i) => {
                       const count = charges.filter(ch => ch.categorie === c).length;
                       const canDelete = count === 0 && categories.length > 1;
                       return (
-                        <span key={c} className="cat-chip">
-                          {c}
+                        <div key={c} className="cat-row">
+                          <span className="cat-move">
+                            <button className="cat-move-btn" title="Monter" disabled={i === 0} onClick={() => onMoveCategory(c, -1)}>{Icon.chevUp}</button>
+                            <button className="cat-move-btn" title="Descendre" disabled={i === categories.length - 1} onClick={() => onMoveCategory(c, 1)}>{Icon.chevDown}</button>
+                          </span>
+                          <span className="cat-name">{c}</span>
                           <span className="cat-chip-count">{count}</span>
                           {canDelete
                             ? <button className="xbtn" title="Supprimer cette catégorie" onClick={() => onRemoveCategory(c)}>×</button>
                             : <span className="cat-chip-lock" title={count > 0
                                 ? `Impossible de supprimer : ${count} frais ${count > 1 ? "utilisent" : "utilise"} cette catégorie. Réaffecte-${count > 1 ? "les" : "le"} d'abord via le crayon.`
                                 : "Au moins une catégorie est nécessaire."}>{Icon.lock}</span>}
-                        </span>
+                        </div>
                       );
                     })}
                   </div>
@@ -2691,6 +2713,7 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
                     <button className="btn" onClick={() => { if (newCat.trim()) { onAddCategory(newCat.trim()); setNewCat(""); } }}>Ajouter</button>
                   </div>
                   <div className="hint" style={{ marginTop: 12 }}>
+                    Les flèches ↑↓ changent l'ordre des catégories : il s'applique au tableau, à la barre de répartition et au menu d'un frais.
                     Une catégorie ne peut être supprimée que si elle ne contient aucun frais. Le compteur indique le nombre de frais rattachés.
                   </div>
                 </div>
@@ -3008,6 +3031,16 @@ function App() {
     if (charges.some(ch => ch.categorie === name)) return;   // catégorie non vide : suppression interdite
     setCategories(c => c.filter(x => x !== name));
   };
+  const moveCategory = (name, dir) => {                       // dir = -1 (monter) ou +1 (descendre)
+    setCategories(c => {
+      const i = c.indexOf(name);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= c.length) return c;
+      const next = [...c];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+  };
 
   const m = ui.month;
   const key = monthKey(m);
@@ -3173,7 +3206,7 @@ function App() {
         onSaveInv={saveInv} onRemoveInv={removeInv} onMarkPaid={markFactPaid} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />}
       {ui.tab === "previsionnel" && <PrevisionnelTab previsions={previsions} facturesByMonth={facturesByMonth} profile={profile}
         onAddPrevision={addPrevision} onUpdatePrevision={updatePrevision} onRemovePrevision={removePrevision} onConvert={convertPrevision} onMarkPaid={markFactPaid} urssafHistory={urssafHistory} />}
-      {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} profile={profile} onAdd={addCharge} onCreate={addChargeFull} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} tvaConfig={tvaConfig} />}
+      {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} profile={profile} onAdd={addCharge} onCreate={addChargeFull} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} onMoveCategory={moveCategory} tvaConfig={tvaConfig} />}
       {ui.tab === "prov" && <ChargesProvisionsTab factures={factures} facturesByMonth={facturesByMonth} charges={charges} profile={profile} mIndex={m} cfeData={cfeData[YEAR] || {}} onUpdateCfe={updateCfe} urssafHistory={urssafHistory} />}
       {ui.tab === "calendrier" && <CalendarTab mIndex={m} charges={charges} profile={profile} cfeAnnuel={cfeAnnuel} facturesByMonth={facturesByMonth} urssafHistory={urssafHistory} />}
 
