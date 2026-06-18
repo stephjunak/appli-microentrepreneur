@@ -195,19 +195,31 @@ select.cell-in{appearance:none;cursor:pointer;
 
 .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px;}
 .cal-dow span{font-size:11px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;color:var(--faint);text-align:left;padding-left:3px;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;}
-.cal-cell{height:104px;min-width:0;border:1px solid var(--line);border-radius:10px;background:#fff;padding:7px 7px 8px;
-  display:flex;flex-direction:column;gap:5px;overflow:hidden;}
+.cal{position:relative;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;}
+.cal-cell{min-height:110px;min-width:0;border:1px solid var(--line);border-radius:12px;background:#fff;padding:7px;
+  display:flex;flex-direction:column;gap:4px;overflow:hidden;}
 .cal-cell.empty{background:transparent;border:none;}
 .cal-cell.has{background:#fafbf7;border-color:var(--line-2);}
-.cal-cell.today{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft);}
-.cal-day{font-size:12.5px;font-weight:700;color:var(--faint);line-height:1;flex:none;}
-.cal-cell.has .cal-day{color:var(--soft);}
-.cal-cell.today .cal-day{color:var(--primary);}
-.cal-chips{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;}
-.cal-chip{font-size:11px;line-height:1.2;color:#fff;border-radius:6px;padding:3px 6px;display:flex;flex-direction:column;flex:none;}
-.cal-chip .lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;opacity:.95;min-width:0;}
-.cal-chip b{font-weight:800;font-variant-numeric:tabular-nums;}
+.cal-cell.today{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);}
+.cal-cell-day{font-size:12.5px;font-weight:700;color:var(--faint);line-height:1;flex:none;align-self:flex-start;}
+.cal-cell.has .cal-cell-day{color:var(--soft);}
+.cal-cell.today .cal-cell-day{width:21px;height:21px;border-radius:7px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:800;}
+.cal-chips{flex:1;min-height:0;display:flex;flex-direction:column;gap:4px;}
+.cal-chip{display:flex;flex-direction:column;gap:1px;border-radius:7px;padding:4px 7px;line-height:1.2;flex:none;}
+.cal-chip .lab{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cal-chip b{font-size:11px;font-weight:800;font-variant-numeric:tabular-nums;font-family:var(--font-title);}
+.cal-chip.k-urssaf{background:rgba(128,200,192,.24);color:#1d3f3b;}
+.cal-chip.k-tva{background:#fff;border:1px solid var(--line-2);color:#16403b;}
+.cal-chip.k-cfe{background:rgba(154,163,156,.28);color:#3f433d;}
+.cal-chip.k-frais{background:rgba(190,193,184,.42);color:#46493f;}
+.cal-more{font-size:10.5px;font-weight:700;color:var(--soft);background:#eef0ec;border-radius:6px;padding:1px 6px;align-self:flex-start;}
+.cal-tip{position:absolute;z-index:25;width:208px;background:var(--dark);color:var(--on-dark);border-radius:13px;padding:10px 13px 11px;box-shadow:var(--shadow-dark);pointer-events:none;animation:tipIn .13s ease both;}
+.cal-tip-arrow{position:absolute;width:0;height:0;border:7px solid transparent;transform:translateX(-50%);}
+.cal-tip.below .cal-tip-arrow{bottom:100%;border-bottom-color:var(--dark);}
+.cal-tip.above .cal-tip-arrow{top:100%;border-top-color:var(--dark);}
+.cal-tip-tot{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:9px;padding-top:8px;border-top:1px solid var(--line-dark);font-size:12px;color:var(--on-dark-soft);}
+.cal-tip-tot b{font-family:var(--font-title);font-weight:700;font-size:15px;color:var(--on-dark);}
 
 .cal-foot{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
   margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:13.5px;}
@@ -220,15 +232,16 @@ select.cell-in{appearance:none;cursor:pointer;
 
 .cal-year{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
 .ym{min-width:0;height:220px;border:1px solid var(--line);border-radius:11px;background:#fff;padding:12px 13px;display:flex;flex-direction:column;gap:9px;}
-.ym.cur{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-soft);background:#fafbf7;}
+.ym.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);background:#fff;}
 .ym-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex:none;}
 .ym-h .nm{font-weight:700;font-size:14px;color:var(--ink);text-transform:capitalize;}
+.ym.cur .ym-h .nm{background:var(--accent);color:var(--accent-ink);padding:2px 10px;border-radius:var(--r-pill);}
 .ym-h .tt{font-weight:800;font-size:14px;font-variant-numeric:tabular-nums;color:var(--ink);}
 .ym-bar{height:5px;border-radius:3px;background:var(--primary-soft);overflow:hidden;flex:none;}
 .ym-bar i{display:block;height:100%;border-radius:3px;}
 .ym-list{display:flex;flex-direction:column;gap:5px;flex:1;overflow-y:auto;min-height:0;}
 .ym-it{display:flex;align-items:center;gap:8px;font-size:12px;min-width:0;flex:none;}
-.ym-it .dd{flex:none;min-width:22px;height:19px;padding:0 4px;border-radius:5px;color:#fff;font-weight:700;
+.ym-it .dd{flex:none;width:20px;height:20px;padding:0;border-radius:50%;color:#fff;font-weight:700;
   font-size:10.5px;display:grid;place-items:center;font-variant-numeric:tabular-nums;}
 .ym-it .ll{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--soft);}
 .ym-it .mm{flex:none;font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink);}
@@ -239,7 +252,7 @@ select.cell-in{appearance:none;cursor:pointer;
 }
 @media(max-width:720px){
   .cal-year{grid-template-columns:repeat(2,minmax(0,1fr));}
-  .cal-cell{height:88px;}
+  .cal-cell{min-height:96px;}
 }
 
 .empty{padding:34px 10px;text-align:center;color:var(--faint);font-size:13.5px;}
@@ -1108,7 +1121,7 @@ const SEG_COLORS = { urssaf: "#80c8c0", tva: "#5cb7b0", decaisse: "#d4d6cf", ach
 const DONUT_COLORS = SEG_COLORS;
 
 // couleurs du calendrier des paiements : une couleur unique par poste
-const PAY_COLORS = { urssaf: SEG_COLORS.urssaf, tva: SEG_COLORS.tva, cfe: SEG_COLORS.cfe, frais: SEG_COLORS.decaisse };
+const PAY_COLORS = { urssaf: SEG_COLORS.urssaf, tva: "#ffffff", cfe: SEG_COLORS.cfe, frais: SEG_COLORS.decaisse };
 const PAY_LEGEND = [
   { key: "urssaf", label: "URSSAF",          color: PAY_COLORS.urssaf },
   { key: "tva",    label: "TVA",             color: PAY_COLORS.tva },
@@ -1186,7 +1199,7 @@ function MiniDashCalendar({ mIndex, charges, profile, cfeAnnuel = 0, facturesByM
         {selItems.length > 0
           ? selItems.map((it, i) =>
               <div className="cal-detail-row" key={i}>
-                <span className="cal-detail-name"><i style={{ width: 11, height: 11, borderRadius: 3, background: it.color, display: "inline-block", flex: "none" }}></i>{it.libelle}</span>
+                <span className="cal-detail-name"><i style={{ width: 11, height: 11, borderRadius: 3, background: it.color, display: "inline-block", flex: "none", ...(it.color === "#ffffff" ? { boxShadow: "inset 0 0 0 1px #9bc7c1" } : {}) }}></i>{it.libelle}</span>
                 <b className="cal-detail-val">−{eur0(it.montant)}</b>
               </div>
             )
@@ -2265,46 +2278,88 @@ function FullMonthCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMont
   const now = new Date();
   const isThisMonth = now.getFullYear() === YEAR && now.getMonth() === mIndex;
   const todayDate = now.getDate();
+  const WD = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+  const kindOf = (it) => it.type === "charge" ? "frais" : it.type;
+  const MAXCHIP = 2;
+
+  const wrapRef = React.useRef(null);
+  const [tip, setTip] = React.useState(null);
+  const show = (d, items, e) => {
+    const w = wrapRef.current; if (!w) return;
+    const wr = w.getBoundingClientRect(), cr = e.currentTarget.getBoundingClientRect();
+    const W = 208, pad = 4;
+    const center = cr.left + cr.width / 2 - wr.left;
+    const left = Math.max(pad, Math.min(center - W / 2, wr.width - W - pad));
+    const estH = 64 + Math.min(items.length, 6) * 21;
+    const below = (cr.top - wr.top) <= wr.height - estH - 20;
+    const top = below ? (cr.bottom - wr.top + 9) : (cr.top - wr.top - estH - 9);
+    const dayTotal = items.reduce((s, it) => s + it.montant, 0);
+    const label = `${WD[new Date(YEAR, mIndex, d).getDay()]} ${d} ${MONTHS[mIndex].toLowerCase()}`;
+    setTip({ day: d, left, top, arrow: Math.max(12, Math.min(center - left, W - 12)), place: below ? "below" : "above", items, dayTotal, label });
+  };
+  const hide = () => setTip(null);
 
   const cells = [];
   for (let i = 0; i < firstDow; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
   return (
-    <div className="cal">
+    <div className="cal" ref={wrapRef}>
       <div className="cal-dow">
-        {["lun","mar","mer","jeu","ven","sam","dim"].map(d => <span key={d}>{d}</span>)}
+        {["lun", "mar", "mer", "jeu", "ven", "sam", "dim"].map(d => <span key={d}>{d}</span>)}
       </div>
       <div className="cal-grid">
         {cells.map((d, i) => {
-          if (d === null) return <div key={"e"+i} className="cal-cell empty" />;
+          if (d === null) return <div key={"e" + i} className="cal-cell empty" />;
           const items = byDay[d] || [];
           const today = isThisMonth && d === todayDate;
+          const extra = items.length - MAXCHIP;
           return (
-            <div key={d} className={"cal-cell" + (items.length ? " has" : "") + (today ? " today" : "")}>
-              <span className="cal-day">{d}</span>
+            <div key={d}
+              className={"cal-cell" + (items.length ? " has evt" : "") + (today ? " today" : "")}
+              onMouseEnter={items.length ? (e) => show(d, items, e) : undefined}
+              onMouseLeave={items.length ? hide : undefined}
+              onClick={items.length ? (e) => show(d, items, e) : undefined}>
+              <span className="cal-cell-day">{d}</span>
               <div className="cal-chips">
-                {items.map((it, k) => (
-                  <div key={k} className="cal-chip" title={`${it.libelle} · ${eur0(it.montant)}`}
-                    style={{ background: it.color }}>
+                {items.slice(0, MAXCHIP).map((it, k) => (
+                  <div key={k} className={"cal-chip k-" + kindOf(it)}>
                     <span className="lab">{it.libelle}</span>
                     <b>{eur0(it.montant)}</b>
                   </div>
                 ))}
+                {extra > 0 && <span className="cal-more">+{extra} autre{extra > 1 ? "s" : ""}</span>}
               </div>
             </div>
           );
         })}
       </div>
+      {tip && (
+        <div className={"cal-tip " + tip.place} style={{ left: tip.left, top: tip.top }}>
+          <span className="cal-tip-arrow" style={{ left: tip.arrow }} />
+          <div className="annual-tip-head">
+            <span className="annual-tip-month">{tip.label}</span>
+          </div>
+          <div className="annual-tip-rows">
+            {tip.items.map((it, k) => (
+              <div className="annual-tip-row" key={k}>
+                <span><i style={{ width: 9, height: 9, borderRadius: "50%", background: it.color, ...(it.color === "#ffffff" ? { boxShadow: "inset 0 0 0 1px #9bc7c1" } : {}) }} />{it.libelle}</span>
+                <span className="num">{eur0(it.montant)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="cal-tip-tot"><span>Total du jour</span><b>{eur0(tip.dayTotal)}</b></div>
+        </div>
+      )}
       <div className="cal-foot">
         <div className="cal-legend">
           {PAY_LEGEND.filter(l => present.has(l.key)).map(l =>
-            <span key={l.key}><i style={{ background: l.color }} />{l.label}</span>)}
+            <span key={l.key}><i style={{ background: l.color, ...(l.color === "#ffffff" ? { boxShadow: "inset 0 0 0 1px #9bc7c1" } : {}) }} />{l.label}</span>)}
         </div>
         <div className="cal-tot">
           {total > 0
             ? <span>Total prélevé en {MONTHS[mIndex]} · <b>{eur0(total)}</b></span>
-            : <span style={{ color:"var(--soft)", fontSize:12.5 }}>Aucun paiement ce mois.</span>}
+            : <span style={{ color: "var(--soft)", fontSize: 12.5 }}>Aucun paiement ce mois.</span>}
         </div>
       </div>
     </div>
@@ -2333,12 +2388,12 @@ function FullYearCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMonth
               <span className="nm">{mo.name}</span>
               <span className="tt">{mo.total > 0 ? eur0(mo.total) : "—"}</span>
             </div>
-            <div className="ym-bar"><i style={{ width: mo.total / maxTotal * 100 + "%", background: "var(--primary)" }} /></div>
+            <div className="ym-bar"><i style={{ width: mo.total / maxTotal * 100 + "%", background: "var(--faint)" }} /></div>
             <div className="ym-list">
               {mo.items.length === 0 && <span className="ym-empty">aucun paiement</span>}
               {mo.items.map((it, k) => (
                 <div key={k} className="ym-it">
-                  <span className="dd" style={{ background: it.color }}>{it.day}</span>
+                  <span className="dd" style={{ background: it.color, ...(it.color === "#ffffff" ? { color: "#2d2b1e", boxShadow: "inset 0 0 0 1px rgba(45,43,30,.25)" } : {}) }}>{it.day}</span>
                   <span className="ll">{it.libelle}</span>
                   <span className="mm">{eur0(it.montant)}</span>
                 </div>
@@ -2350,7 +2405,7 @@ function FullYearCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMonth
       <div className="cal-foot">
         <div className="cal-legend">
           {PAY_LEGEND.filter(l => present.has(l.key)).map(l =>
-            <span key={l.key}><i style={{ background: l.color }} />{l.label}</span>)}
+            <span key={l.key}><i style={{ background: l.color, ...(l.color === "#ffffff" ? { boxShadow: "inset 0 0 0 1px #9bc7c1" } : {}) }} />{l.label}</span>)}
         </div>
         <div className="cal-tot"><span>Total prélevé sur {YEAR} · <b>{eur0(yearTotal)}</b></span></div>
       </div>
