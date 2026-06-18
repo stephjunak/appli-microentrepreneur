@@ -402,6 +402,7 @@ select.cell-in{appearance:none;cursor:pointer;
 .kpi-detail-trig{font-size:12px;color:var(--primary);font-weight:600;}
 .kpi-tip{position:absolute;top:calc(100% + 8px);left:0;min-width:250px;background:var(--card);border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);z-index:20;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .12s ease,transform .12s ease;}
 .kpi-detail:hover .kpi-tip,.kpi-detail:focus .kpi-tip,.kpi-detail:focus-within .kpi-tip{opacity:1;visibility:visible;transform:translateY(0);}
+.kpi-tip .neg{color:var(--ink);}  /* pas de rouge dans les infobulles : le signe − suffit */
 .hero-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:stretch;}
 
 /* cascade clarity tags */
@@ -975,7 +976,15 @@ function computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel = 0
 
   // --- vue "rentabilité" : toutes les charges du mois lissées (part mensuelle) ---
   const tvaAreverser = assujetti ? Math.max(0, tvaCollectee - tvaDeductible) : 0;
-  const fraisLisse = charges.reduce((a, ch) => a + chargeLisse(ch, mIndex), 0);
+  let fraisLisseRec = 0, fraisLisseProv = 0, fraisLissePonct = 0;
+  charges.forEach((ch) => {
+    const l = chargeLisse(ch, mIndex);
+    if (l <= 0) return;
+    if (ch.frequence === "trimestrielle" || ch.frequence === "annuelle") fraisLisseProv += l;   // provisions (part lissée)
+    else if (ch.frequence === "ponctuelle") fraisLissePonct += l;                                // achat ponctuel du mois
+    else fraisLisseRec += l;                                                                      // frais récurrents (mensuels)
+  });
+  const fraisLisse = fraisLisseRec + fraisLisseProv + fraisLissePonct;
   const charged = totalCotis + tvaAreverser + cfeProv + fraisLisse;   // tout ce que l'activité du mois coûte
   const netLisse = caTTC - charged;                                   // revenu net raisonnable
 
@@ -984,7 +993,7 @@ function computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel = 0
     nbFactures: factures.length,
     cotisLines, totalCotis,
     decaisseLines, provisionLines, totalDecaisse, totalProvision,
-    cfeProv, fraisLisse, charged,
+    cfeProv, fraisLisse, fraisLisseRec, fraisLisseProv, fraisLissePonct, charged,
     net, netPrudent, netLisse,
     tvaDeductible: assujetti ? tvaDeductible : 0,
     tvaAreverser,
@@ -1119,6 +1128,8 @@ const FREQ_META = {
 const SEG_COLORS = { urssaf: "#80c8c0", tva: "#5cb7b0", decaisse: "#d4d6cf", achat: "#c2c4bb", provision: "#e6e8e0", cfe: "#9aa39c", net: "#ECFF8C" };
 // le camembert reprend exactement la même palette (plus de teintes séparées)
 const DONUT_COLORS = SEG_COLORS;
+// palette unifiée des flux du tableau de bord : barre "où part mon argent" + bloc "à mettre de côté"
+const FLOW_COLORS = { net: "#ECFF8C", urssaf: "#80c8c0", tva: "#ffffff", recurrent: "#d4d6cf", provision: "#e6e8e0", ponctuel: "#c2c4bb", cfe: "#9aa39c" };
 
 // couleurs du calendrier des paiements : une couleur unique par poste
 const PAY_COLORS = { urssaf: SEG_COLORS.urssaf, tva: "#ffffff", cfe: SEG_COLORS.cfe, frais: SEG_COLORS.decaisse };
@@ -1373,7 +1384,9 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const provUrssaf = s.totalCotis;
   const provTva    = s.tvaAreverser;
   const provCfe    = s.cfeProv;
-  const provFrais  = s.fraisLisse;
+  const provFraisRec   = s.fraisLisseRec;
+  const provFraisProv  = s.fraisLisseProv;
+  const provFraisPonct = s.fraisLissePonct;
   const charged    = s.charged;
 
   const [histScope,  setHistScope]  = React.useState("month");
@@ -1392,12 +1405,12 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const maxYearNet = Math.max(1, ...yearlyData.map(d => Math.abs(d.net)));
 
   const segsMonth = [
-    { key: "tva",      lab: "TVA collectée",      val: outTva },
-    { key: "urssaf",   lab: "Cotisations URSSAF", val: outUrssaf },
-    { key: "decaisse", lab: "Frais récurrents",   val: outFraisRec },
-    { key: "achat",    lab: "Achats ponctuels",   val: outAchats },
-    { key: "cfe",      lab: "CFE",                val: outCfe },
-    { key: "net",      lab: "Ce qui te reste",    val: Math.max(0, netCash) },
+    { key: "tva",      lab: "TVA reversée",       val: outTva,               color: FLOW_COLORS.tva },
+    { key: "urssaf",   lab: "Cotisations URSSAF", val: outUrssaf,            color: FLOW_COLORS.urssaf },
+    { key: "decaisse", lab: "Frais récurrents",   val: outFraisRec,          color: FLOW_COLORS.recurrent },
+    { key: "achat",    lab: "Achats ponctuels",   val: outAchats,            color: FLOW_COLORS.ponctuel },
+    { key: "cfe",      lab: "CFE",                val: outCfe,               color: FLOW_COLORS.cfe },
+    { key: "net",      lab: "Ce qui te reste",    val: Math.max(0, netCash), color: FLOW_COLORS.net },
   ].filter(x => x.val > 0.005);
 
   // valeurs réellement payées cumul jan → mIndex (même logique que le mode mois)
@@ -1494,7 +1507,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
               <div className="kpi-tip">
                 <div className="treso-cascade">
                   <div className="treso-row ca-row"><span className="lab">CA TTC encaissé</span><b className="pos">{eur0(ttc)}</b></div>
-                  {s.assujetti && outTva > 0 && <div className="treso-row"><span className="lab">− TVA {deMois(originLabel(tvaDec))}</span><b className="neg">−{eur0(outTva)}</b></div>}
+                  {s.assujetti && outTva > 0 && <div className="treso-row"><span className="lab">− TVA reversée ({originLabel(tvaDec)})</span><b className="neg">−{eur0(outTva)}</b></div>}
                   {outUrssaf > 0 && <div className="treso-row"><span className="lab">− URSSAF {deMois(originLabel(urssafDec))}</span><b className="neg">−{eur0(outUrssaf)}</b></div>}
                   {outFrais > 0 && <div className="treso-row"><span className="lab">− Frais {deMois(moisLabel(mIndex))}</span><b className="neg">−{eur0(outFrais)}</b></div>}
                   {outCfe > 0 && <div className="treso-row"><span className="lab">− CFE</span><b className="neg">−{eur0(outCfe)}</b></div>}
@@ -1519,9 +1532,11 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
               <div className="kpi-tip">
                 <div className="treso-cascade">
                   <div className="treso-row ca-row"><span className="lab">CA TTC encaissé</span><b className="pos">{eur0(ttc)}</b></div>
-                  {s.assujetti && provTva > 0 && <div className="treso-row"><span className="lab">− TVA {deMois(moisLabel(mIndex))}</span><b className="neg">−{eur0(provTva)}</b></div>}
+                  {s.assujetti && provTva > 0 && <div className="treso-row"><span className="lab">− TVA à reverser ({moisLabel(mIndex)})</span><b className="neg">−{eur0(provTva)}</b></div>}
                   {provUrssaf > 0 && <div className="treso-row"><span className="lab">− URSSAF {deMois(moisLabel(mIndex))}</span><b className="neg">−{eur0(provUrssaf)}</b></div>}
-                  {provFrais > 0 && <div className="treso-row"><span className="lab">− Frais {deMois(moisLabel(mIndex))}</span><b className="neg">−{eur0(provFrais)}</b></div>}
+                  {provFraisRec > 0 && <div className="treso-row"><span className="lab">− Frais récurrents</span><b className="neg">−{eur0(provFraisRec)}</b></div>}
+                  {provFraisProv > 0 && <div className="treso-row"><span className="lab">− Provisions</span><b className="neg">−{eur0(provFraisProv)}</b></div>}
+                  {provFraisPonct > 0 && <div className="treso-row"><span className="lab">− Achats ponctuels</span><b className="neg">−{eur0(provFraisPonct)}</b></div>}
                   {provCfe > 0 && <div className="treso-row"><span className="lab">− CFE (part du mois)</span><b className="neg">−{eur0(provCfe)}</b></div>}
                   <div className="treso-row net-row"><span className="lab">Résultat net</span><b className={s.netLisse >= 0 ? "pos" : "neg"}>{eur0(s.netLisse)}</b></div>
                 </div>
@@ -1560,29 +1575,41 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
             <div className="big">{eur0(charged)}</div>
             <div style={{ fontSize: 12, color: "var(--ink-faint)", marginBottom: 10, marginTop: -10 }}>Certaines charges sont payées en différé, il faut l'anticiper</div>
             <div style={{ display: "flex", height: 5, borderRadius: 999, overflow: "hidden", marginBottom: 14, background: "var(--line)" }}>
-              {provUrssaf > 0 && <div style={{ flex: provUrssaf, background: DONUT_COLORS.urssaf }} />}
-              {s.assujetti && provTva > 0 && <div style={{ flex: provTva, background: DONUT_COLORS.tva }} />}
-              {provFrais > 0 && <div style={{ flex: provFrais, background: DONUT_COLORS.decaisse }} />}
-              {provCfe > 0 && <div style={{ flex: provCfe, background: DONUT_COLORS.cfe }} />}
+              {provUrssaf > 0 && <div style={{ flex: provUrssaf, background: FLOW_COLORS.urssaf }} />}
+              {s.assujetti && provTva > 0 && <div style={{ flex: provTva, background: FLOW_COLORS.tva, boxShadow: "inset 0 0 0 1px var(--line-2)" }} />}
+              {provFraisRec > 0 && <div style={{ flex: provFraisRec, background: FLOW_COLORS.recurrent }} />}
+              {provFraisProv > 0 && <div style={{ flex: provFraisProv, background: FLOW_COLORS.provision }} />}
+              {provFraisPonct > 0 && <div style={{ flex: provFraisPonct, background: FLOW_COLORS.ponctuel }} />}
+              {provCfe > 0 && <div style={{ flex: provCfe, background: FLOW_COLORS.cfe }} />}
             </div>
             <div className="prov-detail">
               {provUrssaf > 0 && <div className="prov-pi">
-                <span className="swatch" style={{ background: DONUT_COLORS.urssaf }}></span>
+                <span className="swatch" style={{ background: FLOW_COLORS.urssaf }}></span>
                 <span>URSSAF {deMois(moisLabel(mIndex))} <em style={{ fontSize: 11, color: "var(--ink-faint)", fontStyle: "normal" }}>prélevé le {urssafJour} {dueLabel(urssafDec)}</em></span>
                 <b>{eur0(provUrssaf)}</b>
               </div>}
               {s.assujetti && provTva > 0 && <div className="prov-pi">
-                <span className="swatch" style={{ background: DONUT_COLORS.tva }}></span>
+                <span className="swatch" style={{ background: FLOW_COLORS.tva, boxShadow: "inset 0 0 0 1px var(--line-2)" }}></span>
                 <span>TVA {deMois(moisLabel(mIndex))} <em style={{ fontSize: 11, color: "var(--ink-faint)", fontStyle: "normal" }}>prélevée le {tvaJour} {dueLabel(tvaDec)}</em></span>
                 <b>{eur0(provTva)}</b>
               </div>}
-              {provFrais > 0 && <div className="prov-pi">
-                <span className="swatch" style={{ background: DONUT_COLORS.decaisse }}></span>
-                <span>Charges récurrentes</span>
-                <b>{eur0(provFrais)}</b>
+              {provFraisRec > 0 && <div className="prov-pi">
+                <span className="swatch" style={{ background: FLOW_COLORS.recurrent }}></span>
+                <span>Frais récurrents</span>
+                <b>{eur0(provFraisRec)}</b>
+              </div>}
+              {provFraisProv > 0 && <div className="prov-pi">
+                <span className="swatch" style={{ background: FLOW_COLORS.provision }}></span>
+                <span>Provisions</span>
+                <b>{eur0(provFraisProv)}</b>
+              </div>}
+              {provFraisPonct > 0 && <div className="prov-pi">
+                <span className="swatch" style={{ background: FLOW_COLORS.ponctuel }}></span>
+                <span>Achats ponctuels</span>
+                <b>{eur0(provFraisPonct)}</b>
               </div>}
               {provCfe > 0 && <div className="prov-pi">
-                <span className="swatch" style={{ background: DONUT_COLORS.cfe }}></span>
+                <span className="swatch" style={{ background: FLOW_COLORS.cfe }}></span>
                 <span>CFE</span>
                 <b>{eur0(provCfe)}</b>
               </div>}
@@ -1899,7 +1926,6 @@ function InvoiceModal({ initial, profile, urssafHistory = {}, tvaConfig, onSave,
 
 function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSaveInv, onRemoveInv, onMarkPaid, urssafHistory = {}, tvaConfig }) {
   const s = computeMonth({ facturesByMonth, charges, profile, mIndex, urssafHistory });
-  const ttc = s.caTTC;
   const allClients = [...new Set(Object.values(facturesByMonth || {}).flat().map(f => f.client).filter(Boolean))].sort();
   // En attente : toutes les factures non payées, quel que soit le mois d'émission
   // (indépendant du mois sélectionné). Triées par date d'émission.
@@ -1923,16 +1949,30 @@ function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSa
       <datalist id="mef-clients">{allClients.map(c => <option key={c} value={c} />)}</datalist>
       {(encaissees.length > 0 || attenteMontant > 0) &&
       <div className="card" style={{ marginBottom: 14 }}>
-        <div className="card-h"><h2>Synthèse du mois</h2></div>
+        <div className="card-h"><h2>Synthèse du mois — encaissé en {MONTHS[mIndex].toLowerCase()}</h2></div>
         <div className="card-b">
-          <div className="listline" style={{ borderBottom: attenteMontant > 0 ? undefined : "none" }}>
-            <span className="lab" style={{ fontWeight: 600 }}>{s.assujetti ? "TTC encaissé" : "CA encaissé"}</span>
-            <b style={{ fontSize: 18 }}>{eur(ttc)}</b>
-          </div>
+          {encaissees.length > 0 &&
+          <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <div className="lab" style={{ fontSize: 12.5, color: "var(--faint)", marginBottom: 4 }}>CA encaissé</div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>{eur(s.caHT)}{s.assujetti && <span style={{ fontSize: 13, fontWeight: 500, color: "var(--faint)" }}> HT</span>}</div>
+              {s.assujetti && <div style={{ fontSize: 12.5, color: "var(--faint)" }}>{eur(s.caTTC)} TTC</div>}
+            </div>
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <div className="lab" style={{ fontSize: 12.5, color: "var(--faint)", marginBottom: 4 }}>URSSAF estimé</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: "var(--prov)" }}>−{eur(s.totalCotis)}</div>
+              <div style={{ fontSize: 12.5, color: "var(--faint)" }}>sur ce CA</div>
+            </div>
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <div className="lab" style={{ fontSize: 12.5, color: "var(--faint)", marginBottom: 4 }}>Net estimé</div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>{eur(s.caHT - s.totalCotis)}</div>
+              <div style={{ fontSize: 12.5, color: "var(--faint)" }}>après cotisations URSSAF</div>
+            </div>
+          </div>}
           {attenteMontant > 0 &&
-          <div className="listline" style={{ borderBottom: "none" }}>
+          <div className="listline" style={{ borderBottom: "none", marginTop: encaissees.length > 0 ? 14 : 0, paddingTop: encaissees.length > 0 ? 12 : 0, borderTop: encaissees.length > 0 ? "1px solid var(--line)" : "none" }}>
             <span className="lab" style={{ color: "var(--prov)" }}>En attente de paiement</span>
-            <b style={{ color: "var(--prov)" }}>{eur(attenteMontant)}</b>
+            <b style={{ color: "var(--prov)" }}>{eur(attenteMontant)} · {att.n} facture{att.n !== 1 ? "s" : ""}</b>
           </div>}
         </div>
       </div>
