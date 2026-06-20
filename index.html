@@ -119,9 +119,13 @@ input,select{font-family:inherit;font-size:14px;color:var(--ink);}
 .monthnav .mbtn:disabled{opacity:.4;cursor:not-allowed;}
 .monthnav .mbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;}
 .monthnav .mlabel{
-  min-width:188px;text-align:center;font-weight:600;font-size:16px;letter-spacing:-.2px;font-family:var(--font-title);
+  min-width:120px;text-align:center;font-weight:600;font-size:16px;letter-spacing:-.2px;font-family:var(--font-title);
   background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-inner);padding:8px 16px;box-shadow:var(--shadow);
 }
+.monthnav .yearnav{display:flex;align-items:center;gap:6px;margin-left:8px;padding-left:12px;border-left:1px solid var(--line);}
+.monthnav .yearsel{font-family:var(--font-title);font-weight:700;font-size:15px;color:var(--ink);background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r-inner);padding:8px 10px;box-shadow:var(--shadow);cursor:pointer;}
+.monthnav .yearsel:hover{border-color:var(--accent);}
 .monthnav .today{margin-left:6px;font-size:12px;color:var(--ink-soft);font-weight:600;cursor:pointer;
   border:1px solid var(--line);background:var(--card);border-radius:var(--r-inner);padding:8px 12px;box-shadow:var(--shadow);
   transition:background .16s ease,border-color .16s ease,color .16s ease;}
@@ -516,10 +520,6 @@ select.cell-in{appearance:none;cursor:pointer;
 .acc-h .car svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
 .acc-h .car.open{transform:rotate(90deg);}
 .acc-b{padding:2px 16px 14px;}
-.totalbar{display:flex;justify-content:space-between;align-items:center;background:var(--prov-soft);
-  border:1px solid #ecd9ab;border-radius:11px;padding:15px 18px;margin-top:14px;}
-.totalbar .lab{font-weight:700;font-size:15px;}
-.totalbar .val{font-weight:800;font-size:21px;color:var(--prov);}
 
 @media(max-width:720px){
   .hero-grid,.chart-grid,.kpi-grid{grid-template-columns:1fr;}
@@ -770,10 +770,10 @@ const TVA_RATES = [
 
 const MONTHS = ["Janvier","Février","Mars","Avril","Mai","Juin",
   "Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
-const YEAR = 2026;
+const REAL_YEAR = new Date().getFullYear();                   // année réelle (aujourd'hui)
 
 const pad2 = (n) => String(n + 1).padStart(2, "0");           // month index -> "01".."12"
-const monthKey = (m) => `${YEAR}-${pad2(m)}`;                  // -> "2026-04"
+const monthKey = (year, m) => `${year}-${pad2(m)}`;           // (2026, 3) -> "2026-04"
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 const eur = (n) =>
@@ -798,13 +798,13 @@ const save = (key, val) => {
 // impact d'une charge sur le mois affiché (mIndex 0..11)
 // charge.jour = jour de prélèvement (1..28) ; charge.date = "à partir du" (début)
 // retourne { decaisse, provision, dueDay, dueMonth, active }
-// "aujourd'hui" ancré dans l'année de l'appli (YEAR), avec le mois/jour réels.
-// Évite que la logique casse si l'horloge système n'est pas dans YEAR.
+// "aujourd'hui" = date réelle. Sert aux échéances et au surlignage du jour,
+// indépendamment de l'année affichée par l'utilisateur.
 function appToday() {
   const d = new Date();
-  return new Date(YEAR, d.getMonth(), d.getDate());
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
-const TODAY = `${YEAR}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`;
+const TODAY = `${REAL_YEAR}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`;
 
 function tariffAt(charge, dateStr) {
   const hist = (charge.tarifsHistory || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
@@ -813,8 +813,8 @@ function tariffAt(charge, dateStr) {
   return applicable.length > 0 ? num(applicable[applicable.length - 1].montant) : num(hist[0].montant);
 }
 
-function tariffForMonth(charge, mIndex) {
-  return tariffAt(charge, `${YEAR}-${pad2(mIndex)}-31`);
+function tariffForMonth(charge, mIndex, year) {
+  return tariffAt(charge, `${year}-${pad2(mIndex)}-31`);
 }
 
 function rateAt(cat, dateStr, history) {
@@ -826,7 +826,7 @@ function rateAt(cat, dateStr, history) {
 
 function nextDebitDate(charge) {
   const today = appToday();
-  const startDate = new Date(charge.date || `${YEAR}-01-01`);
+  const startDate = new Date(charge.date || `${REAL_YEAR}-01-01`);
   const day = startDate.getDate();
   let c;
   if (charge.frequence === "mensuelle") {
@@ -842,15 +842,16 @@ function nextDebitDate(charge) {
   return c;
 }
 
-function chargeImpact(charge, mIndex) {
-  const montant = tariffForMonth(charge, mIndex);
+function chargeImpact(charge, mIndex, year) {
+  const montant = tariffForMonth(charge, mIndex, year);
   const d = charge.date || "";                          // date de début ("à partir du")
   const startMonth = d ? (parseInt(d.slice(5, 7), 10) - 1) : 0;
+  const startYear = d ? parseInt(d.slice(0, 4), 10) : year;
   const jour = d ? d.slice(8, 10) : (charge.jour ? String(charge.jour).padStart(2, "0") : "01");
   const out = { decaisse: 0, provision: 0, dueDay: jour, dueMonth: mIndex, active: true };
 
-  // pas encore commencé ce mois-ci
-  if (d && mIndex < startMonth) { out.active = false; return out; }
+  // pas encore commencé : période affichée (année-mois) antérieure au début de la charge
+  if (d && (year < startYear || (year === startYear && mIndex < startMonth))) { out.active = false; return out; }
 
   if (charge.frequence === "mensuelle") {
     out.decaisse = montant;                             // prélevé chaque mois, le `jour`
@@ -860,7 +861,7 @@ function chargeImpact(charge, mIndex) {
     if (isDebit) { out.decaisse = montant; out.dueMonth = mIndex; }
     else { out.provision = montant / 3; out.dueMonth = startMonth + (Math.floor((mIndex - startMonth) / 3) + 1) * 3; }
   } else if (charge.frequence === "ponctuelle") {
-    if (mIndex !== startMonth) { out.active = false; return out; }
+    if (!(year === startYear && mIndex === startMonth)) { out.active = false; return out; }
     out.decaisse = montant; out.dueMonth = startMonth;
   } else { // annuelle
     if (mIndex === startMonth) { out.decaisse = montant; out.dueMonth = startMonth; }
@@ -872,8 +873,8 @@ function chargeImpact(charge, mIndex) {
 // coût "lissé" d'une charge pour le mois affiché : sa part mensuelle, quelle que soit
 // la date du prélèvement réel. Mensuel = montant, trimestriel = /3, annuel = /12,
 // ponctuel = montant le mois concerné. Sert à la vue "rentabilité" (pas de double comptage).
-function chargeLisse(charge, mIndex) {
-  const montant = tariffForMonth(charge, mIndex);
+function chargeLisse(charge, mIndex, year) {
+  const montant = tariffForMonth(charge, mIndex, year);
   const d = charge.date || "";
   const startMonth = d ? (parseInt(d.slice(5, 7), 10) - 1) : 0;
   if (d && mIndex < startMonth) return 0;             // pas encore commencé
@@ -892,8 +893,8 @@ function isPaid(f) { return f.statut !== "attente"; }
 // d'émission (rétrocompat : une facture payée sans datePaiement reste rattachée à son mois d'émission).
 function moisEncaissement(f) { return (f.datePaiement || f.date || "").slice(0, 7); }
 // factures réellement encaissées dans le mois mIndex (peu importe leur mois d'émission).
-function facturesEncaissees(facturesByMonth, mIndex) {
-  const target = `${YEAR}-${pad2(mIndex)}`, out = [];
+function facturesEncaissees(facturesByMonth, mIndex, year) {
+  const target = `${year}-${pad2(mIndex)}`, out = [];
   Object.values(facturesByMonth || {}).forEach((list) =>
     (list || []).forEach((f) => { if (isPaid(f) && moisEncaissement(f) === target) out.push(f); }));
   return out;
@@ -920,13 +921,13 @@ function factureTotals(f, profile, urssafHistory = {}) {
 }
 
 // calcule tout le résumé d'un mois
-function computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel = 0, urssafHistory = {} }) {
+function computeMonth({ facturesByMonth, charges, profile, mIndex, year, cfeAnnuel = 0, urssafHistory = {} }) {
   const assujetti = !!profile.tva;
   const lib = !!profile.liberatoire;
-  const monthDateStr = `${YEAR}-${pad2(mIndex)}-01`;
+  const monthDateStr = `${year}-${pad2(mIndex)}-01`;
 
   // --- CA & TVA : factures réellement ENCAISSÉES ce mois (par date de paiement, pas d'émission) ---
-  const factures = facturesEncaissees(facturesByMonth, mIndex);
+  const factures = facturesEncaissees(facturesByMonth, mIndex, year);
   let caHT = 0, tvaCollectee = 0;
   const byCat = {};                                 // cat -> base HT
   factures.forEach((f) => {
@@ -957,7 +958,7 @@ function computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel = 0
   const decaisseLines = [], provisionLines = [];
   let totalDecaisse = 0, totalProvision = 0, tvaDeductible = 0;
   charges.forEach((ch) => {
-    const imp = chargeImpact(ch, mIndex);
+    const imp = chargeImpact(ch, mIndex, year);
     if (imp.decaisse > 0) {
       decaisseLines.push({ ...ch, montantCalc: imp.decaisse });
       totalDecaisse += imp.decaisse;
@@ -978,7 +979,7 @@ function computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel = 0
   const tvaAreverser = assujetti ? Math.max(0, tvaCollectee - tvaDeductible) : 0;
   let fraisLisseRec = 0, fraisLisseProv = 0, fraisLissePonct = 0;
   charges.forEach((ch) => {
-    const l = chargeLisse(ch, mIndex);
+    const l = chargeLisse(ch, mIndex, year);
     if (l <= 0) return;
     if (ch.frequence === "trimestrielle" || ch.frequence === "annuelle") fraisLisseProv += l;   // provisions (part lissée)
     else if (ch.frequence === "ponctuelle") fraisLissePonct += l;                                // achat ponctuel du mois
@@ -1001,10 +1002,10 @@ function computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel = 0
 }
 
 // net (après URSSAF & charges décaissées) pour chaque mois de l'année — pour le graphe + synthèse
-function computeYear({ facturesByMonth, charges, profile, cfeAnnuel = 0, urssafHistory = {} }) {
+function computeYear({ facturesByMonth, charges, profile, year, cfeAnnuel = 0, urssafHistory = {} }) {
   const out = [];
   for (let i = 0; i < 12; i++) {
-    const s = computeMonth({ facturesByMonth, charges, profile, mIndex: i, cfeAnnuel, urssafHistory });
+    const s = computeMonth({ facturesByMonth, charges, profile, mIndex: i, year, cfeAnnuel, urssafHistory });
     out.push({
       net: s.net, netPrudent: s.netPrudent, netLisse: s.netLisse, caHT: s.caHT, caTTC: s.caTTC,
       tva: s.tvaAreverser, cotis: s.totalCotis,
@@ -1017,11 +1018,11 @@ function computeYear({ facturesByMonth, charges, profile, cfeAnnuel = 0, urssafH
 }
 
 // totaux cumulés sur l'année (jusqu'au mois inclus) + référence N-1
-function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth, prevYear, cfeAnnuel = 0, urssafHistory = {} }) {
-  const year = computeYear({ facturesByMonth, charges, profile, cfeAnnuel, urssafHistory });
+function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth, prevYear, year, cfeAnnuel = 0, urssafHistory = {} }) {
+  const yearData = computeYear({ facturesByMonth, charges, profile, year, cfeAnnuel, urssafHistory });
   const upto = uptoMonth == null ? 11 : uptoMonth;
   const acc = { caTTC: 0, caHT: 0, tva: 0, cotis: 0, decaisse: 0, provision: 0, fraisLisse: 0, cfe: 0, net: 0, netPrudent: 0, netLisse: 0, nbFactures: 0, lastActive: -1 };
-  year.forEach((y, i) => {
+  yearData.forEach((y, i) => {
     if (i > upto) return;
     acc.caTTC += y.caTTC; acc.caHT += y.caHT; acc.tva += y.tva; acc.cotis += y.cotis;
     acc.decaisse += y.decaisse; acc.provision += y.provision; acc.fraisLisse += y.fraisLisse; acc.cfe += y.cfe;
@@ -1052,8 +1053,8 @@ function totalFacturesEnAttente(facturesByMonth, profile, urssafHistory = {}) {
 // occurrences de prévisions tombant dans le mois mIndex de l'année courante.
 // ponctuelle : si dateAttendue est dans le mois. mensuelle : une occurrence par mois entre
 // le début (dateAttendue) et finRecurrence (ou fin d'année), en excluant les mois déjà encaissés.
-function expandPrevisions(previsions, mIndex) {
-  const monthStr = `${YEAR}-${pad2(mIndex)}`;
+function expandPrevisions(previsions, mIndex, year) {
+  const monthStr = `${year}-${pad2(mIndex)}`;
   const items = [];
   (previsions || []).forEach((p) => {
     if (!p.dateAttendue) return;
@@ -1062,7 +1063,7 @@ function expandPrevisions(previsions, mIndex) {
     if (done) return;
     let hit = false;
     if (p.recurrence === "mensuelle") {
-      const endYM = p.finRecurrence ? p.finRecurrence.slice(0, 7) : `${YEAR}-12`;
+      const endYM = p.finRecurrence ? p.finRecurrence.slice(0, 7) : `${year}-12`;
       hit = startYM <= monthStr && monthStr <= endYM;
     } else {
       hit = startYM === monthStr;
@@ -1073,8 +1074,11 @@ function expandPrevisions(previsions, mIndex) {
   return { items, total };
 }
 
+const YearCtx = React.createContext(REAL_YEAR);
+const useYear = () => React.useContext(YearCtx);
+
 window.MEF = {
-  RATES, CATS, TVA_RATES, MONTHS, YEAR,
+  RATES, CATS, TVA_RATES, MONTHS, REAL_YEAR, YearCtx, useYear,
   pad2, monthKey, uid, eur, eur0, pct, num,
   load, save, appToday, TODAY, tariffAt, tariffForMonth, rateAt, nextDebitDate, chargeImpact, chargeLisse, computeMonth, computeYear, computeYearSummary,
   linesOf, factureTotals, isPaid, moisEncaissement, totalFacturesEnAttente, expandPrevisions,
@@ -1086,7 +1090,7 @@ window.MEF = {
 /* ============================================================
    tabs.jsx — Dashboard, Factures (multi-lignes), Frais, Charges & provisions
    ============================================================ */
-const { RATES, CATS, TVA_RATES, MONTHS, YEAR, eur, eur0, pct, num, uid, pad2,
+const { RATES, CATS, TVA_RATES, MONTHS, REAL_YEAR, useYear, eur, eur0, pct, num, uid, pad2,
   appToday, TODAY, tariffAt, tariffForMonth, rateAt, nextDebitDate, chargeImpact, computeMonth, computeYear, computeYearSummary, linesOf, factureTotals,
   isPaid, moisEncaissement, totalFacturesEnAttente, expandPrevisions } = window.MEF;
 
@@ -1146,7 +1150,8 @@ const PAY_LEGEND = [
 
 /* Mini-calendrier des prélèvements : fenêtre autour d'aujourd'hui, points par type, clic = détail */
 function MiniDashCalendar({ mIndex, charges, profile, cfeAnnuel = 0, facturesByMonth, urssafHistory = {} }) {
-  const { byDay } = allPaymentsForMonth(mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory);
+  const YEAR = useYear();
+  const { byDay } = allPaymentsForMonth(mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory, YEAR);
   const daysInMonth = new Date(YEAR, mIndex + 1, 0).getDate();
   const now = new Date();
   const isThisMonth = now.getFullYear() === YEAR && now.getMonth() === mIndex;
@@ -1225,30 +1230,6 @@ function MiniDashCalendar({ mIndex, charges, profile, cfeAnnuel = 0, facturesByM
   );
 }
 
-function YearBars({ bars, max, smallAxis }) {
-  const [hot, setHot] = React.useState(null);
-  return (
-    <div className={"bars2" + (hot !== null ? " faded" : "")}>
-      {bars.map((b, i) => {
-        const h = Math.max(3, (Math.abs(b.value) / max) * 86);
-        return (
-          <div className={"bcol" + (i === hot ? " hot" : "")} key={i}
-            onMouseEnter={() => setHot(i)} onMouseLeave={() => setHot(null)}>
-            <div className={"bar" + (b.current ? " on" : "") + (b.value < 0 ? " neg" : "")} style={{ height: h + "px" }}>
-              {i === hot &&
-                <div className="ytip">
-                  <span className="ytip-lbl">{b.tip}</span>
-                  <span className="num ytip-val">{b.value < 0 ? "−" : ""}{eur0(Math.abs(b.value))}</span>
-                </div>}
-            </div>
-            <span className={"ml" + (b.current ? " on" : "")} style={smallAxis ? { fontSize: 9.5 } : undefined}>{b.axis}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 const SHORT_MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
 
 function AnnualBars({ months, max, cats, totalLabel = "HT" }) {
@@ -1271,21 +1252,25 @@ function AnnualBars({ months, max, cats, totalLabel = "HT" }) {
                     <span className="annual-tip-ht">{eur0(m.total)} <span className="annual-tip-ht-lbl">{totalLabel}</span></span>
                   </div>
                   <div className="annual-tip-rows">
-                    {cats.map((c) =>
-                      <div className="annual-tip-row" key={c.key}>
-                        <span><i className="bk" style={{ background: c.color }}></i>{c.lbl}</span>
-                        <span className="num">{eur0(m[c.key])}</span>
-                      </div>
-                    )}
+                    {m.plain
+                      ? <div className="annual-tip-row"><span style={{ color: "var(--faint)" }}>Détail non disponible (totaux saisis)</span></div>
+                      : cats.map((c) =>
+                        <div className="annual-tip-row" key={c.key}>
+                          <span><i className="bk" style={{ background: c.color }}></i>{c.lbl}</span>
+                          <span className="num">{eur0(m[c.key])}</span>
+                        </div>
+                      )}
                   </div>
                 </div>}
               <div className={"abar" + (m.future ? " abar--future" : "")} data-hot={hot === i ? "" : undefined}>
                 {m.future
                   ? <div className="aseg" style={{ height: 12 }}></div>
-                  : cats.map((c) => {
-                      const h = (m[c.key] / max) * INNER;
-                      return h > 0.8 ? <div key={c.key} className="aseg" style={{ height: h, background: c.color, boxShadow: c.outline ? "inset 0 0 0 1.5px var(--line)" : undefined }}></div> : null;
-                    })}
+                  : m.plain
+                    ? <div className="aseg" style={{ height: (m.total / max) * INNER, background: "var(--seg-frais)", opacity: .55 }}></div>
+                    : cats.map((c) => {
+                        const h = (m[c.key] / max) * INNER;
+                        return h > 0.8 ? <div key={c.key} className="aseg" style={{ height: h, background: c.color, boxShadow: c.outline ? "inset 0 0 0 1.5px var(--line)" : undefined }}></div> : null;
+                      })}
               </div>
               <span className="annual-x">{m.label}</span>
             </div>
@@ -1301,13 +1286,13 @@ function AnnualBars({ months, max, cats, totalLabel = "HT" }) {
 
 function SpendBar({ segs, total, ttc, signed = true, pctLabel = "du TTC" }) {
   const [hover, setHover] = React.useState(null);
+  const wrapRef = React.useRef(null);
+  const [tip, setTip] = React.useState(null);
   if (!segs.length) return <div className="empty">Aucune donnée pour cette période.</div>;
   const COLOR = { net: "var(--seg-poche)", urssaf: "var(--seg-urssaf)", tva: "var(--seg-tva)", decaisse: "var(--seg-frais)", achat: "var(--seg-frais)", cfe: "var(--seg-frais)", provision: "var(--seg-frais)" };
   const col = (k) => COLOR[k] || "var(--seg-frais)";
   const pctOf = (v) => Math.round((v / total) * 100);
   const tipText = (x) => `${x.lab} · ${eur0(x.val)} · ${pctOf(x.val)} % ${pctLabel}`;
-  const wrapRef = React.useRef(null);
-  const [tip, setTip] = React.useState(null);
   const show = (x, e) => {
     setHover(x.key);
     const w = wrapRef.current; if (!w) return;
@@ -1339,9 +1324,10 @@ function SpendBar({ segs, total, ttc, signed = true, pctLabel = "du TTC" }) {
   );
 }
 
-function DashboardTab({ facturesByMonth, factures, previsions = [], charges, profile, mIndex, cfeAnnuel = 0, cfeValide = false, urssafHistory = {}, onGoTo }) {
-  const s = computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel, urssafHistory });
-  const year = computeYear({ facturesByMonth, charges, profile, cfeAnnuel, urssafHistory });
+function DashboardTab({ facturesByMonth, factures, previsions = [], charges, profile, mIndex, cfeAnnuel = 0, cfeValide = false, cfeData = {}, urssafHistory = {}, onGoTo }) {
+  const YEAR = useYear();
+  const s = computeMonth({ facturesByMonth, charges, profile, mIndex, year: YEAR, cfeAnnuel, urssafHistory });
+  const year = computeYear({ facturesByMonth, charges, profile, year: YEAR, cfeAnnuel, urssafHistory });
 
   const ttc = s.caTTC; // CA encaissé ce mois (TTC), point de départ commun
 
@@ -1349,11 +1335,16 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const attenteTotal = totalFacturesEnAttente(facturesByMonth, profile, urssafHistory);
   const attenteS = attenteTotal.n !== 1 ? "s" : "";  // accord singulier/pluriel
   const nextIdx = mIndex + 1;
-  const prevNext = nextIdx <= 11 ? expandPrevisions(previsions, nextIdx) : { items: [], total: 0 };
+  const prevNext = nextIdx <= 11 ? expandPrevisions(previsions, nextIdx, YEAR) : { items: [], total: 0 };
 
   // ---- décalages de prélèvement (réglés dans le profil) ----
   const urssafDec = (profile.urssafDecalage === undefined || profile.urssafDecalage === "") ? 2 : num(profile.urssafDecalage);
   const tvaDec    = (profile.tvaDecalage   === undefined || profile.tvaDecalage   === "") ? 1 : num(profile.tvaDecalage);
+  // accès aux cotisations / TVA d'un mois, en franchissant la frontière d'année :
+  // ex. l'URSSAF prélevée en janvier provient de novembre de l'année précédente.
+  const prevYearMonths = computeYear({ facturesByMonth, charges, profile, year: YEAR - 1, urssafHistory });
+  const cotisAt = (i) => { const mm = i >= 0 ? year[i] : prevYearMonths[12 + i]; return mm ? mm.cotis : 0; };
+  const tvaAt   = (i) => { const mm = i >= 0 ? year[i] : prevYearMonths[12 + i]; return mm ? mm.tva   : 0; };
   const urssafJour = profile.urssafJour || 5;
   const tvaJour    = profile.tvaJour || 15;
   const moisLabel   = (idx) => MONTHS[((idx % 12) + 12) % 12].toLowerCase();
@@ -1364,8 +1355,9 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   // ===== NOTION 1 — TRÉSORERIE : ce qui sort vraiment du compte ce mois =====
   const pastMonth = (off) => {
     const i = mIndex - off;
-    if (i < 0) return null; // activité de l'année précédente, non disponible
-    return computeMonth({ facturesByMonth, charges, profile, mIndex: i, cfeAnnuel, urssafHistory });
+    const yr = i >= 0 ? YEAR : YEAR - 1;          // franchit la frontière d'année
+    const mi = ((i % 12) + 12) % 12;
+    return computeMonth({ facturesByMonth, charges, profile, mIndex: mi, year: yr, cfeAnnuel, urssafHistory });
   };
   const sUrssafPast = pastMonth(urssafDec);
   const sTvaPast    = pastMonth(tvaDec);
@@ -1394,15 +1386,9 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const [synthBase,  setSynthBase]  = React.useState("ttc"); // base HT / TTC, pilote graphe + détail de la synthèse
 
   // synthèse annuelle (cumul jusqu'au mois affiché)
-  const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex, prevYear: (profile.prevYears || {})[YEAR - 1], cfeAnnuel, urssafHistory });
+  const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex, year: YEAR, prevYear: (profile.prevYears || {})[YEAR - 1], cfeAnnuel, urssafHistory });
 
-  const yearlyData = [
-    ...Object.entries(profile.prevYears || {})
-      .filter(([, d]) => d && d.net)
-      .map(([y, d]) => ({ year: parseInt(y), net: num(d.net), isCurrent: false })),
-    { year: YEAR, net: ys.netLisse, isCurrent: true }
-  ].sort((a, b) => a.year - b.year);
-  const maxYearNet = Math.max(1, ...yearlyData.map(d => Math.abs(d.net)));
+  // (le graphe "Années" est construit plus bas, voir yearBarsData)
 
   const segsMonth = [
     { key: "tva",      lab: "TVA reversée",       val: outTva,               color: FLOW_COLORS.tva },
@@ -1416,10 +1402,8 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   // valeurs réellement payées cumul jan → mIndex (même logique que le mode mois)
   let yCumulUrssaf = 0, yCumulTva = 0, yCumulFrais = 0, yCumulCfe = 0;
   for (let i = 0; i <= mIndex; i++) {
-    const uSrc = i - urssafDec;
-    if (uSrc >= 0) yCumulUrssaf += year[uSrc].cotis;
-    const tSrc = i - tvaDec;
-    if (tSrc >= 0 && s.assujetti) yCumulTva += year[tSrc].tva;
+    yCumulUrssaf += cotisAt(i - urssafDec);
+    if (s.assujetti) yCumulTva += tvaAt(i - tvaDec);
     yCumulFrais += year[i].decaisse;
     if (i === 11) yCumulCfe += cfeAnnuel;
   }
@@ -1428,8 +1412,8 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
 
   // série trésorerie par mois (cash réellement entré − sorti chaque mois) pour les barres
   const tresoByMonth = year.map((y, i) => {
-    const u = (i - urssafDec >= 0) ? year[i - urssafDec].cotis : 0;
-    const t = (s.assujetti && i - tvaDec >= 0) ? year[i - tvaDec].tva : 0;
+    const u = cotisAt(i - urssafDec);
+    const t = s.assujetti ? tvaAt(i - tvaDec) : 0;
     return y.caTTC - u - t - y.decaisse - (i === 11 ? cfeAnnuel : 0);
   });
   // bascule trésorerie / réel pour la synthèse annuelle
@@ -1457,8 +1441,8 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const synthNet = synthIncome - (showTvaRow ? synthFig.tva : 0) - synthFig.urssaf - synthFig.frais - synthFig.cfe;
   const isTreso = synthMode === "treso";
   const monthBars = year.map((y, i) => {
-    const u  = isTreso ? ((i - urssafDec >= 0) ? year[i - urssafDec].cotis : 0) : y.cotis;
-    const tv = !assujetti ? 0 : (isTreso ? ((i - tvaDec >= 0) ? year[i - tvaDec].tva : 0) : y.tva);
+    const u  = isTreso ? cotisAt(i - urssafDec) : y.cotis;
+    const tv = !assujetti ? 0 : (isTreso ? tvaAt(i - tvaDec) : y.tva);
     const fr = isTreso ? (y.decaisse + (i === 11 ? cfeAnnuel : 0)) : (y.fraisLisse + cfeAnnuel / 12);
     const total = baseTTC ? y.caTTC : y.caHT;
     const tva = baseTTC ? tv : 0;
@@ -1471,6 +1455,46 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
     { key: "urssaf", lbl: "URSSAF",   color: "var(--seg-urssaf)" },
     ...(showTvaRow ? [{ key: "tva", lbl: "TVA", color: "var(--seg-tva)", outline: true }] : []),
   ];
+
+  // ===== Graphe "Années" : une barre de trésorerie par année (CA TTC/HT découpé) =====
+  // Année suivie dans l'app -> découpe calculée ; année seulement saisie à la main -> barre pleine.
+  const tresoYearAgg = (yr) => {
+    const cur = computeYear({ facturesByMonth, charges, profile, year: yr, urssafHistory });
+    const prv = computeYear({ facturesByMonth, charges, profile, year: yr - 1, urssafHistory });
+    const cotisOf = (i) => { const mm = i >= 0 ? cur[i] : prv[12 + i]; return mm ? mm.cotis : 0; };
+    const tvaOf   = (i) => { const mm = i >= 0 ? cur[i] : prv[12 + i]; return mm ? mm.tva : 0; };
+    let urssaf = 0, tva = 0, frais = 0, caTTC = 0, caHT = 0;
+    for (let i = 0; i < 12; i++) {
+      urssaf += cotisOf(i - urssafDec);
+      if (assujetti) tva += tvaOf(i - tvaDec);
+      frais += cur[i].decaisse;
+      caTTC += cur[i].caTTC;
+      caHT  += cur[i].caHT;
+    }
+    frais += num((cfeData[yr] || {}).montant) || 0;   // CFE de l'année (prélevée en décembre)
+    return { caTTC, caHT, urssaf, tva, frais };
+  };
+  const yearHasData = (yr) => Object.keys(facturesByMonth || {}).some((k) => k.startsWith(yr + "-"));
+  const yearsSet = new Set([YEAR]);
+  Object.keys(facturesByMonth || {}).forEach((k) => { const y = parseInt(k.slice(0, 4), 10); if (y) yearsSet.add(y); });
+  Object.entries(profile.prevYears || {}).forEach(([y, d]) => { if (d && num(d.caTTC) > 0) yearsSet.add(parseInt(y, 10)); });
+  const yearBarsData = [...yearsSet].filter((y) => y <= YEAR).sort((a, b) => a - b).map((yr) => {
+    if (yr === YEAR) {                                  // année en cours : cumul jan → mois affiché
+      const total = baseTTC ? ys.caTTC : ys.caHT;
+      const tva = baseTTC ? yCumulTva : 0;
+      const frais = yCumulFrais + yCumulCfe;
+      return { label: `${yr} *`, total, poche: Math.max(0, total - tva - yCumulUrssaf - frais), urssaf: yCumulUrssaf, tva, frais, future: false };
+    }
+    if (yearHasData(yr)) {                              // année complète suivie dans l'app
+      const a = tresoYearAgg(yr);
+      const total = baseTTC ? a.caTTC : a.caHT;
+      const tva = baseTTC ? a.tva : 0;
+      return { label: String(yr), total, poche: Math.max(0, total - tva - a.urssaf - a.frais), urssaf: a.urssaf, tva, frais: a.frais, future: false };
+    }
+    const d = (profile.prevYears || {})[yr] || {};     // année saisie à la main : barre pleine
+    return { label: String(yr), total: baseTTC ? num(d.caTTC) : num(d.caHT), poche: 0, urssaf: 0, tva: 0, frais: 0, plain: true, future: false };
+  });
+  const yearBarsMax = Math.max(1, ...yearBarsData.map((d) => d.total));
 
   // cartes héros : écart du revenu net vs mois précédent + part du résultat sur le CA HT
   const prevNetCash = mIndex > 0 ? tresoByMonth[mIndex - 1] : null;
@@ -1675,7 +1699,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
           <div className="synth-split">
             <div className="synth-graph">
               <div className="synth-graph-h">
-                <span className="cap">{histScope === "month" ? (baseTTC ? "CA TTC par mois" : "CA HT par mois") : `${synthFig.graphLabel} par année`}</span>
+                <span className="cap">{histScope === "month" ? (baseTTC ? "CA TTC par mois" : "CA HT par mois") : (baseTTC ? "CA TTC par année" : "CA HT par année")}</span>
                 <div className="viewseg sm ghost" style={{ marginLeft: "auto" }}>
                   <button className={histScope === "month" ? "on" : ""} onClick={() => setHistScope("month")}>Mois</button>
                   <button className={histScope === "year" ? "on" : ""} onClick={() => setHistScope("year")}>Années</button>
@@ -1683,12 +1707,12 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
               </div>
               {histScope === "month" ? (
                 <AnnualBars months={monthBars} max={monthMax} cats={monthCats} totalLabel={baseTTC ? "TTC" : "HT"} />
-              ) : yearlyData.length < 2 ? (
+              ) : yearBarsData.length < 2 ? (
                 <div className="empty" style={{ fontSize: 13 }}>
-                  Renseignez vos données N-1 dans les paramètres (icône engrenage) pour activer cette vue.
+                  Renseigne le CA d'une année précédente dans les paramètres (icône engrenage) pour comparer tes années.
                 </div>
               ) : (
-                <YearBars max={maxYearNet} smallAxis bars={yearlyData.map((yd) => ({ tip: `${yd.year}${yd.isCurrent ? " (en cours)" : ""}`, axis: `${yd.year}${yd.isCurrent ? "*" : ""}`, value: yd.net, current: yd.isCurrent }))} />
+                <AnnualBars months={yearBarsData} max={yearBarsMax} cats={monthCats} totalLabel={baseTTC ? "TTC" : "HT"} />
               )}
             </div>
             <div className="synth-figures">
@@ -1730,6 +1754,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
 /* ========================================================== */
 // Carte facture en lecture seule. Modification via le crayon (ouvre InvoiceModal).
 function InvoiceCard({ f, profile, mIndex, onEdit, onRemoveInv, onMarkPaid, urssafHistory = {} }) {
+  const YEAR = useYear();
   const assujetti = !!profile.tva;
   const t = factureTotals(f, profile, urssafHistory);
   const lines = linesOf(f);
@@ -1925,7 +1950,8 @@ function InvoiceModal({ initial, profile, urssafHistory = {}, tvaConfig, onSave,
 }
 
 function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSaveInv, onRemoveInv, onMarkPaid, urssafHistory = {}, tvaConfig }) {
-  const s = computeMonth({ facturesByMonth, charges, profile, mIndex, urssafHistory });
+  const YEAR = useYear();
+  const s = computeMonth({ facturesByMonth, charges, profile, mIndex, year: YEAR, urssafHistory });
   const allClients = [...new Set(Object.values(facturesByMonth || {}).flat().map(f => f.client).filter(Boolean))].sort();
   // En attente : toutes les factures non payées, quel que soit le mois d'émission
   // (indépendant du mois sélectionné). Triées par date d'émission.
@@ -2146,7 +2172,7 @@ function PrevisionnelTab({ previsions, facturesByMonth, profile, onAddPrevision,
 /* FRAIS — charges récurrentes (saisie)                       */
 /* ========================================================== */
 // tous les paiements d'un mois : charges + URSSAF + TVA + CFE, indexés par jour
-function allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory) {
+function allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory, year) {
   const assujetti = !!profile.tva;
   const urssafDec = (profile.urssafDecalage === undefined || profile.urssafDecalage === "") ? 2 : num(profile.urssafDecalage);
   const tvaDec    = (profile.tvaDecalage   === undefined || profile.tvaDecalage   === "") ? 1 : num(profile.tvaDecalage);
@@ -2159,7 +2185,7 @@ function allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, ur
 
   // 1. Charges (frais & achats)
   charges.forEach((ch) => {
-    const imp = chargeImpact(ch, m);
+    const imp = chargeImpact(ch, m, year);
     if (imp.decaisse > 0) {
       const day = parseInt(imp.dueDay, 10) || 1;
       add(day, { libelle: ch.libelle || "Sans libellé", montant: imp.decaisse,
@@ -2167,24 +2193,24 @@ function allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, ur
     }
   });
 
-  // 2. URSSAF (cotisations de m-urssafDec)
+  // 2. URSSAF (cotisations de m-urssafDec, éventuellement de l'année précédente)
   const uSrc = m - urssafDec;
-  if (uSrc >= 0) {
-    const s  = computeMonth({ facturesByMonth, charges, profile, mIndex: uSrc, cfeAnnuel, urssafHistory });
-    if (s.totalCotis > 0.005)
-      add(urssafJour, { libelle: `URSSAF (activité ${MONTHS[uSrc].toLowerCase()})`,
-                        montant: s.totalCotis, color: PAY_COLORS.urssaf, type: "urssaf" });
-  }
+  const uYr = uSrc >= 0 ? year : year - 1;
+  const uMi = ((uSrc % 12) + 12) % 12;
+  const sU  = computeMonth({ facturesByMonth, charges, profile, mIndex: uMi, year: uYr, cfeAnnuel, urssafHistory });
+  if (sU.totalCotis > 0.005)
+    add(urssafJour, { libelle: `URSSAF (activité ${MONTHS[uMi].toLowerCase()})`,
+                      montant: sU.totalCotis, color: PAY_COLORS.urssaf, type: "urssaf" });
 
-  // 3. TVA (tvaAreverser de m-tvaDec)
+  // 3. TVA (tvaAreverser de m-tvaDec, éventuellement de l'année précédente)
   if (assujetti) {
     const tSrc = m - tvaDec;
-    if (tSrc >= 0) {
-      const s  = computeMonth({ facturesByMonth, charges, profile, mIndex: tSrc, cfeAnnuel, urssafHistory });
-      if (s.tvaAreverser > 0.005)
-        add(tvaJour, { libelle: `TVA (activité ${MONTHS[tSrc].toLowerCase()})`,
-                       montant: s.tvaAreverser, color: PAY_COLORS.tva, type: "tva" });
-    }
+    const tYr = tSrc >= 0 ? year : year - 1;
+    const tMi = ((tSrc % 12) + 12) % 12;
+    const sT  = computeMonth({ facturesByMonth, charges, profile, mIndex: tMi, year: tYr, cfeAnnuel, urssafHistory });
+    if (sT.tvaAreverser > 0.005)
+      add(tvaJour, { libelle: `TVA (activité ${MONTHS[tMi].toLowerCase()})`,
+                     montant: sT.tvaAreverser, color: PAY_COLORS.tva, type: "tva" });
   }
 
   // 4. CFE (décembre uniquement)
@@ -2194,123 +2220,11 @@ function allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, ur
   return { byDay, total };
 }
 
-// chips décaissés (cash réellement débité) un mois donné, indexés par jour
-function debitsForMonth(charges, m) {
-  const byDay = {};
-  let total = 0;
-  charges.forEach((ch) => {
-    const imp = chargeImpact(ch, m);
-    if (imp.decaisse > 0) {
-      const day = parseInt(imp.dueDay, 10) || 1;
-      (byDay[day] = byDay[day] || []).push({
-        libelle: ch.libelle || "Sans libellé",
-        montant: imp.decaisse,
-        freq: ch.frequence || "mensuelle" });
-      total += imp.decaisse;
-    }
-  });
-  return { byDay, total };
-}
-
-function MonthCalendar({ charges, mIndex }) {
-  const daysInMonth = new Date(YEAR, mIndex + 1, 0).getDate();
-  const firstDow = (new Date(YEAR, mIndex, 1).getDay() + 6) % 7; // lundi en premier
-  const { byDay, total } = debitsForMonth(charges, mIndex);
-  let prov = 0;
-  charges.forEach((ch) => {const i = chargeImpact(ch, mIndex);if (i.provision > 0) prov += i.provision;});
-
-  const now = new Date();
-  const isThisMonth = now.getFullYear() === YEAR && now.getMonth() === mIndex;
-  const todayDate = now.getDate();
-
-  const cells = [];
-  for (let i = 0; i < firstDow; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-
-  return (
-    <div className="cal">
-      <div className="cal-dow">
-        {["lun", "mar", "mer", "jeu", "ven", "sam", "dim"].map((d) => <span key={d}>{d}</span>)}
-      </div>
-      <div className="cal-grid">
-        {cells.map((d, i) => {
-          if (d === null) return <div key={"e" + i} className="cal-cell empty" />;
-          const items = byDay[d] || [];
-          const today = isThisMonth && d === todayDate;
-          return (
-            <div key={d} className={"cal-cell" + (items.length ? " has" : "") + (today ? " today" : "")}>
-              <span className="cal-day">{d}</span>
-              <div className="cal-chips">
-                {items.map((it, k) =>
-                <div key={k} className="cal-chip" title={`${it.libelle} · ${FREQ_META[it.freq].label} · ${eur0(it.montant)}`}
-                style={{ background: FREQ_META[it.freq].color }}>
-                    <span className="lab">{it.libelle}</span>
-                    <b>{eur0(it.montant)}</b>
-                  </div>)}
-              </div>
-            </div>);
-        })}
-      </div>
-      <div className="cal-foot">
-        <div className="cal-legend">
-          {Object.entries(FREQ_META).map(([k, v]) =>
-          <span key={k}><i style={{ background: v.color }} />{v.label}</span>)}
-        </div>
-        <div className="cal-tot">
-          {prov > 0 && <span className="prov-note">+ {eur0(prov)} à provisionner</span>}
-          <span>Décaissé en {MONTHS[mIndex]} · <b>{eur0(total)}</b></span>
-        </div>
-      </div>
-    </div>);
-}
-
-function YearCalendar({ charges, mIndex }) {
-  const now = new Date();
-  const months = MONTHS.map((name, m) => {
-    const { byDay, total } = debitsForMonth(charges, m);
-    const items = [];
-    Object.keys(byDay).forEach((day) => byDay[day].forEach((it) => items.push({ ...it, day: parseInt(day, 10) })));
-    items.sort((a, b) => a.day - b.day);
-    return { name, m, total, items };
-  });
-  const yearTotal = months.reduce((s, x) => s + x.total, 0);
-  const maxTotal = Math.max(1, ...months.map((x) => x.total));
-
-  return (
-    <div className="cal">
-      <div className="cal-year">
-        {months.map((mo) =>
-        <div key={mo.m} className={"ym" + (mo.m === mIndex ? " cur" : "")}>
-            <div className="ym-h">
-              <span className="nm">{mo.name}</span>
-              <span className="tt">{mo.total > 0 ? eur0(mo.total) : "—"}</span>
-            </div>
-            <div className="ym-bar"><i style={{ width: mo.total / maxTotal * 100 + "%", background: "var(--primary)" }} /></div>
-            <div className="ym-list">
-              {mo.items.length === 0 && <span className="ym-empty">aucun prélèvement</span>}
-              {mo.items.map((it, k) =>
-            <div key={k} className="ym-it" title={FREQ_META[it.freq].label}>
-                  <span className="dd" style={{ background: FREQ_META[it.freq].color }}>{it.day}</span>
-                  <span className="ll">{it.libelle}</span>
-                  <span className="mm">{eur0(it.montant)}</span>
-                </div>)}
-            </div>
-          </div>)}
-      </div>
-      <div className="cal-foot">
-        <div className="cal-legend">
-          {Object.entries(FREQ_META).map(([k, v]) =>
-          <span key={k}><i style={{ background: v.color }} />{v.label}</span>)}
-        </div>
-        <div className="cal-tot"><span>Décaissé sur {YEAR} · <b>{eur0(yearTotal)}</b></span></div>
-      </div>
-    </div>);
-}
-
 // ---- Calendrier complet (charges + URSSAF + TVA + CFE) ----
 
 function FullMonthCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory }) {
-  const { byDay, total } = allPaymentsForMonth(mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory);
+  const YEAR = useYear();
+  const { byDay, total } = allPaymentsForMonth(mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory, YEAR);
   const present = new Set();
   Object.values(byDay).forEach(arr => arr.forEach(it => present.add(it.type === "charge" ? "frais" : it.type)));
   const daysInMonth = new Date(YEAR, mIndex + 1, 0).getDate();
@@ -2407,8 +2321,9 @@ function FullMonthCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMont
 }
 
 function FullYearCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory }) {
+  const YEAR = useYear();
   const months = MONTHS.map((name, m) => {
-    const { byDay, total } = allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory);
+    const { byDay, total } = allPaymentsForMonth(m, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory, YEAR);
     const items = [];
     Object.keys(byDay).forEach(day => byDay[day].forEach(it => items.push({ ...it, day: parseInt(day, 10) })));
     items.sort((a, b) => a.day - b.day);
@@ -2454,6 +2369,7 @@ function FullYearCalendar({ mIndex, charges, profile, cfeAnnuel, facturesByMonth
 }
 
 function CalendarTab({ mIndex, charges, profile, cfeAnnuel, facturesByMonth, urssafHistory }) {
+  const YEAR = useYear();
   const [scope, setScope] = React.useState("month");
   return (
     <div className="card">
@@ -2655,6 +2571,7 @@ function FraisModal({ categories, profile, tvaConfig, charge, onSave, onUpdate, 
 }
 
 function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpdate, onRemove, onAddTariff, onRemoveTariff, onAddCategory, onRemoveCategory, onMoveCategory, tvaConfig }) {
+  const YEAR = useYear();
   const activeTvaRates = tvaConfig || TVA_RATES;
   const [tarifsOpen, setTarifsOpen] = React.useState({});
   const [modal, setModal] = React.useState(null);
@@ -2669,10 +2586,17 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
   const FREQ_ORDER = ["mensuelle", "trimestrielle", "annuelle", "ponctuelle"];
 
   const renderRow = (ch) => {
-    const imp = chargeImpact(ch, mIndex);
+    const imp = chargeImpact(ch, mIndex, YEAR);
     const isPonctuel = ch.frequence === "ponctuelle";
     const hasFuture = (ch.tarifsHistory || []).some(t => t.from > TODAY);
     const nextLabel = isPonctuel ? "" : `prochain prélèvement le ${fmtDate(nextDebitDate(ch))}`;
+    // tarif en vigueur sur le mois affiché + infobulle d'historique des tarifs
+    const tarifMois = tariffForMonth(ch, mIndex, YEAR);
+    const histSorted = (ch.tarifsHistory || []).slice().sort((a, b) => a.from < b.from ? -1 : 1);
+    const histTip = histSorted.length
+      ? "Historique des tarifs\n" + histSorted.map(t => `depuis ${new Date(t.from + "T00:00:00").toLocaleDateString("fr-FR")} : ${eur(num(t.montant))}`).join("\n")
+      : `Tarif : ${eur(num(ch.montant))}`;
+    const startLabel = ch.date ? `${MONTHS[parseInt(ch.date.slice(5, 7), 10) - 1].toLowerCase()} ${ch.date.slice(0, 4)}` : "";
     return (
       <React.Fragment key={ch.id}>
         <tr style={imp.active ? null : { opacity: .55 }}>
@@ -2680,7 +2604,7 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
           <td><span className="badge cat" style={{ fontSize: 11 }}>{freqLabels[ch.frequence] || ch.frequence}</span></td>
           <td className="num">
             <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
-              <span className="prix-ttc" style={{ cursor: "default" }}>{eur(tariffAt(ch, TODAY))}{PERIODE[ch.frequence] && <span style={{ color: "var(--faint)", fontWeight: 400 }}>{PERIODE[ch.frequence]}</span>}</span>
+              <span className="prix-ttc" style={{ cursor: "help" }} title={histTip}>{eur(tarifMois)}{PERIODE[ch.frequence] && <span style={{ color: "var(--faint)", fontWeight: 400 }}>{PERIODE[ch.frequence]}</span>}</span>
               {!isPonctuel &&
                 <button className={"tariff-btn" + (tarifsOpen[ch.id] ? " on" : "") + (hasFuture ? " pending" : "")}
                   title={hasFuture ? "Changement de tarif à venir" : "Historique des tarifs et date de début"}
@@ -2688,7 +2612,7 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
             </div>
           </td>
           <td className="num">
-            {!imp.active ? <span className="badge cat">Pas encore actif</span>
+            {!imp.active ? <span className="ce-mois" style={{ color: "var(--faint)" }} title={startLabel ? `Pas encore actif · démarre en ${startLabel}` : "Pas encore actif"}>{eur0(0)}</span>
               : imp.decaisse > 0
                 ? <span className="ce-mois ce-mois--out" title={`prélevé le ${parseInt(imp.dueDay, 10)} ${MONTHS[mIndex].toLowerCase()}`}>{Icon.down}prélevé · {eur0(imp.decaisse)}</span>
                 : <span className="ce-mois prix-ttc--prov" title={nextLabel || "provision mise de côté ce mois"}>{Icon.clock}provision · {eur0(imp.provision)}</span>}
@@ -2716,18 +2640,19 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
     if (ch.frequence !== "ponctuelle") return true;
     const d = ch.date || "";
     const startMonth = d ? (parseInt(d.slice(5, 7), 10) - 1) : 0;
-    return startMonth === mIndex;
+    const startYear = d ? parseInt(d.slice(0, 4), 10) : YEAR;
+    return startYear === YEAR && startMonth === mIndex;
   };
   const visibleCharges = charges.filter(isVisible);
 
   const grandTotal = visibleCharges.reduce((sum, ch) => {
-    const imp = chargeImpact(ch, mIndex);
+    const imp = chargeImpact(ch, mIndex, YEAR);
     return sum + (imp.active ? imp.decaisse + imp.provision : 0);
   }, 0);
   const uncategorized = visibleCharges.filter(ch => !categories.includes(ch.categorie));
 
   const splitFor = (list) => list.reduce((acc, ch) => {
-    const imp = chargeImpact(ch, mIndex);
+    const imp = chargeImpact(ch, mIndex, YEAR);
     if (imp.active) { acc.dec += imp.decaisse; acc.prov += imp.provision; }
     return acc;
   }, { dec: 0, prov: 0 });
@@ -2746,8 +2671,8 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
   const barDenom = grandTotal || 1;
   // répartition par catégorie (toujours par catégorie, indépendant du toggle) pour la barre type tableau de bord
   const catShares = [
-    ...categories.map((cat, i) => { const list = visibleCharges.filter(ch => ch.categorie === cat); const s = splitFor(list); return { label: cat, color: CAT_PALETTE[i % CAT_PALETTE.length], val: s.dec + s.prov, count: list.filter(ch => chargeImpact(ch, mIndex).active).length }; }),
-    ...(uncategorized.length ? [(() => { const list = uncategorized; const s = splitFor(list); return { label: "Sans catégorie", color: "#b8bab2", val: s.dec + s.prov, count: list.filter(ch => chargeImpact(ch, mIndex).active).length }; })()] : []),
+    ...categories.map((cat, i) => { const list = visibleCharges.filter(ch => ch.categorie === cat); const s = splitFor(list); return { label: cat, color: CAT_PALETTE[i % CAT_PALETTE.length], val: s.dec + s.prov, count: list.filter(ch => chargeImpact(ch, mIndex, YEAR).active).length }; }),
+    ...(uncategorized.length ? [(() => { const list = uncategorized; const s = splitFor(list); return { label: "Sans catégorie", color: "#b8bab2", val: s.dec + s.prov, count: list.filter(ch => chargeImpact(ch, mIndex, YEAR).active).length }; })()] : []),
   ].filter(r => r.val > 0);
   const spendSegs = catShares.map(d => ({ key: d.label, lab: d.label, val: d.val, color: d.color, note: `${d.count} frais ce mois` }));
 
@@ -2800,7 +2725,7 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
             <tbody>
               {groups.map(g => {
                 const gTotal = g.items.reduce((sum, ch) => {
-                  const imp = chargeImpact(ch, mIndex);
+                  const imp = chargeImpact(ch, mIndex, YEAR);
                   return sum + (imp.active ? imp.decaisse + imp.provision : 0);
                 }, 0);
                 return (
@@ -2884,13 +2809,13 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
 /* ========================================================== */
 /* CHARGES & PROVISIONS (approche A — accordéon)              */
 /* ========================================================== */
-function Section({ title, amount, color, open, onToggle, children }) {
+function Section({ title, amount, open, onToggle, children }) {
   return (
     <div className="acc">
       <div className="acc-h" onClick={onToggle}>
         <span className={"car" + (open ? " open" : "")}>{Icon.car}</span>
         <span className="ttl">{title}</span>
-        <span className="amt" style={{ color }}>{eur(amount)}</span>
+        {amount != null && <span className="amt">{eur(amount)}</span>}
       </div>
       {open && <div className="acc-b">{children}</div>}
     </div>);
@@ -2898,17 +2823,22 @@ function Section({ title, amount, color, open, onToggle, children }) {
 }
 
 function ChargesProvisionsTab({ factures, facturesByMonth = {}, charges, profile, mIndex, cfeData = {}, onUpdateCfe, urssafHistory = {} }) {
+  const YEAR = useYear();
   const cfeAnnuel = num(cfeData.montant) || 0;
-  const s = computeMonth({ facturesByMonth, charges, profile, mIndex, cfeAnnuel, urssafHistory });
-  const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: 11, cfeAnnuel, urssafHistory });
-  const caHTannuel = ys.caHT;
-  const [open, setOpen] = React.useState({ urssaf: false, tva: false, cfe: false });
+  const s = computeMonth({ facturesByMonth, charges, profile, mIndex, year: YEAR, cfeAnnuel, urssafHistory });
+  // --- Impôt sur le revenu : on déclare l'année civile TERMINÉE, au printemps suivant ---
+  const irYear = REAL_YEAR - 1;                                  // année déclarée ce printemps
+  const irFromHistory = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: 11, year: irYear, urssafHistory }).caHT;
+  const irManual = num((profile.prevYears || {})[irYear] && (profile.prevYears || {})[irYear].caHT) || 0;
+  const irMontant = irFromHistory > 0 ? irFromHistory : irManual;
+  const irSource = irFromHistory > 0 ? "calculé depuis tes factures" : (irManual > 0 ? "saisi dans les paramètres" : null);
+  const curCumul = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: new Date().getMonth(), year: REAL_YEAR, urssafHistory }).caHT;
+  const [open, setOpen] = React.useState({ urssaf: false, tva: false, cfe: false, ir: false });
   const tog = (k) => setOpen((o) => ({ ...o, [k]: !o[k] }));
-  const grandTotal = s.totalCotis + s.tvaAreverser + s.cfeProv;
 
   return (
     <div>
-      <Section title="Cotisations URSSAF" amount={s.totalCotis} color={SEG_COLORS.urssaf} open={open.urssaf} onToggle={() => tog("urssaf")}>
+      <Section title="Cotisations URSSAF" amount={s.totalCotis} open={open.urssaf} onToggle={() => tog("urssaf")}>
         {s.cotisLines.length === 0 && <p className="mini">Aucun chiffre d'affaires ce mois.</p>}
         {s.cotisLines.map((l) =>
         <div className="listline" key={l.cat}>
@@ -2943,7 +2873,7 @@ function ChargesProvisionsTab({ factures, facturesByMonth = {}, charges, profile
       </Section>
 
       {s.assujetti &&
-      <Section title="TVA nette à reverser" amount={s.tvaAreverser} color={SEG_COLORS.tva} open={open.tva} onToggle={() => tog("tva")}>
+      <Section title="TVA nette à reverser" amount={s.tvaAreverser} open={open.tva} onToggle={() => tog("tva")}>
           <div className="listline"><span className="lab">TVA collectée sur les factures</span><b>{eur(s.tvaCollectee)}</b></div>
           {s.tvaDeductible > 0 && (
             <div className="listline"><span className="lab pos">TVA déductible sur les achats</span><b className="pos">−{eur(s.tvaDeductible)}</b></div>
@@ -2958,7 +2888,7 @@ function ChargesProvisionsTab({ factures, facturesByMonth = {}, charges, profile
         </Section>
       }
 
-      <Section title="CFE — Cotisation Foncière des Entreprises" amount={s.cfeProv} color={SEG_COLORS.cfe} open={open.cfe} onToggle={() => tog("cfe")}>
+      <Section title="CFE — Cotisation Foncière des Entreprises" amount={s.cfeProv} open={open.cfe} onToggle={() => tog("cfe")}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div className="field" style={{ marginBottom: 0 }}>
             <label style={{ fontSize: 12.5 }}>
@@ -2994,7 +2924,7 @@ function ChargesProvisionsTab({ factures, facturesByMonth = {}, charges, profile
             <>
               <div className="listline">
                 <span className="lab">Provision mensuelle <span style={{ color: "var(--faint)" }}>(÷ 12)</span></span>
-                <b style={{ color: SEG_COLORS.cfe }}>{eur(s.cfeProv)}</b>
+                <b>{eur(s.cfeProv)}</b>
               </div>
               <div className="listline">
                 <span className="lab">Échéance annuelle</span>
@@ -3014,23 +2944,28 @@ function ChargesProvisionsTab({ factures, facturesByMonth = {}, charges, profile
         </div>
       </Section>
 
-      <div className="totalbar">
-        <span className="lab">Total à mettre de côté ce mois</span>
-        <span className="val">{eur(grandTotal)}</span>
-      </div>
-
-      <div className="card" style={{ marginTop: 16 }}>
-        <div className="card-h"><h2>Impôt sur le revenu {YEAR}</h2></div>
-        <div className="card-b">
-          <div className="listline" style={{ borderBottom: "none" }}>
-            <span className="lab" style={{ fontWeight: 600 }}>CA HT cumulé sur l'année</span>
-            <b style={{ fontSize: 18 }}>{Math.round(caHTannuel).toLocaleString("fr-FR")} €</b>
-          </div>
-          <p className="mini" style={{ marginTop: 6 }}>À déclarer pour l'impôt sur le revenu {YEAR}. {profile.liberatoire
-            ? "Vous avez opté pour le versement libératoire : l'impôt est déjà réglé via vos cotisations URSSAF. Ce CA reste à reporter sur votre déclaration de revenus (revenu fiscal de référence)."
-            : `À reporter sur votre déclaration de revenus ${YEAR + 1}. L'administration applique un abattement forfaitaire avant impôt, vous n'êtes donc pas imposée sur la totalité de ce montant.`}</p>
+      <Section title="Impôt sur le revenu" open={open.ir} onToggle={() => tog("ir")}>
+        <div className="listline" style={{ borderBottom: "none" }}>
+          <span className="lab" style={{ fontWeight: 600 }}>CA HT {irYear} à déclarer à l'administration fiscale</span>
+          <b style={{ fontSize: 18 }}>{irMontant > 0 ? `${Math.round(irMontant).toLocaleString("fr-FR")} €` : "à renseigner"}</b>
         </div>
-      </div>
+        <p className="mini" style={{ marginTop: 6 }}>
+          À déclarer au <b>printemps {REAL_YEAR}</b> (revenus {irYear}).{" "}
+          {irSource
+            ? `Montant ${irSource}.`
+            : `Renseigne ton CA HT ${irYear} dans Profil & paramètres. Pour les années que tu factures dans l'app (${REAL_YEAR} et suivantes), ce montant sera calculé automatiquement.`}
+        </p>
+        <p className="mini" style={{ marginTop: 6 }}>
+          {profile.liberatoire
+            ? "Versement libératoire : l'impôt est déjà réglé via l'URSSAF, mais ce CA reste à reporter (revenu fiscal de référence)."
+            : "L'administration applique un abattement forfaitaire avant impôt, tu n'es pas imposée sur la totalité."}
+        </p>
+        <div className="listline" style={{ marginTop: 12, borderTop: "1px dashed var(--line)", paddingTop: 10 }}>
+          <span className="lab" style={{ color: "var(--faint)" }}>CA HT {REAL_YEAR} <span style={{ color: "var(--faint)" }}>(en cours)</span></span>
+          <b style={{ color: "var(--faint)" }}>{Math.round(curCumul).toLocaleString("fr-FR")} €</b>
+        </div>
+        <p className="mini" style={{ color: "var(--faint)", marginTop: 6 }}>Cumul {REAL_YEAR} à ce jour, à déclarer au printemps {REAL_YEAR + 1}.</p>
+      </Section>
     </div>);
 
 }
@@ -3041,7 +2976,7 @@ Object.assign(window, { DashboardTab, FacturesTab, FraisTab, ChargesProvisionsTa
 /* ============================================================
    app.jsx — App, profil, navigation, persistance, export/import
    ============================================================ */
-const { MONTHS, YEAR, monthKey, uid, load, save, num } = window.MEF;
+const { MONTHS, REAL_YEAR, YearCtx, useYear, monthKey, uid, load, save, num } = window.MEF;
 const { DashboardTab, FacturesTab, FraisTab, ChargesProvisionsTab } = window;
 
 const DEFAULT_PROFILE = { nom: "Camille Martin", tva: true, liberatoire: false, prevYears: {} };
@@ -3121,7 +3056,7 @@ function migrateCharges(charges) {
   return charges.map(c => {
     let r = c;
     if (!r.tarifsHistory || r.tarifsHistory.length === 0) {
-      const from = r.date || `${YEAR}-01-01`;
+      const from = r.date || `${REAL_YEAR}-01-01`;
       r = { ...r, tarifsHistory: [{ montant: r.montant, from }] };
     } else {
       r = { ...r, tarifsHistory: r.tarifsHistory.map(t => ({ ...t, from: fix(t.from) })) };
@@ -3138,7 +3073,7 @@ function App() {
   const [facturesByMonth, setFB] = React.useState(() => load("mef2:factures", SEED_FACTURES));
   const [previsions, setPrevisions] = React.useState(() => load("mef2:previsions", SEED_PREVISIONS));
   const [charges, setCharges] = React.useState(() => migrateCharges(load("mef2:charges", SEED_CHARGES)));
-  const [ui, setUi] = React.useState(() => load("mef2:ui", { tab: "dashboard", month: 3 }));
+  const [ui, setUi] = React.useState(() => load("mef2:ui", { tab: "dashboard", month: 3, year: REAL_YEAR }));
   const [profileOpen, setProfileOpen] = React.useState(false);
   const [urssafHistory, setUrssafHistory] = React.useState(() => load("mef2:urssaf_history", {
     "BIC_VENTE":  [{ from: "2026-01-01", social: 0.123, lib: 0.010 }],
@@ -3189,7 +3124,8 @@ function App() {
   };
 
   const m = ui.month;
-  const key = monthKey(m);
+  const YEAR = ui.year || REAL_YEAR;
+  const key = monthKey(YEAR, m);
   const factures = facturesByMonth[key] || [];
 
   // ----- factures (invoices w/ lines) -----
@@ -3274,7 +3210,16 @@ function App() {
   const cfeAnnuel = num((cfeData[YEAR] || {}).montant) || 0;
 
   // ----- nav -----
-  const goMonth = (delta) => setUi((u) => ({ ...u, month: Math.min(11, Math.max(0, u.month + delta)) }));
+  const goMonth = (delta) => setUi((u) => {
+    let month = u.month + delta;
+    let year = u.year || REAL_YEAR;
+    if (month < 0) { month = 11; year -= 1; }
+    if (month > 11) { month = 0; year += 1; }
+    return { ...u, month, year };
+  });
+  const goYear = (delta) => setUi((u) => ({ ...u, year: (u.year || REAL_YEAR) + delta }));
+  const setYear = (year) => setUi((u) => ({ ...u, year }));
+  const goToday = () => setUi((u) => ({ ...u, year: REAL_YEAR, month: new Date().getMonth() }));
   const setTab = (tab) => setUi((u) => ({ ...u, tab }));
 
   // ----- export / import -----
@@ -3308,6 +3253,15 @@ function App() {
 
   const initiales = (profile.nom || "ME").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "ME";
 
+  // années proposées dans le sélecteur : année réelle, année affichée, + toutes celles ayant des données
+  const yearOptions = (() => {
+    const ys = new Set([REAL_YEAR, YEAR]);
+    Object.keys(facturesByMonth || {}).forEach((k) => { const y = parseInt(k.slice(0, 4), 10); if (y) ys.add(y); });
+    Object.keys(cfeData || {}).forEach((k) => { const y = parseInt(k, 10); if (y) ys.add(y); });
+    Object.keys((profile.prevYears) || {}).forEach((k) => { const y = parseInt(k, 10); if (y) ys.add(y); });
+    return [...ys].sort((a, b) => a - b);
+  })();
+
   const TABS = [
     ["dashboard",    "Tableau de bord",                TabIcon.dashboard],
     ["factures",     "Factures",                       TabIcon.factures],
@@ -3318,6 +3272,7 @@ function App() {
   ];
 
   return (
+    <YearCtx.Provider value={YEAR}>
     <div className="app tk" data-accent="citron">
       <div className="appbar">
         <div className="logo">
@@ -3342,12 +3297,21 @@ function App() {
       </div>
 
       <div className="monthnav">
-        <button className="mbtn" disabled={m === 0} onClick={() => goMonth(-1)}>{Chev("M15 18l-6-6 6-6")}</button>
-        <div className="mlabel">{MONTHS[m]} {YEAR}</div>
-        <button className="mbtn" disabled={m === 11} onClick={() => goMonth(1)}>{Chev("M9 18l6-6-6-6")}</button>
+        <button className="mbtn" onClick={() => goMonth(-1)} title="Mois précédent">{Chev("M15 18l-6-6 6-6")}</button>
+        <div className="mlabel">{MONTHS[m]}</div>
+        <button className="mbtn" onClick={() => goMonth(1)} title="Mois suivant">{Chev("M9 18l6-6-6-6")}</button>
+        <div className="yearnav">
+          <button className="mbtn" onClick={() => goYear(-1)} title="Année précédente">{Chev("M15 18l-6-6 6-6")}</button>
+          <select className="yearsel" value={YEAR} onChange={(e) => setYear(parseInt(e.target.value, 10))}>
+            {yearOptions.map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
+          <button className="mbtn" onClick={() => goYear(1)} title="Année suivante">{Chev("M9 18l6-6-6-6")}</button>
+        </div>
+        {!(YEAR === REAL_YEAR && m === new Date().getMonth()) &&
+          <button className="today" onClick={goToday}>Aujourd'hui</button>}
       </div>
 
-      {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} previsions={previsions} charges={charges} profile={profile} mIndex={m} cfeAnnuel={cfeAnnuel} cfeValide={!!(cfeData[YEAR] || {}).valide} urssafHistory={urssafHistory} onGoTo={setTab} />}
+      {ui.tab === "dashboard" && <DashboardTab facturesByMonth={facturesByMonth} factures={factures} previsions={previsions} charges={charges} profile={profile} mIndex={m} cfeAnnuel={cfeAnnuel} cfeValide={!!(cfeData[YEAR] || {}).valide} cfeData={cfeData} urssafHistory={urssafHistory} onGoTo={setTab} />}
       {ui.tab === "factures" && <FacturesTab factures={factures} facturesByMonth={facturesByMonth} charges={charges} profile={profile} mIndex={m}
         onSaveInv={saveInv} onRemoveInv={removeInv} onMarkPaid={markFactPaid} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />}
       {ui.tab === "previsionnel" && <PrevisionnelTab previsions={previsions} facturesByMonth={facturesByMonth} profile={profile}
@@ -3358,10 +3322,12 @@ function App() {
 
       {profileOpen && <ProfileModal profile={profile} setProfile={setProfile} onClose={() => setProfileOpen(false)} onExport={exportJSON} onImport={importJSON} urssafHistory={urssafHistory} setUrssafHistory={setUrssafHistory} tvaConfig={tvaConfig} setTvaConfig={setTvaConfig} />}
     </div>
+    </YearCtx.Provider>
   );
 }
 
 function ProfileModal({ profile, setProfile, onClose, onExport, onImport, urssafHistory, setUrssafHistory, tvaConfig, setTvaConfig }) {
+  const YEAR = useYear();
   const up = (field, val) => setProfile({ ...profile, [field]: val });
   const prev = (profile.prevYears || {})[YEAR - 1] || {};
   const upPrev = (field, val) => setProfile(p => ({
@@ -3462,14 +3428,17 @@ function ProfileModal({ profile, setProfile, onClose, onExport, onImport, urssaf
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--faint)", marginBottom: 12 }}>
               Référence année précédente ({YEAR - 1})
             </div>
+            <p style={{ fontSize: 12, color: "var(--faint)", margin: "-4px 0 12px" }}>
+              Tu saisis ces totaux à la main (l'app n'avait pas tes factures cette année-là). Ils servent de repère dans le graphe « Années » et pour l'impôt sur le revenu.
+            </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <div className="field">
-                <label>Revenu net {YEAR - 1} <span style={{ fontWeight: 400, color: "var(--faint)" }}>— pour la comparaison N-1 sur le tableau de bord</span></label>
-                <input className="in" type="number" step="1" placeholder="Ex : 41200" value={prev.net || ""} onChange={e => upPrev("net", e.target.value)} />
+                <label>CA encaissé TTC {YEAR - 1} <span style={{ fontWeight: 400, color: "var(--faint)" }}>— total encaissé, TVA comprise. Barre de cette année dans le graphe « Années ».</span></label>
+                <input className="in" type="number" step="1" placeholder="Ex : 71400" value={prev.caTTC || ""} onChange={e => upPrev("caTTC", e.target.value)} />
               </div>
               <div className="field">
-                <label>CA encaissé TTC {YEAR - 1}</label>
-                <input className="in" type="number" step="1" placeholder="Ex : 71400" value={prev.caTTC || ""} onChange={e => upPrev("caTTC", e.target.value)} />
+                <label>CA HT {YEAR - 1} <span style={{ fontWeight: 400, color: "var(--faint)" }}>— chiffre d'affaires hors taxes. Pour l'impôt sur le revenu et la barre en mode HT.</span></label>
+                <input className="in" type="number" step="1" placeholder="Ex : 59500" value={prev.caHT || ""} onChange={e => upPrev("caHT", e.target.value)} />
               </div>
             </div>
           </div>
