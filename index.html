@@ -404,6 +404,12 @@ select.cell-in{appearance:none;cursor:pointer;
 .hero-badge.neutral{background:var(--grey);color:var(--soft);}
 .kpi-detail{position:relative;display:inline-flex;margin-top:12px;cursor:pointer;outline:none;}
 .kpi-detail-trig{font-size:12px;color:var(--primary);font-weight:600;}
+.kpi-detail--num{margin-top:8px;}
+.big-cit{display:inline-block;background-image:linear-gradient(transparent 54%, var(--accent) 54%);}      /* surlignage citron qui remonte derrière le chiffre */
+.kpi-tip--eq{min-width:0;white-space:nowrap;font-size:13px;display:flex;align-items:baseline;gap:5px;}
+.kpi-tip--eq .muted{color:var(--faint);font-size:11.5px;}
+.kpi-tip--eq .op{color:var(--faint);font-weight:600;margin:0 1px;}
+.kpi-tip--eq b{font-family:var(--font-title);}
 .kpi-tip{position:absolute;top:calc(100% + 8px);left:0;min-width:250px;background:var(--card);border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);z-index:20;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .12s ease,transform .12s ease;}
 .kpi-detail:hover .kpi-tip,.kpi-detail:focus .kpi-tip,.kpi-detail:focus-within .kpi-tip{opacity:1;visibility:visible;transform:translateY(0);}
 .kpi-tip .neg{color:var(--ink);}  /* pas de rouge dans les infobulles : le signe − suffit */
@@ -539,9 +545,38 @@ select.cell-in{appearance:none;cursor:pointer;
 .dash-hero3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch;}
 .dash-mid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;}
 .dash-mid .span2{grid-column:span 2;}
+/* haut du tableau de bord : CA + Revenu net (g.) · barre (dessous) · donut à mettre de côté (droite, pleine hauteur) */
+.dash-top{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:14px;align-items:start;}
+.dash-top .dt-ca{grid-column:1;grid-row:1;}
+.dash-top .dt-rev{grid-column:2;grid-row:1;}
+.dash-top .dt-donut{grid-column:3;grid-row:1 / span 2;}
+.dash-top .dt-bar{grid-column:1 / span 2;grid-row:2;}
+.bar-brace-lbl{text-align:center;font-size:11.5px;color:var(--ink-soft);margin-bottom:3px;}
+.bar-brace-lbl .sub{color:var(--faint);}
+.bar-brace{height:9px;border:1.5px solid var(--line-2);border-bottom:none;border-radius:6px 6px 0 0;margin-bottom:9px;}
+.donut-wrap{position:relative;display:flex;justify-content:center;margin:4px 0 14px;}
+.donut-center{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;pointer-events:none;line-height:1.3;}
+.donut-center .dc-lbl{display:block;font-size:9px;color:var(--faint);letter-spacing:.04em;}
+.donut-center .dc-val{display:block;font-size:11.5px;color:var(--ink-soft);}
+.donut-svg .donut-arc{cursor:pointer;transition:opacity .16s ease,transform .16s ease;}
+.donut-svg[data-on] .donut-arc[data-dim]{opacity:.38;}
+.donut-tip{position:absolute;left:50%;top:8px;transform:translate(-50%,-100%);background:var(--dark);color:var(--on-dark);font-size:12px;font-weight:600;padding:6px 11px;border-radius:8px;white-space:nowrap;pointer-events:none;z-index:20;box-shadow:var(--shadow-dark);text-align:center;}
+.donut-tip small{display:block;font-weight:400;color:rgba(240,239,230,.7);font-size:10.5px;margin-top:2px;}
+.donut-leg{display:flex;flex-direction:column;gap:7px;}
+.donut-leg .li{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:default;transition:opacity .16s ease;}
+.donut-leg[data-on] .li[data-dim]{opacity:.4;}
+.donut-leg .li b{margin-left:auto;font-family:var(--font-title);font-weight:700;}
+.donut-leg .li.net{padding-bottom:7px;border-bottom:1px solid var(--line);font-weight:600;}
+.donut-leg .sw2{width:11px;height:11px;border-radius:4px;flex:none;}
 /* cartes carrées, taille figée et uniforme (à mettre de côté · calendrier · factures · prévisionnel) */
 .sq{aspect-ratio:1/1;overflow:auto;}
-.dash-row3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;}
+.dash-row3{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:14px;align-items:start;}
+.dash-row3 .calcard{grid-column:1 / span 2;}
+.dash-row3 .dr-prev{grid-column:3;}
+.ca-attente{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px;}
+.ca-attente-txt{font-size:12px;color:var(--ink-soft);}
+.ca-attente-txt b{font-family:var(--font-title);color:var(--ink);}
+.ca-attente .link-detail{margin-top:0;font-size:12px;}
 .link-detail{margin-top:12px;background:none;border:none;padding:0;font:inherit;font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:color .16s;}
 .link-detail:hover{color:var(--ink);}
 .treso-cascade{display:flex;flex-direction:column;}
@@ -575,7 +610,7 @@ select.cell-in{appearance:none;cursor:pointer;
 .spend-dot{box-shadow:inset 0 0 0 1px rgba(45,43,30,.14);}
 .panel-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px;}
 .panel-title{font-size:18px;font-weight:600;margin:0;}
-.panel-kicker{font-size:13px;color:var(--ink-soft);max-width:54ch;margin:6px 0 0;line-height:1.5;}
+.panel-kicker{font-size:13px;color:var(--ink-soft);margin:6px 0 0;line-height:1.5;}
 .panel-kpi{text-align:right;margin-left:auto;}
 .panel-kpi-lbl{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);}
 .panel-kpi-row{display:flex;align-items:baseline;justify-content:flex-end;gap:9px;margin-top:7px;}
@@ -600,7 +635,7 @@ select.cell-in{appearance:none;cursor:pointer;
 .cal-day.is-today:not(.selected){box-shadow:inset 0 0 0 1.5px var(--ink-faint);}
 .cal-day.selected{background:var(--accent);color:var(--accent-ink);height:88px;}
 .cal-day.selected .cal-day-dow{color:rgba(45,43,30,.6);}
-.cal-day.selected .cal-day-dot{background:var(--accent-ink);}
+.cal-day.selected.has-event .cal-day-dot{background:var(--accent-ink);}
 .cal-detail{background:var(--paper);border-radius:var(--r-inner);padding:14px 16px;min-height:58px;display:flex;flex-direction:column;gap:6px;justify-content:center;}
 .cal-detail-day{font-size:11.5px;font-weight:600;color:var(--ink-faint);letter-spacing:.04em;text-transform:uppercase;}
 .cal-detail-row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px;}
@@ -648,7 +683,10 @@ select.cell-in{appearance:none;cursor:pointer;
   .dash-2col{grid-template-columns:1fr;}
   .dash-hero3{grid-template-columns:1fr;}
   .dash-mid{grid-template-columns:1fr;}
+  .dash-top{grid-template-columns:1fr;}
+  .dash-top .dt-ca,.dash-top .dt-rev,.dash-top .dt-donut,.dash-top .dt-bar{grid-column:auto;grid-row:auto;}
   .dash-row3{grid-template-columns:1fr;}
+  .dash-row3 .calcard,.dash-row3 .dr-prev{grid-column:auto;}
 }
 
 
@@ -1135,6 +1173,21 @@ const DONUT_COLORS = SEG_COLORS;
 // palette unifiée des flux du tableau de bord : barre "où part mon argent" + bloc "à mettre de côté"
 const FLOW_COLORS = { net: "#ECFF8C", urssaf: "#80c8c0", tva: "#ffffff", recurrent: "#d4d6cf", provision: "#e6e8e0", ponctuel: "#c2c4bb", cfe: "#9aa39c" };
 
+// secteur d'anneau (donut) à COINS arrondis. a1<a2 en radians, 0 = haut, sens horaire. cr = rayon des coins.
+function annularSeg(cx, cy, ri, ro, a1, a2, cr) {
+  const P = (R, a) => [cx + R * Math.sin(a), cy - R * Math.cos(a)];
+  const span = a2 - a1;
+  const dO = Math.min(cr / ro, span * 0.45), dI = Math.min(cr / ri, span * 0.45);
+  const rcr = Math.min(cr, (ro - ri) / 2);
+  const o1 = P(ro, a1 + dO), o2 = P(ro, a2 - dO);
+  const er1 = P(ro - rcr, a2), er2 = P(ri + rcr, a2);
+  const i1 = P(ri, a2 - dI), i2 = P(ri, a1 + dI);
+  const sr1 = P(ri + rcr, a1), sr2 = P(ro - rcr, a1);
+  const cOe = P(ro, a2), cIe = P(ri, a2), cIs = P(ri, a1), cOs = P(ro, a1);
+  const laO = (span - 2 * dO) > Math.PI ? 1 : 0, laI = (span - 2 * dI) > Math.PI ? 1 : 0;
+  return `M ${o1[0]} ${o1[1]} A ${ro} ${ro} 0 ${laO} 1 ${o2[0]} ${o2[1]} Q ${cOe[0]} ${cOe[1]} ${er1[0]} ${er1[1]} L ${er2[0]} ${er2[1]} Q ${cIe[0]} ${cIe[1]} ${i1[0]} ${i1[1]} A ${ri} ${ri} 0 ${laI} 0 ${i2[0]} ${i2[1]} Q ${cIs[0]} ${cIs[1]} ${sr1[0]} ${sr1[1]} L ${sr2[0]} ${sr2[1]} Q ${cOs[0]} ${cOs[1]} ${o1[0]} ${o1[1]} Z`;
+}
+
 // couleurs du calendrier des paiements : une couleur unique par poste
 const PAY_COLORS = { urssaf: SEG_COLORS.urssaf, tva: "#ffffff", cfe: SEG_COLORS.cfe, frais: SEG_COLORS.decaisse };
 const PAY_LEGEND = [
@@ -1157,14 +1210,8 @@ function MiniDashCalendar({ mIndex, charges, profile, cfeAnnuel = 0, facturesByM
   const isThisMonth = now.getFullYear() === YEAR && now.getMonth() === mIndex;
   const today = isThisMonth ? now.getDate() : 1;
 
-  let start = Math.max(1, today - 2);
-  let end   = Math.min(daysInMonth, today + 2);
-  if (end - start < 4) {
-    if (start === 1) end = Math.min(daysInMonth, start + 4);
-    else if (end === daysInMonth) start = Math.max(1, end - 4);
-  }
   const days = [];
-  for (let d = start; d <= end; d++) days.push(d);
+  for (let d = 1; d <= daysInMonth; d++) days.push(d);   // mois complet (bande large, défile et se centre sur aujourd'hui)
 
   const [sel, setSel] = React.useState(today);
   const selItems = byDay[sel] || [];
@@ -1186,7 +1233,7 @@ function MiniDashCalendar({ mIndex, charges, profile, cfeAnnuel = 0, facturesByM
   const eventDays = days.filter((d) => (byDay[d] || []).length > 0);
 
   return (
-    <div className="calcard sq">
+    <div className="calcard">
       <div className="cal-head">
         <div className="cal-head-left">
           <span className="cal-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span>
@@ -1333,7 +1380,6 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
 
   // ===== Revenus en attente / à venir (n'entrent PAS dans les chiffres réels) =====
   const attenteTotal = totalFacturesEnAttente(facturesByMonth, profile, urssafHistory);
-  const attenteS = attenteTotal.n !== 1 ? "s" : "";  // accord singulier/pluriel
   const nextIdx = mIndex + 1;
   const prevNext = nextIdx <= 11 ? expandPrevisions(previsions, nextIdx, YEAR) : { items: [], total: 0 };
 
@@ -1381,9 +1427,36 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const provFraisPonct = s.fraisLissePonct;
   const charged    = s.charged;
 
+  // donut "à mettre de côté" : CA TTC découpé en résultat net (citron) + charges à provisionner
+  const mdcData = [
+    { key: "net",    lab: "Résultat net",                          val: Math.max(0, s.netLisse), color: FLOW_COLORS.net },
+    { key: "urssaf", lab: `URSSAF ${deMois(moisLabel(mIndex))}`,   val: provUrssaf,   color: FLOW_COLORS.urssaf,  due: `prélevé le ${urssafJour} ${dueLabel(urssafDec)}` },
+    ...(s.assujetti ? [{ key: "tva", lab: `TVA ${deMois(moisLabel(mIndex))}`, val: provTva, color: FLOW_COLORS.tva, due: `prélevée le ${tvaJour} ${dueLabel(tvaDec)}` }] : []),
+    { key: "frec",   lab: "Frais récurrents",                      val: provFraisRec,  color: FLOW_COLORS.recurrent },
+    { key: "fprov",  lab: "Provisions",                            val: provFraisProv, color: FLOW_COLORS.provision },
+    { key: "fponct", lab: "Achats ponctuels",                      val: provFraisPonct,color: FLOW_COLORS.ponctuel },
+    { key: "cfe",    lab: "CFE",                                   val: provCfe,       color: FLOW_COLORS.cfe, due: "prélevée en décembre" },
+  ].filter((d) => d.val > 0.005);
+  const mdcTotal = mdcData.reduce((a, d) => a + d.val, 0) || 1;
+  // donut en secteurs pleins à coins arrondis. Épaisseur de bande = hauteur de la barre (~26px). 0 = haut, sens horaire.
+  const MDC_RI = 34, MDC_RO = 58, MDC_CR = 8, MDC_GAPDEG = 3, MDC_POP = 6;
+  let _mdcAcc = 0;
+  const mdcArcs = mdcData.map((d) => {
+    const frac = d.val / mdcTotal;
+    const a1deg = _mdcAcc * 360, a2deg = (_mdcAcc + frac) * 360;
+    _mdcAcc += frac;
+    const g = MDC_GAPDEG / 2;
+    const a1 = (a1deg + g) * Math.PI / 180, a2 = (a2deg - g) * Math.PI / 180;
+    const mid = ((a1deg + a2deg) / 2) * Math.PI / 180;
+    const path = a2 > a1 ? annularSeg(70, 70, MDC_RI, MDC_RO, a1, a2, MDC_CR) : "";
+    return { ...d, path, tx: MDC_POP * Math.sin(mid), ty: -MDC_POP * Math.cos(mid) };   // déplacement radial vers l'extérieur
+  }).filter((a) => a.path);
+
   const [histScope,  setHistScope]  = React.useState("month");
   const [synthMode,  setSynthMode]  = React.useState("reel");
   const [synthBase,  setSynthBase]  = React.useState("ttc"); // base HT / TTC, pilote graphe + détail de la synthèse
+  const [mdcHover,   setMdcHover]   = React.useState(null);  // segment du donut "à mettre de côté" survolé
+  const mdcHoverData = mdcData.find((d) => d.key === mdcHover);
 
   // synthèse annuelle (cumul jusqu'au mois affiché)
   const ys = computeYearSummary({ facturesByMonth, charges, profile, uptoMonth: mIndex, year: YEAR, prevYear: (profile.prevYears || {})[YEAR - 1], cfeAnnuel, urssafHistory });
@@ -1393,10 +1466,9 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const segsMonth = [
     { key: "tva",      lab: "TVA reversée",       val: outTva,               color: FLOW_COLORS.tva },
     { key: "urssaf",   lab: "Cotisations URSSAF", val: outUrssaf,            color: FLOW_COLORS.urssaf },
-    { key: "decaisse", lab: "Frais récurrents",   val: outFraisRec,          color: FLOW_COLORS.recurrent },
-    { key: "achat",    lab: "Achats ponctuels",   val: outAchats,            color: FLOW_COLORS.ponctuel },
+    { key: "frais",    lab: "Frais",              val: outFraisRec + outAchats, color: FLOW_COLORS.recurrent },
     { key: "cfe",      lab: "CFE",                val: outCfe,               color: FLOW_COLORS.cfe },
-    { key: "net",      lab: "Ce qui te reste",    val: Math.max(0, netCash), color: FLOW_COLORS.net },
+    { key: "net",      lab: "Ce qui te reste = revenu net", val: Math.max(0, netCash), color: FLOW_COLORS.net },
   ].filter(x => x.val > 0.005);
 
   // valeurs réellement payées cumul jan → mIndex (même logique que le mode mois)
@@ -1500,166 +1572,103 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const prevNetCash = mIndex > 0 ? tresoByMonth[mIndex - 1] : null;
   const revPct = (prevNetCash != null && Math.abs(prevNetCash) > 0.005)
     ? Math.round((netCash - prevNetCash) / Math.abs(prevNetCash) * 100) : null;
-  const resPct = s.caHT > 0.005 ? Math.round(s.netLisse / s.caHT * 100) : null;
 
   return (
     <div className="dash">
 
-      {/* === Cartes héros : CA · Revenu net · Résultat net === */}
-      <div className="dash-hero3" style={{ marginBottom: 14 }}>
+      {/* === Haut : CA · Revenu net (g.) · barre (dessous) · donut à mettre de côté (droite) === */}
+      <div className="dash-top" style={{ marginBottom: 14 }}>
 
         {/* Chiffre d'affaires encaissé */}
-        <div className="card hero-kpi">
+        <div className="card hero-kpi dt-ca">
           <div className="card-b">
             <div className="hero-top"><span className="cap">Chiffre d'affaires encaissé</span></div>
             <div className="big">{eur0(s.caHT)}{s.assujetti && <span style={{ fontSize: 16, fontWeight: 500, color: "var(--faint)" }}> HT</span>}</div>
             <div className="hero-sub">{s.assujetti ? `${eur0(s.caTTC)} TTC · ` : ""}{s.nbFactures} facture{s.nbFactures !== 1 ? "s" : ""} encaissée{s.nbFactures !== 1 ? "s" : ""}</div>
+            <div className="ca-attente">
+              <span className="ca-attente-txt">Factures en attente <b>{eur0(attenteTotal.ht)}</b>{s.assujetti ? " HT" : ""}{attenteTotal.n > 0 ? ` · ${attenteTotal.n} fact.` : ""}</span>
+              <button type="button" className="link-detail" onClick={() => onGoTo && onGoTo("factures")}>voir les factures →</button>
+            </div>
           </div>
         </div>
 
         {/* Revenu net (trésorerie) */}
-        <div className="card hero-kpi">
+        <div className="card hero-kpi dt-rev">
           <div className="card-b">
             <div className="hero-top">
               <span className="cap">Revenu net</span>
               {revPct != null && <span className={"hero-badge " + (revPct >= 0 ? "up" : "down")}>{revPct >= 0 ? "+" : ""}{revPct}% vs {moisLabel(mIndex - 1)}</span>}
             </div>
-            <div className={"big" + (netCash >= 0 ? "" : " neg")}>{eur0(netCash)}</div>
+            <div className="kpi-detail kpi-detail--num" tabIndex={0}>
+              <div className={"big big-cit" + (netCash >= 0 ? "" : " neg")}>{eur0(netCash)}</div>
+              <div className="kpi-tip kpi-tip--eq">
+                <b>{eur0(ttc)}</b> <span className="muted">CA TTC</span> <span className="op">−</span> <b>{eur0(ttc - netCash)}</b> <span className="muted">charges</span> <span className="op">=</span> <b className="pos">{eur0(netCash)}</b>
+              </div>
+            </div>
             <div className="hero-sub">Ce qui va rester de ton CA à la fin du mois après déduction des charges et frais prélevés ce mois</div>
-            <div className="kpi-detail" tabIndex={0}>
-              <span className="kpi-detail-trig">détail du calcul ▾</span>
-              <div className="kpi-tip">
-                <div className="treso-cascade">
-                  <div className="treso-row ca-row"><span className="lab">CA TTC encaissé</span><b className="pos">{eur0(ttc)}</b></div>
-                  {s.assujetti && outTva > 0 && <div className="treso-row"><span className="lab">− TVA reversée ({originLabel(tvaDec)})</span><b className="neg">−{eur0(outTva)}</b></div>}
-                  {outUrssaf > 0 && <div className="treso-row"><span className="lab">− URSSAF {deMois(originLabel(urssafDec))}</span><b className="neg">−{eur0(outUrssaf)}</b></div>}
-                  {outFrais > 0 && <div className="treso-row"><span className="lab">− Frais {deMois(moisLabel(mIndex))}</span><b className="neg">−{eur0(outFrais)}</b></div>}
-                  {outCfe > 0 && <div className="treso-row"><span className="lab">− CFE</span><b className="neg">−{eur0(outCfe)}</b></div>}
-                  <div className="treso-row net-row"><span className="lab">Revenu net ce mois</span><b className={netCash >= 0 ? "pos" : "neg"}>{eur0(netCash)}</b></div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Résultat net (prévisionnel) */}
-        <div className="card hero-kpi">
+        {/* Où part mon argent ? (ce qui sort réellement du compte ce mois) */}
+        <div className="card dt-bar">
           <div className="card-b">
-            <div className="hero-top">
-              <span className="cap">Résultat net</span>
-              {resPct != null && <span className="hero-badge neutral">{resPct}% du CA HT</span>}
-            </div>
-            <div className={"big" + (s.netLisse >= 0 ? "" : " neg")}>{eur0(s.netLisse)}</div>
-            <div className="hero-sub">ce que ton activité gagne vraiment après déduction des charges à venir (payées en différé)</div>
-            <div className="kpi-detail" tabIndex={0}>
-              <span className="kpi-detail-trig">détail du calcul ▾</span>
-              <div className="kpi-tip">
-                <div className="treso-cascade">
-                  <div className="treso-row ca-row"><span className="lab">CA TTC encaissé</span><b className="pos">{eur0(ttc)}</b></div>
-                  {s.assujetti && provTva > 0 && <div className="treso-row"><span className="lab">− TVA à reverser ({moisLabel(mIndex)})</span><b className="neg">−{eur0(provTva)}</b></div>}
-                  {provUrssaf > 0 && <div className="treso-row"><span className="lab">− URSSAF {deMois(moisLabel(mIndex))}</span><b className="neg">−{eur0(provUrssaf)}</b></div>}
-                  {provFraisRec > 0 && <div className="treso-row"><span className="lab">− Frais récurrents</span><b className="neg">−{eur0(provFraisRec)}</b></div>}
-                  {provFraisProv > 0 && <div className="treso-row"><span className="lab">− Provisions</span><b className="neg">−{eur0(provFraisProv)}</b></div>}
-                  {provFraisPonct > 0 && <div className="treso-row"><span className="lab">− Achats ponctuels</span><b className="neg">−{eur0(provFraisPonct)}</b></div>}
-                  {provCfe > 0 && <div className="treso-row"><span className="lab">− CFE (part du mois)</span><b className="neg">−{eur0(provCfe)}</b></div>}
-                  <div className="treso-row net-row"><span className="lab">Résultat net</span><b className={s.netLisse >= 0 ? "pos" : "neg"}>{eur0(s.netLisse)}</b></div>
-                </div>
-                <p style={{ fontSize: 11.5, color: "var(--faint)", margin: "8px 0 0" }}>Tu ne verras jamais ce chiffre sur ton compte : les impôts sont prélevés en différé.</p>
+            <div className="panel-head" style={{ marginBottom: 12 }}>
+              <div>
+                <h2 className="panel-title">Où part mon argent ce mois-ci ?</h2>
+                <p className="panel-kicker">Tout ton encaissement TTC, réparti d'un coup d'œil. Survole un bloc pour le détail.</p>
               </div>
             </div>
+            <div className="bar-brace-lbl">{eur0(ttc)} TTC <span className="sub">· 100 % de ce qui est entré</span></div>
+            <div className="bar-brace"></div>
+            <SpendBar segs={donutSegs} total={donutTot} ttc={ttc} />
+          </div>
+        </div>
+
+        {/* À mettre de côté (donut : CA = résultat net + charges à provisionner) */}
+        <div className="prov-card dt-donut">
+          <div className="cap">À METTRE DE CÔTÉ CE MOIS</div>
+          <div className="big">{eur0(charged)}</div>
+          <div style={{ fontSize: 12, color: "var(--ink-faint)", marginBottom: 10, marginTop: -10 }}>Certaines charges sont payées en différé, il faut l'anticiper</div>
+          <div className="donut-wrap">
+            <svg className="donut-svg" data-on={mdcHover ? "" : undefined} viewBox="0 0 140 140" width="156" height="156" role="img" aria-label="Répartition du CA encaissé en résultat net et charges à mettre de côté">
+              {mdcArcs.map((a) => {
+                const handlers = { onMouseEnter: () => setMdcHover(a.key), onMouseLeave: () => setMdcHover(null) };
+                const dim = mdcHover && mdcHover !== a.key ? "" : undefined;
+                const pop = mdcHover === a.key ? { transform: `translate(${a.tx}px, ${a.ty}px)` } : undefined;
+                return (
+                  <path key={a.key} d={a.path} className="donut-arc" fill={a.color}
+                    stroke={a.key === "tva" ? "var(--line-2)" : "none"} strokeWidth={a.key === "tva" ? 1.2 : 0}
+                    data-dim={dim} style={pop} {...handlers} />
+                );
+              })}
+            </svg>
+            {!mdcHover &&
+              <div className="donut-center"><span className="dc-lbl">CA TTC</span><span className="dc-val">{eur0(ttc)}</span></div>}
+            {mdcHover &&
+              <div className="donut-tip">{mdcHoverData.lab} · {Math.round(mdcHoverData.val / mdcTotal * 100)} %{mdcHoverData.due && <small>{mdcHoverData.due}</small>}</div>}
+          </div>
+          <div className="donut-leg" data-on={mdcHover ? "" : undefined}>
+            {mdcData.map((d) => (
+              <div className={"li" + (d.key === "net" ? " net" : "")} key={d.key} data-dim={mdcHover && mdcHover !== d.key ? "" : undefined}
+                onMouseEnter={() => setMdcHover(d.key)} onMouseLeave={() => setMdcHover(null)}>
+                <span className="sw2" style={{ background: d.color, boxShadow: d.key === "tva" ? "inset 0 0 0 1px var(--line-2)" : undefined }}></span>
+                <span>{d.lab}</span>
+                <b>{eur0(d.val)}</b>
+              </div>
+            ))}
           </div>
         </div>
 
       </div>
 
-      {/* === Rangée du milieu : où part mon argent (2 col) · à mettre de côté (1 col) === */}
-      <div className="dash-mid">
-
-          {/* Où part mon argent ? (ce qui sort réellement du compte ce mois) */}
-          <div className="card span2">
-            <div className="card-b">
-              <div className="panel-head" style={{ marginBottom: 18 }}>
-                <div>
-                  <h2 className="panel-title">Où part mon argent ce mois-ci ?</h2>
-                  <p className="panel-kicker">Tout ton encaissement TTC, réparti d'un coup d'œil. Survole un bloc pour le détail.</p>
-                </div>
-                <div className="panel-kpi">
-                  <div className="panel-kpi-lbl">CA encaissé · TTC</div>
-                  <div className="panel-kpi-row"><span className="num panel-kpi-val">{eur0(ttc)}</span></div>
-                  <div className="panel-kpi-sub">100 % de ce qui est entré</div>
-                </div>
-              </div>
-              <SpendBar segs={donutSegs} total={donutTot} ttc={ttc} />
-            </div>
-          </div>
-
-          {/* À mettre de côté (provisions) */}
-          <div className="prov-card sq">
-            <div className="cap">À METTRE DE CÔTÉ CE MOIS</div>
-            <div className="big">{eur0(charged)}</div>
-            <div style={{ fontSize: 12, color: "var(--ink-faint)", marginBottom: 10, marginTop: -10 }}>Certaines charges sont payées en différé, il faut l'anticiper</div>
-            <div style={{ display: "flex", height: 5, borderRadius: 999, overflow: "hidden", marginBottom: 14, background: "var(--line)" }}>
-              {provUrssaf > 0 && <div style={{ flex: provUrssaf, background: FLOW_COLORS.urssaf }} />}
-              {s.assujetti && provTva > 0 && <div style={{ flex: provTva, background: FLOW_COLORS.tva, boxShadow: "inset 0 0 0 1px var(--line-2)" }} />}
-              {provFraisRec > 0 && <div style={{ flex: provFraisRec, background: FLOW_COLORS.recurrent }} />}
-              {provFraisProv > 0 && <div style={{ flex: provFraisProv, background: FLOW_COLORS.provision }} />}
-              {provFraisPonct > 0 && <div style={{ flex: provFraisPonct, background: FLOW_COLORS.ponctuel }} />}
-              {provCfe > 0 && <div style={{ flex: provCfe, background: FLOW_COLORS.cfe }} />}
-            </div>
-            <div className="prov-detail">
-              {provUrssaf > 0 && <div className="prov-pi">
-                <span className="swatch" style={{ background: FLOW_COLORS.urssaf }}></span>
-                <span>URSSAF {deMois(moisLabel(mIndex))} <em style={{ fontSize: 11, color: "var(--ink-faint)", fontStyle: "normal" }}>prélevé le {urssafJour} {dueLabel(urssafDec)}</em></span>
-                <b>{eur0(provUrssaf)}</b>
-              </div>}
-              {s.assujetti && provTva > 0 && <div className="prov-pi">
-                <span className="swatch" style={{ background: FLOW_COLORS.tva, boxShadow: "inset 0 0 0 1px var(--line-2)" }}></span>
-                <span>TVA {deMois(moisLabel(mIndex))} <em style={{ fontSize: 11, color: "var(--ink-faint)", fontStyle: "normal" }}>prélevée le {tvaJour} {dueLabel(tvaDec)}</em></span>
-                <b>{eur0(provTva)}</b>
-              </div>}
-              {provFraisRec > 0 && <div className="prov-pi">
-                <span className="swatch" style={{ background: FLOW_COLORS.recurrent }}></span>
-                <span>Frais récurrents</span>
-                <b>{eur0(provFraisRec)}</b>
-              </div>}
-              {provFraisProv > 0 && <div className="prov-pi">
-                <span className="swatch" style={{ background: FLOW_COLORS.provision }}></span>
-                <span>Provisions</span>
-                <b>{eur0(provFraisProv)}</b>
-              </div>}
-              {provFraisPonct > 0 && <div className="prov-pi">
-                <span className="swatch" style={{ background: FLOW_COLORS.ponctuel }}></span>
-                <span>Achats ponctuels</span>
-                <b>{eur0(provFraisPonct)}</b>
-              </div>}
-              {provCfe > 0 && <div className="prov-pi">
-                <span className="swatch" style={{ background: FLOW_COLORS.cfe }}></span>
-                <span>CFE</span>
-                <b>{eur0(provCfe)}</b>
-              </div>}
-            </div>
-          </div>
-
-      </div>
-
-      {/* === Rangée du bas : calendrier · factures en attente · prévisionnel (3 col) === */}
+      {/* === Rangée du bas : calendrier (large, sous la barre) · prévisionnel (sous le donut) === */}
       <div className="dash-row3">
 
-          {/* Calendrier des prélèvements */}
+          {/* Calendrier des prélèvements (large, aligné sous "où part mon argent") */}
           <MiniDashCalendar key={mIndex} mIndex={mIndex} charges={charges} profile={profile} cfeAnnuel={cfeAnnuel} facturesByMonth={facturesByMonth} urssafHistory={urssafHistory} />
 
-          {/* Factures en attente */}
-          <div className="card hero-kpi sq">
-            <div className="card-b">
-              <div className="hero-top"><span className="cap">Factures en attente</span></div>
-              <div className="big">{eur0(attenteTotal.ht)}{s.assujetti && <span style={{ fontSize: 16, fontWeight: 500, color: "var(--faint)" }}> HT</span>}</div>
-              <div className="hero-sub">{s.assujetti ? `${eur0(attenteTotal.ttc)} TTC · ` : ""}{attenteTotal.n} facture{attenteS}, pas encore encaissée{attenteS}</div>
-              {attenteTotal.n > 0 && <button type="button" className="link-detail" onClick={() => onGoTo && onGoTo("factures")}>voir le détail →</button>}
-            </div>
-          </div>
-
           {/* Prévisionnel du mois suivant */}
-          <div className="card sq">
+          <div className="card dr-prev">
             <div className="card-h"><h2>Prévisionnel</h2><span className="sub">revenus attendus en {moisLabel(nextIdx)}</span></div>
             <div className="card-b">
               <div className="treso-cascade">
