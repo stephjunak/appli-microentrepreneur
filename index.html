@@ -1024,27 +1024,35 @@ function computeMonth({ facturesByMonth, charges, profile, mIndex, year, cfeAnnu
 
   // --- vue "rentabilité" : toutes les charges du mois lissées (part mensuelle) ---
   const tvaAreverser = assujetti ? Math.max(0, tvaCollectee - tvaDeductible) : 0;
-  let fraisLisseRec = 0, fraisLisseProv = 0, fraisLissePonct = 0;
+  let fraisLisseRec = 0, fraisLisseProv = 0, fraisLissePonct = 0, fraisLisseHT = 0;
   charges.forEach((ch) => {
     const l = chargeLisse(ch, mIndex, year);
     if (l <= 0) return;
     if (ch.frequence === "trimestrielle" || ch.frequence === "annuelle") fraisLisseProv += l;   // provisions (part lissée)
     else if (ch.frequence === "ponctuelle") fraisLissePonct += l;                                // achat ponctuel du mois
     else fraisLisseRec += l;                                                                      // frais récurrents (mensuels)
+    fraisLisseHT += assujetti ? l / (1 + (ch.tva || 0)) : l;                                      // part HT (nette de TVA déductible)
   });
   const fraisLisse = fraisLisseRec + fraisLisseProv + fraisLissePonct;
-  const charged = totalCotis + tvaAreverser + cfeProv + fraisLisse;   // tout ce que l'activité du mois coûte
-  const netLisse = caTTC - charged;                                   // revenu net raisonnable
+  // En vue Résultat tout est lissé, y compris la TVA déductible : la TVA à reverser se recalcule sur les frais
+  // LISSÉS (et non sur les frais décaissés à l'échéance, qui relèvent de la Trésorerie). Sinon le Résultat
+  // emprunte une TVA "trésorerie" à un calcul "lissé" et se retrouve faussé pour les frais payés d'avance.
+  const tvaDeductibleLisse = fraisLisse - fraisLisseHT;                          // TVA contenue dans les frais lissés
+  const tvaAreverserLisse  = assujetti ? Math.max(0, tvaCollectee - tvaDeductibleLisse) : 0;
+  const charged = totalCotis + tvaAreverser + cfeProv + fraisLisse;   // à mettre de côté ce mois : montants réels à provisionner
+  const netProvision = caTTC - charged;                              // ce qui reste après provisions (cash) — donut "à mettre de côté"
+  const netLisse = caTTC - totalCotis - tvaAreverserLisse - cfeProv - fraisLisse;   // Résultat net (performance, tout lissé)
 
   return {
     assujetti, lib, caHT, tvaCollectee, caTTC, byCat,
     nbFactures: factures.length,
     cotisLines, totalCotis,
     decaisseLines, provisionLines, totalDecaisse, totalProvision,
-    cfeProv, fraisLisse, fraisLisseRec, fraisLisseProv, fraisLissePonct, charged,
-    net, netPrudent, netLisse,
+    totalDecaisseHT: totalDecaisse - (assujetti ? tvaDeductible : 0),
+    cfeProv, fraisLisse, fraisLisseRec, fraisLisseProv, fraisLissePonct, fraisLisseHT, charged,
+    net, netPrudent, netLisse, netProvision,
     tvaDeductible: assujetti ? tvaDeductible : 0,
-    tvaAreverser,
+    tvaAreverser, tvaAreverserLisse,
   };
 }
 
@@ -1054,9 +1062,10 @@ function computeYear({ facturesByMonth, charges, profile, year, cfeAnnuel = 0, u
   for (let i = 0; i < 12; i++) {
     const s = computeMonth({ facturesByMonth, charges, profile, mIndex: i, year, cfeAnnuel, urssafHistory });
     out.push({
-      net: s.net, netPrudent: s.netPrudent, netLisse: s.netLisse, caHT: s.caHT, caTTC: s.caTTC,
-      tva: s.tvaAreverser, cotis: s.totalCotis,
-      decaisse: s.totalDecaisse, provision: s.totalProvision, fraisLisse: s.fraisLisse,
+      net: s.net, netPrudent: s.netPrudent, netLisse: s.netLisse, netProvision: s.netProvision, caHT: s.caHT, caTTC: s.caTTC,
+      tva: s.tvaAreverser, tvaLisse: s.tvaAreverserLisse, cotis: s.totalCotis,
+      decaisse: s.totalDecaisse, decaisseHT: s.totalDecaisseHT, provision: s.totalProvision,
+      fraisLisse: s.fraisLisse, fraisLisseHT: s.fraisLisseHT,
       cfe: s.cfeProv,
       nbFactures: s.nbFactures,
     });
@@ -1068,12 +1077,12 @@ function computeYear({ facturesByMonth, charges, profile, year, cfeAnnuel = 0, u
 function computeYearSummary({ facturesByMonth, charges, profile, uptoMonth, prevYear, year, cfeAnnuel = 0, urssafHistory = {} }) {
   const yearData = computeYear({ facturesByMonth, charges, profile, year, cfeAnnuel, urssafHistory });
   const upto = uptoMonth == null ? 11 : uptoMonth;
-  const acc = { caTTC: 0, caHT: 0, tva: 0, cotis: 0, decaisse: 0, provision: 0, fraisLisse: 0, cfe: 0, net: 0, netPrudent: 0, netLisse: 0, nbFactures: 0, lastActive: -1 };
+  const acc = { caTTC: 0, caHT: 0, tva: 0, tvaLisse: 0, cotis: 0, decaisse: 0, decaisseHT: 0, provision: 0, fraisLisse: 0, fraisLisseHT: 0, cfe: 0, net: 0, netPrudent: 0, netLisse: 0, netProvision: 0, nbFactures: 0, lastActive: -1 };
   yearData.forEach((y, i) => {
     if (i > upto) return;
-    acc.caTTC += y.caTTC; acc.caHT += y.caHT; acc.tva += y.tva; acc.cotis += y.cotis;
-    acc.decaisse += y.decaisse; acc.provision += y.provision; acc.fraisLisse += y.fraisLisse; acc.cfe += y.cfe;
-    acc.net += y.net; acc.netPrudent += y.netPrudent; acc.netLisse += y.netLisse; acc.nbFactures += y.nbFactures;
+    acc.caTTC += y.caTTC; acc.caHT += y.caHT; acc.tva += y.tva; acc.tvaLisse += y.tvaLisse; acc.cotis += y.cotis;
+    acc.decaisse += y.decaisse; acc.decaisseHT += y.decaisseHT; acc.provision += y.provision; acc.fraisLisse += y.fraisLisse; acc.fraisLisseHT += y.fraisLisseHT; acc.cfe += y.cfe;
+    acc.net += y.net; acc.netPrudent += y.netPrudent; acc.netLisse += y.netLisse; acc.netProvision += y.netProvision; acc.nbFactures += y.nbFactures;
     if (y.caTTC > 0) acc.lastActive = i;
   });
   acc.charges = acc.tva + acc.cotis + acc.decaisse + acc.provision + acc.cfe;
@@ -1440,7 +1449,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
 
   // donut "à mettre de côté" : CA TTC découpé en résultat net (citron) + charges à provisionner
   const mdcData = [
-    { key: "net",    lab: "Résultat net",                          val: Math.max(0, s.netLisse), color: FLOW_COLORS.net },
+    { key: "net",    lab: "Résultat net",                          val: Math.max(0, s.netProvision), color: FLOW_COLORS.net },
     { key: "urssaf", lab: `URSSAF ${deMois(moisLabel(mIndex))}`,   val: provUrssaf,   color: FLOW_COLORS.urssaf,  due: `prélevé le ${urssafJour} ${dueLabel(urssafDec)}` },
     ...(s.assujetti ? [{ key: "tva", lab: `TVA ${deMois(moisLabel(mIndex))}`, val: provTva, color: FLOW_COLORS.tva, due: `prélevée le ${tvaJour} ${dueLabel(tvaDec)}` }] : []),
     { key: "frec",   lab: "Frais récurrents",                      val: provFraisRec,  color: FLOW_COLORS.recurrent },
@@ -1483,11 +1492,12 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   ].filter(x => x.val > 0.005);
 
   // valeurs réellement payées cumul jan → mIndex (même logique que le mode mois)
-  let yCumulUrssaf = 0, yCumulTva = 0, yCumulFrais = 0, yCumulCfe = 0;
+  let yCumulUrssaf = 0, yCumulTva = 0, yCumulFrais = 0, yCumulFraisHT = 0, yCumulCfe = 0;
   for (let i = 0; i <= mIndex; i++) {
     yCumulUrssaf += cotisAt(i - urssafDec);
     if (s.assujetti) yCumulTva += tvaAt(i - tvaDec);
     yCumulFrais += year[i].decaisse;
+    yCumulFraisHT += year[i].decaisseHT;
     if (i === 11) yCumulCfe += cfeAnnuel;
   }
   const yCumulCashOut = yCumulUrssaf + yCumulTva + yCumulFrais + yCumulCfe;
@@ -1500,9 +1510,10 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
     return y.caTTC - u - t - y.decaisse - (i === 11 ? cfeAnnuel : 0);
   });
   // bascule trésorerie / réel pour la synthèse annuelle
+  const synthBaseHT = synthBase === "ht" && s.assujetti && synthMode !== "treso";   // frais nets de TVA déductible en vue HT (Résultat uniquement)
   const synthFig = synthMode === "treso"
-    ? { tva: yCumulTva, urssaf: yCumulUrssaf, frais: yCumulFrais, cfe: yCumulCfe, net: yCumulNet, netLabel: "Revenu net cumulé", graphLabel: "Revenu net" }
-    : { tva: ys.tva,    urssaf: ys.cotis,    frais: ys.fraisLisse, cfe: ys.cfe, net: ys.netLisse, netLabel: "Résultat net cumulé", graphLabel: "Résultat net" };
+    ? { tva: yCumulTva, urssaf: yCumulUrssaf, frais: synthBaseHT ? yCumulFraisHT : yCumulFrais, cfe: yCumulCfe, net: yCumulNet, netLabel: "Revenu net cumulé", graphLabel: "Revenu net" }
+    : { tva: ys.tvaLisse, urssaf: ys.cotis,  frais: synthBaseHT ? ys.fraisLisseHT : ys.fraisLisse, cfe: ys.cfe, net: ys.netLisse, netLabel: "Résultat net cumulé", graphLabel: "Résultat net" };
   const barSeries  = synthMode === "treso" ? tresoByMonth : year.map((y) => y.netLisse);
   const maxAbsBars = Math.max(1, ...barSeries.map((v) => Math.abs(v)));
 
@@ -1513,12 +1524,12 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const moisAnPrec = (off) => `${MONTHS[(((-off) % 12) + 12) % 12].toLowerCase()} ${YEAR - 1}`;
   const synthTagline = synthMode === "treso" ? "Les mouvements réels de ta trésorerie" : "La performance de ton activité";
   const synthPrecision = synthMode === "treso"
-    ? `En vue "Trésorerie", on ne compte que ce qui est réellement sorti du compte. La TVA et l'URSSAF des derniers mois ne sont pas encore prélevées, donc absentes ici. À l'inverse, l'URSSAF de ${moisAnPrec(urssafDec)} et la TVA de ${moisAnPrec(tvaDec)} sont comptées, car prélevées en début d'année.`
-    : `En vue "Résultat", on déduit chaque mois les charges générées par l'activité (URSSAF, TVA), même si elles ne seront prélevées que plus tard. Les charges des deux derniers mois, incluant les provisions sur d'éventuels prélèvements annuels, sont donc déjà prises en compte, contrairement à la vue Trésorerie.`;
+    ? `En vue "Trésorerie", on ne compte que ce qui est réellement sorti du compte ce mois. La TVA et l'URSSAF des derniers mois ne sont pas encore prélevées, donc absentes ici ; à l'inverse, l'URSSAF de ${moisAnPrec(urssafDec)} et la TVA de ${moisAnPrec(tvaDec)} sont comptées, car prélevées en début d'année. Les frais payés au trimestre ou à l'année sont déduits en entier le mois de leur échéance, ce qui peut peser lourd sur la trésorerie de ce mois-là (la CFE en décembre, par exemple).`
+    : `En vue "Résultat", on déduit chaque mois les charges générées par l'activité, même si elles seront prélevées plus tard. L'URSSAF et la TVA sont comptées dès le mois où elles sont dues. Les frais payés au trimestre ou à l'année, ainsi que la CFE le cas échéant, sont lissés : leur montant est réparti mois par mois en provision, au lieu d'être imputé d'un coup au mois du paiement. La vue reflète ainsi ce que ton activité coûte réellement chaque mois, indépendamment du calendrier des prélèvements.`;
 
   // base HT / TTC : uniformise le graphe ET le détail chiffré de la synthèse
   const assujetti = !!profile.tva;
-  const baseTTC = synthBase === "ttc" || !assujetti; // sans TVA, HT = TTC
+  const baseTTC = synthBase === "ttc" || !assujetti || synthMode === "treso"; // sans TVA, HT = TTC ; la Trésorerie est toujours en TTC (argent réel du compte)
   const synthIncome = baseTTC ? ys.caTTC : ys.caHT;
   const showTvaRow = baseTTC && assujetti;
   const synthNet = synthIncome - (showTvaRow ? synthFig.tva : 0) - synthFig.urssaf - synthFig.frais - synthFig.cfe;
@@ -1530,8 +1541,8 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const isTreso = synthMode === "treso";
   const monthBars = year.map((y, i) => {
     const u  = isTreso ? cotisAt(i - urssafDec) : y.cotis;
-    const tv = !assujetti ? 0 : (isTreso ? tvaAt(i - tvaDec) : y.tva);
-    const fr = isTreso ? (y.decaisse + (i === 11 ? cfeAnnuel : 0)) : (y.fraisLisse + cfeAnnuel / 12);
+    const tv = !assujetti ? 0 : (isTreso ? tvaAt(i - tvaDec) : y.tvaLisse);
+    const fr = isTreso ? ((baseTTC ? y.decaisse : y.decaisseHT) + (i === 11 ? cfeAnnuel : 0)) : ((baseTTC ? y.fraisLisse : y.fraisLisseHT) + cfeAnnuel / 12);
     const total = baseTTC ? y.caTTC : y.caHT;
     const tva = baseTTC ? tv : 0;
     return { label: SHORT_MONTHS[i], total, poche: Math.max(0, total - tva - u - fr), urssaf: u, tva, frais: fr, future: i > mIndex || !(total > 0) };
@@ -1551,16 +1562,19 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
     const prv = computeYear({ facturesByMonth, charges, profile, year: yr - 1, urssafHistory });
     const cotisOf = (i) => { const mm = i >= 0 ? cur[i] : prv[12 + i]; return mm ? mm.cotis : 0; };
     const tvaOf   = (i) => { const mm = i >= 0 ? cur[i] : prv[12 + i]; return mm ? mm.tva : 0; };
-    let urssaf = 0, tva = 0, frais = 0, caTTC = 0, caHT = 0;
+    let urssaf = 0, tva = 0, frais = 0, fraisHT = 0, caTTC = 0, caHT = 0;
     for (let i = 0; i < 12; i++) {
       urssaf += cotisOf(i - urssafDec);
       if (assujetti) tva += tvaOf(i - tvaDec);
       frais += cur[i].decaisse;
+      fraisHT += cur[i].decaisseHT;
       caTTC += cur[i].caTTC;
       caHT  += cur[i].caHT;
     }
-    frais += num((cfeData[yr] || {}).montant) || 0;   // CFE de l'année (prélevée en décembre)
-    return { caTTC, caHT, urssaf, tva, frais };
+    const cfeYr = num((cfeData[yr] || {}).montant) || 0;   // CFE de l'année (prélevée en décembre, sans TVA)
+    frais += cfeYr;
+    fraisHT += cfeYr;
+    return { caTTC, caHT, urssaf, tva, frais, fraisHT };
   };
   const yearHasData = (yr) => Object.keys(facturesByMonth || {}).some((k) => k.startsWith(yr + "-"));
   const yearsSet = new Set([YEAR]);
@@ -1570,14 +1584,15 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
     if (yr === YEAR) {                                  // année en cours : cumul jan → mois affiché
       const total = baseTTC ? ys.caTTC : ys.caHT;
       const tva = baseTTC ? yCumulTva : 0;
-      const frais = yCumulFrais + yCumulCfe;
+      const frais = (baseTTC ? yCumulFrais : yCumulFraisHT) + yCumulCfe;
       return { label: `${yr} *`, total, poche: Math.max(0, total - tva - yCumulUrssaf - frais), urssaf: yCumulUrssaf, tva, frais, future: false };
     }
     if (yearHasData(yr)) {                              // année complète suivie dans l'app
       const a = tresoYearAgg(yr);
       const total = baseTTC ? a.caTTC : a.caHT;
       const tva = baseTTC ? a.tva : 0;
-      return { label: String(yr), total, poche: Math.max(0, total - tva - a.urssaf - a.frais), urssaf: a.urssaf, tva, frais: a.frais, future: false };
+      const frais = baseTTC ? a.frais : a.fraisHT;
+      return { label: String(yr), total, poche: Math.max(0, total - tva - a.urssaf - frais), urssaf: a.urssaf, tva, frais, future: false };
     }
     const d = (profile.prevYears || {})[yr] || {};     // année saisie à la main : barre pleine
     return { label: String(yr), total: baseTTC ? num(d.caTTC) : num(d.caHT), poche: 0, urssaf: 0, tva: 0, frais: 0, plain: true, future: false };
@@ -1733,7 +1748,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
             <button className={synthMode === "treso" ? "on" : ""} onClick={() => setSynthMode("treso")}>Trésorerie</button>
             <button className={synthMode === "reel" ? "on" : ""} onClick={() => setSynthMode("reel")}>Résultat</button>
           </div>
-          {assujetti &&
+          {assujetti && synthMode === "reel" &&
           <div className="viewseg sm ghost" style={{ marginLeft: 10 }}>
             <button className={synthBase === "ttc" ? "on" : ""} onClick={() => setSynthBase("ttc")}>TTC</button>
             <button className={synthBase === "ht" ? "on" : ""} onClick={() => setSynthBase("ht")}>HT</button>
