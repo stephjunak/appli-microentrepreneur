@@ -393,11 +393,12 @@ select.cell-in{appearance:none;cursor:pointer;
 .stat--ca .sub{color:rgba(45,43,30,.6);}
 .col-head{font-size:12px;font-weight:700;color:var(--soft);padding:0 2px 2px;}
 .col-head span{font-weight:400;color:var(--faint);}
-.hero-kpi .card-b{padding:18px 20px 16px;}
-.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.hero-kpi .card-b{padding:14px 20px 14px;display:flex;flex-direction:column;height:100%;}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;min-height:34px;}
 .hero-kpi .cap{font-size:11px;color:var(--faint);font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
-.hero-kpi .big{font-size:34px;font-weight:800;letter-spacing:-.6px;line-height:1;margin-top:8px;}
-.hero-sub{font-size:12px;color:var(--faint);margin-top:7px;line-height:1.45;}
+.hero-kpi .big{font-size:34px;font-weight:800;letter-spacing:-.6px;line-height:1;margin-top:4px;}
+.hero-kpi .kpi-detail .big{margin-top:0;}  /* le gap de 8px est déjà porté par .kpi-detail, on évite le double */
+.hero-sub{font-size:12px;color:var(--faint);margin-top:5px;line-height:1.45;}
 .hero-badge{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap;}
 .hero-badge.up{background:var(--pos-soft);color:var(--pos);}
 .hero-badge.down{background:var(--neg-soft);color:var(--neg);}
@@ -409,7 +410,7 @@ select.cell-in{appearance:none;cursor:pointer;
 .lvl-pct{font-size:11.5px;font-weight:400;white-space:nowrap;}
 .kpi-detail{position:relative;display:inline-flex;margin-top:12px;cursor:pointer;outline:none;}
 .kpi-detail-trig{font-size:12px;color:var(--primary);font-weight:600;}
-.kpi-detail--num{margin-top:8px;}
+.kpi-detail--num{margin-top:4px;}
 .big-cit{display:inline-block;background-image:linear-gradient(transparent 54%, var(--accent) 54%);}      /* surlignage citron qui remonte derrière le chiffre */
 .kpi-tip--eq{min-width:0;white-space:nowrap;font-size:13px;display:flex;align-items:baseline;gap:5px;}
 .kpi-tip--eq .muted{color:var(--faint);font-size:11.5px;}
@@ -485,8 +486,9 @@ select.cell-in{appearance:none;cursor:pointer;
 @keyframes ytipIn{from{opacity:0;transform:translate(-50%,4px);}to{opacity:1;transform:translate(-50%,0);}}
 /* ---------- histogramme annuel empilé (tableau-kit) ---------- */
 .annual{padding:18px 2px 0;}
-.annual-plot{position:relative;display:flex;align-items:flex-end;gap:10px;height:170px;padding-bottom:30px;}
-.annual-grid{position:absolute;left:0;right:0;height:1px;background:var(--line-soft);}
+.annual-plot{position:relative;display:flex;align-items:flex-end;gap:10px;height:240px;padding-bottom:30px;padding-left:40px;}
+.annual-grid{position:absolute;left:40px;right:0;height:1px;background:var(--line-soft);}
+.annual-scale{position:absolute;left:0;width:32px;text-align:right;transform:translateY(50%);font-size:9.5px;color:var(--ink-faint);font-weight:500;font-variant-numeric:tabular-nums;line-height:1;pointer-events:none;}
 .annual-col{position:relative;flex:1;display:flex;align-items:flex-end;justify-content:center;align-self:stretch;}
 .abar{width:30px;display:flex;flex-direction:column-reverse;gap:3px;}
 .aseg{width:30px;border-radius:9px;transition:opacity .16s ease;}
@@ -552,10 +554,10 @@ select.cell-in{appearance:none;cursor:pointer;
 .dash-mid .span2{grid-column:span 2;}
 /* haut du tableau de bord : CA + Revenu net (g.) · barre (dessous) · donut à mettre de côté (droite, pleine hauteur) */
 .dash-top{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:14px;align-items:start;}
-.dash-top .dt-ca{grid-column:1;grid-row:1;}
-.dash-top .dt-rev{grid-column:2;grid-row:1;}
-.dash-top .dt-donut{grid-column:3;grid-row:1 / span 2;}
-.dash-top .dt-bar{grid-column:1 / span 2;grid-row:2;}
+.dash-top .dt-ca{grid-column:1;grid-row:1;align-self:stretch;}
+.dash-top .dt-rev{grid-column:2;grid-row:1;align-self:stretch;}
+.dash-top .dt-donut{grid-column:3;grid-row:1 / span 2;align-self:stretch;}
+.dash-top .dt-bar{grid-column:1 / span 2;grid-row:2;align-self:stretch;}
 .bar-brace-lbl{text-align:center;font-size:11.5px;color:var(--ink-soft);margin-bottom:3px;}
 .bar-brace-lbl .sub{color:var(--faint);}
 .bar-brace{height:9px;border:1.5px solid var(--line-2);border-bottom:none;border-radius:6px 6px 0 0;margin-bottom:9px;}
@@ -577,8 +579,8 @@ select.cell-in{appearance:none;cursor:pointer;
 .sq{aspect-ratio:1/1;overflow:auto;}
 .dash-row3{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:14px;align-items:start;}
 .dash-row3 .calcard{grid-column:1 / span 2;}
-.dash-row3 .dr-prev{grid-column:3;}
-.ca-attente{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px;}
+.dash-row3 .dr-prev{grid-column:3;align-self:stretch;}
+.ca-attente{margin-top:auto;padding-top:10px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px;}
 .ca-attente-txt{font-size:12px;color:var(--ink-soft);}
 .ca-attente-txt b{font-family:var(--font-title);color:var(--ink);}
 .ca-attente .link-detail{margin-top:0;font-size:12px;}
@@ -622,7 +624,7 @@ select.cell-in{appearance:none;cursor:pointer;
 .panel-kpi-val{font-family:var(--font-title);font-weight:700;font-size:30px;line-height:1;color:var(--ink);}
 .panel-kpi-sub{font-size:12px;color:var(--ink-faint);margin-top:6px;}
 /* ---------- mini-calendrier des prélèvements (tableau-kit) ---------- */
-.calcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:22px 22px 18px;display:flex;flex-direction:column;gap:16px;}
+.calcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:16px 22px 18px;display:flex;flex-direction:column;gap:16px;}
 .cal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .cal-head-left{display:flex;align-items:center;gap:10px;}
 .cal-ico{width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none;}
@@ -660,7 +662,7 @@ select.cell-in{appearance:none;cursor:pointer;
 .yrow2-top b{font-size:16px;font-weight:700;letter-spacing:-.2px;color:var(--ink);}
 .yrow2-bar{height:6px;border-radius:var(--r-pill);background:var(--line);overflow:hidden;}
 .yrow2-bar i{display:block;height:100%;border-radius:var(--r-pill);}
-.yrow2.tot{background:var(--primary-soft);border-radius:14px;padding:12px 14px;margin-top:2px;}
+.yrow2.tot{background:transparent;padding:0;margin-top:0;}
 .yrow2.tot .yrow2-top .lab{color:var(--ink);font-weight:600;}
 .yrow2.tot .yrow2-top b{font-size:21px;font-weight:800;letter-spacing:-.4px;}
 .yrow2.tot .yrow2-bar{background:rgba(45,43,30,.08);}
@@ -675,7 +677,9 @@ select.cell-in{appearance:none;cursor:pointer;
 .synth-graph-h .cap{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:700;}
 /* synthèse : sous-titre rapproché du titre + mention de la vue avec infobulle de précision */
 .synth-sub{margin-left:0 !important;}
-.synth-note{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--soft);margin:0 0 16px;}
+.synth-note{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--soft);margin:12px 0 16px;}
+.synth-detail-cap{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:700;margin:0 0 12px;}
+.synth-detail{min-height:0;}  /* réserve calculée en inline selon le profil (detailMinH) */
 .synth-info{position:relative;display:inline-flex;cursor:help;outline:none;}
 .synth-info > i{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--faint);color:var(--faint);font-size:10px;font-weight:700;font-style:italic;font-family:var(--font-title);line-height:1;}
 .synth-info:hover > i,.synth-info:focus > i,.synth-info:focus-within > i{border-color:var(--ink);color:var(--ink);}
@@ -1285,11 +1289,13 @@ const SHORT_MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août
 
 function AnnualBars({ months, max, cats, totalLabel = "HT" }) {
   const [hot, setHot] = React.useState(null);
-  const INNER = 130;
+  const INNER = 200;
+  const fmtScale = (v) => v >= 1000 ? (v / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " k" : String(Math.round(v));
   return (
     <div className="annual">
       <div className="annual-plot">
         {[0, 1, 2, 3].map((k) => <div key={k} className="annual-grid" style={{ bottom: 30 + k * (INNER / 3) }}></div>)}
+        {[0, 1, 2, 3].map((k) => <span key={"sc" + k} className="annual-scale" style={{ bottom: 30 + k * (INNER / 3) }}>{fmtScale((k / 3) * max)}</span>)}
         {months.map((m, i) => {
           const barH = (m.total / max) * INNER;
           const side = i <= 1 ? "left" : i >= months.length - 2 ? "right" : "center";
@@ -1329,7 +1335,8 @@ function AnnualBars({ months, max, cats, totalLabel = "HT" }) {
         })}
       </div>
       <div className="chart-legend">
-        {cats.map((c) => <span className="lg" key={c.key}><i className="bk" style={{ background: c.color }}></i>{c.lbl}</span>)}
+        {/* légende inversée : on termine par le revenu/résultat net (le libellé qui change au toggle) pour limiter l'impression de mouvement */}
+        {[...cats].reverse().map((c) => <span className="lg" key={c.key}><i className="bk" style={{ background: c.color }}></i>{c.lbl}</span>)}
       </div>
     </div>
   );
@@ -1515,6 +1522,11 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
   const synthIncome = baseTTC ? ys.caTTC : ys.caHT;
   const showTvaRow = baseTTC && assujetti;
   const synthNet = synthIncome - (showTvaRow ? synthFig.tva : 0) - synthFig.urssaf - synthFig.frais - synthFig.cfe;
+  // Hauteur figée du détail : on réserve la place des lignes conditionnelles (TVA si assujetti, CFE si configurée)
+  // pour que la colonne ne bouge plus au toggle Trésorerie/Résultat (ni HT/TTC). 36px par ligne + 13px de gap.
+  const hasCfe = num(cfeAnnuel) > 0 || num((cfeData[YEAR] || {}).montant) > 0;
+  const detailRowsMax = 1 + (assujetti ? 1 : 0) + 1 + 1 + (hasCfe ? 1 : 0); // CA + TVA + URSSAF + Frais + CFE
+  const detailMinH = detailRowsMax * 36 + (detailRowsMax - 1) * 13;
   const isTreso = synthMode === "treso";
   const monthBars = year.map((y, i) => {
     const u  = isTreso ? cotisAt(i - urssafDec) : y.cotis;
@@ -1624,7 +1636,11 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
                 <b>{eur0(ttc)}</b> <span className="muted">CA TTC</span> <span className="op">−</span> <b>{eur0(ttc - netCash)}</b> <span className="muted">charges</span> <span className="op">=</span> <b className="pos">{eur0(netCash)}</b>
               </div>
             </div>
-            <div className="hero-sub">Ce qui va rester de ton CA à la fin du mois après déduction des charges et frais prélevés ce mois</div>
+            <div className="hero-sub">après prélèvement des charges du mois</div>
+            <div className="ca-attente">
+              <span className="ca-attente-txt">Total des prélèvements ce mois <b>{eur0(ttc - netCash)}</b></span>
+              <button type="button" className="link-detail" onClick={() => onGoTo && onGoTo("calendrier")}>voir le calendrier →</button>
+            </div>
           </div>
         </div>
 
@@ -1744,6 +1760,13 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
               )}
             </div>
             <div className="synth-figures">
+              {/* Net cumulé en haut : ancre stable, ne bouge pas selon le toggle */}
+              <div className="ysum2">
+                <div className="yrow2 tot">
+                  <div className="yrow2-top"><span className="lab">{synthFig.netLabel}</span><b>{eur0(synthNet)}</b></div>
+                  <div className="yrow2-bar"><i style={{ width: Math.min(100, Math.round(Math.max(0, synthNet) / (synthIncome || 1) * 100)) + "%", background: "var(--seg-poche)" }}></i></div>
+                </div>
+              </div>
               <div className="synth-note">
                 <span>{synthTagline}</span>
                 <span className="synth-info" tabIndex={0} aria-label="Plus de détails sur le calcul">
@@ -1751,7 +1774,9 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
                   <span className="synth-info-tip">{synthPrecision}</span>
                 </span>
               </div>
-              <div className="ysum2">
+              <div className="synth-detail-cap">Détail du calcul</div>
+              {/* Détail en dessous. Hauteur figée (réserve la place des lignes conditionnelles TVA / CFE) */}
+              <div className="ysum2 synth-detail" style={{ minHeight: detailMinH }}>
                 {[
                   { lab: baseTTC ? "CA encaissé (TTC)" : "CA encaissé (HT)", val: synthIncome, neg: false, color: "#b9bbb0", show: true },
                   { lab: `TVA ${synthMode === "treso" ? "reversée" : "à reverser"}`, val: synthFig.tva, neg: true, color: "var(--seg-tva)", outline: true, show: showTvaRow },
@@ -1764,10 +1789,6 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
                     <div className="yrow2-bar"><i style={{ width: Math.min(100, Math.round(r.val / (synthIncome || 1) * 100)) + "%", background: r.color, boxShadow: r.outline ? "inset 0 0 0 1px var(--line-2)" : undefined }}></i></div>
                   </div>
                 ))}
-                <div className="yrow2 tot">
-                  <div className="yrow2-top"><span className="lab">{synthFig.netLabel}</span><b>{eur0(synthNet)}</b></div>
-                  <div className="yrow2-bar"><i style={{ width: Math.min(100, Math.round(Math.max(0, synthNet) / (synthIncome || 1) * 100)) + "%", background: "var(--seg-poche)" }}></i></div>
-                </div>
               </div>
             </div>
           </div>
