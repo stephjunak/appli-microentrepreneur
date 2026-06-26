@@ -350,8 +350,43 @@ select.cell-in{appearance:none;cursor:pointer;
 
 /* ---------- invoices (factures multi-lignes) ---------- */
 .stack{display:flex;flex-direction:column;gap:14px;}
-.invoice{overflow:hidden;}
-.inv-h{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);background:#fafbfc;}
+.inv-h{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;cursor:pointer;transition:background .15s;border-radius:var(--r-card);}
+.inv-h:hover{background:#fafbfc;}
+.invoice[data-open] .inv-h{background:#fafbfc;border-bottom:1px solid var(--line);border-radius:var(--r-card) var(--r-card) 0 0;}
+.inv-h:focus-visible{outline:2px solid var(--ink);outline-offset:-2px;}
+.inv-chevron{flex:none;display:inline-flex;align-items:center;color:var(--faint);transition:transform .2s ease;}
+.invoice[data-open] .inv-chevron{transform:rotate(90deg);}
+.inv-date{flex:none;font-weight:600;font-size:13px;white-space:nowrap;}
+.inv-client{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.inv-status{flex:none;display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+.inv-amount{flex:none;width:118px;text-align:right;font-weight:700;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.inv-amount-u{font-size:11px;font-weight:500;color:var(--faint);margin-left:3px;}
+.inv-actions{flex:none;display:flex;align-items:center;gap:2px;}
+.inv-pay{flex:none;padding:4px 10px;font-size:12px;}
+.inv-pay-wrap{position:relative;flex:none;display:inline-flex;}
+.pay-pop{position:absolute;top:calc(100% + 8px);right:0;z-index:40;background:#fff;border:1px solid var(--line-2);border-radius:12px;box-shadow:var(--shadow);padding:11px 12px;width:212px;display:flex;flex-direction:column;gap:8px;cursor:default;}
+.pay-pop-lab{font-size:11.5px;font-weight:600;color:var(--faint);}
+.pay-pop-act{display:flex;gap:7px;justify-content:flex-end;}
+.pay-pop-act .btn{padding:5px 12px;font-size:12.5px;}
+.inv-net-line{display:flex;justify-content:flex-end;align-items:baseline;gap:6px;padding:10px 5px 2px;font-size:13px;color:var(--soft);}
+.inv-net-line b{color:var(--pos);font-size:15px;}
+/* Synthèse factures : décompte vertical */
+.synth-fac{display:flex;flex-direction:column;}
+.sf-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:3px 0;}
+.sf-row.sf-sub{padding-top:0;}
+.sf-lab{font-size:13px;color:var(--faint);display:inline-flex;align-items:center;gap:6px;}
+.sf-lab--total{color:var(--ink);font-weight:500;font-size:13.5px;}
+.sf-val{font-family:var(--font-title);font-weight:700;font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.sf-u{font-size:12px;font-weight:500;color:var(--faint);}
+.sf-total{font-size:20px;}
+.sf-rule{border-top:1px solid var(--line-2);margin:10px 0 9px;}
+/* "i" + infobulle informative (gris clair) réutilisable */
+.itip-wrap{position:relative;display:inline-flex;align-items:center;cursor:help;outline:none;}
+.itip-i{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--faint);color:var(--faint);font-size:10px;font-style:normal;font-family:var(--font-title);line-height:1;}
+.itip{position:absolute;bottom:calc(100% + 9px);left:50%;width:250px;max-width:72vw;background:#fafbfc;border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);font-size:12px;line-height:1.5;color:var(--ink-soft);z-index:30;opacity:0;visibility:hidden;transform:translateX(-50%) translateY(4px);transition:opacity .12s ease,transform .12s ease;}
+.itip-wrap:hover .itip,.itip-wrap:focus .itip,.itip-wrap:focus-within .itip{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);}
+.itip::before{content:"";position:absolute;top:100%;left:50%;margin-left:-8px;border:8px solid transparent;border-top-color:var(--line);}
+.itip::after{content:"";position:absolute;top:100%;left:50%;margin-left:-7px;border:7px solid transparent;border-top-color:#fafbfc;}
 .inv-h .date-in{width:140px;flex:none;}
 .inv-h .client-in{flex:1;font-weight:600;}
 .inv-h .cell-in{background:#fff;border-color:var(--line-2);box-shadow:0 1px 2px rgba(45,43,30,.06);}
@@ -404,21 +439,22 @@ select.cell-in{appearance:none;cursor:pointer;
 .hero-badge.down{background:var(--neg-soft);color:var(--neg);}
 .hero-badge.neutral{background:var(--grey);color:var(--soft);}
 .lvl{display:inline-flex;flex-direction:column;align-items:flex-end;gap:3px;}
-.lvl-tube{position:relative;display:block;width:38px;height:15px;border:0.5px solid var(--line-2);border-radius:999px;overflow:hidden;transform-origin:center;transition:transform .4s cubic-bezier(.4,1.2,.5,1),background .25s;}
+.lvl-tube{position:relative;display:block;width:57px;height:15px;border:0.5px solid var(--line-2);border-radius:6px;overflow:hidden;transition:background .25s;}
 .lvl-mark{position:absolute;top:1px;bottom:1px;width:1px;background:rgba(45,43,30,.30);}
-.lvl-bubble{position:absolute;top:1px;width:15px;height:8px;border-radius:999px;transform:translateX(-50%);background:#fcfdf8;border:0.5px solid rgba(45,43,30,.22);transition:left .4s cubic-bezier(.4,1.2,.5,1);}
+.lvl-bubble{position:absolute;top:50%;width:18px;height:10px;border-radius:999px;transform:translate(-50%,-50%);background:#fcfdf8;border:0.5px solid rgba(45,43,30,.22);transition:left .4s cubic-bezier(.4,1.2,.5,1);}
 .lvl-pct{font-size:11.5px;font-weight:400;white-space:nowrap;}
 .kpi-detail{position:relative;display:inline-flex;margin-top:12px;cursor:pointer;outline:none;}
 .kpi-detail-trig{font-size:12px;color:var(--primary);font-weight:600;}
 .kpi-detail--num{margin-top:4px;}
 .big-cit{display:inline-block;background-image:linear-gradient(transparent 54%, var(--accent) 54%);}      /* surlignage citron qui remonte derrière le chiffre */
 .kpi-tip--eq{min-width:0;white-space:nowrap;font-size:13px;display:flex;align-items:baseline;gap:5px;}
-.kpi-tip--eq .muted{color:var(--faint);font-size:11.5px;}
-.kpi-tip--eq .op{color:var(--faint);font-weight:600;margin:0 1px;}
+.kpi-tip--eq .muted{color:var(--on-dark-soft);font-size:11.5px;}
+.kpi-tip--eq .op{color:var(--on-dark-faint);font-weight:600;margin:0 1px;}
 .kpi-tip--eq b{font-family:var(--font-title);}
-.kpi-tip{position:absolute;top:calc(100% + 8px);left:0;min-width:250px;background:var(--card);border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);z-index:20;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .12s ease,transform .12s ease;}
+.kpi-tip{position:absolute;top:calc(100% + 12px);left:0;min-width:250px;background:var(--dark);color:var(--on-dark);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow-dark);z-index:20;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .12s ease,transform .12s ease;}
+.kpi-tip::after{content:"";position:absolute;bottom:100%;left:24px;border:7px solid transparent;border-bottom-color:var(--dark);}
 .kpi-detail:hover .kpi-tip,.kpi-detail:focus .kpi-tip,.kpi-detail:focus-within .kpi-tip{opacity:1;visibility:visible;transform:translateY(0);}
-.kpi-tip .neg{color:var(--ink);}  /* pas de rouge dans les infobulles : le signe − suffit */
+.kpi-tip .neg{color:var(--on-dark);}  /* pas de rouge dans les infobulles : le signe − suffit */
 .hero-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:stretch;}
 
 /* cascade clarity tags */
@@ -503,10 +539,10 @@ select.cell-in{appearance:none;cursor:pointer;
 .annual-tip::after{content:"";position:absolute;top:100%;border:7px solid transparent;border-top-color:var(--dark);}
 .annual-tip--center{left:50%;transform:translateX(-50%);}
 .annual-tip--center::after{left:50%;margin-left:-7px;}
-.annual-tip--left{left:-2px;}
-.annual-tip--left::after{left:16px;}
-.annual-tip--right{right:-2px;}
-.annual-tip--right::after{right:16px;}
+.annual-tip--left{left:50%;margin-left:-24px;}                /* ancré sur le centre de la barre (pas le bord de la colonne) */
+.annual-tip--left::after{left:24px;margin-left:-7px;}        /* triangle pile sur la barre */
+.annual-tip--right{left:50%;margin-left:-164px;}             /* 188 (largeur) - 24 : étalée à gauche, ancrée sur la barre */
+.annual-tip--right::after{left:164px;margin-left:-7px;}
 @keyframes tipIn{from{opacity:0;}to{opacity:1;}}
 .annual-tip-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid var(--line-dark);}
 .annual-tip-month{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--on-dark-soft);}
@@ -565,6 +601,7 @@ select.cell-in{appearance:none;cursor:pointer;
 .donut-svg .donut-arc{cursor:pointer;transition:opacity .16s ease,transform .16s ease;}
 .donut-svg[data-on] .donut-arc[data-dim]{opacity:.38;}
 .donut-tip{position:absolute;left:50%;top:8px;transform:translate(-50%,-100%);background:var(--dark);color:var(--on-dark);font-size:12px;font-weight:600;padding:6px 11px;border-radius:8px;white-space:nowrap;pointer-events:none;z-index:20;box-shadow:var(--shadow-dark);text-align:center;}
+.donut-tip::after{content:"";position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:var(--dark);}
 .donut-tip small{display:block;font-weight:400;color:rgba(240,239,230,.7);font-size:10.5px;margin-top:2px;}
 .donut-leg{display:flex;flex-direction:column;gap:7px;}
 .donut-leg .li{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:default;transition:opacity .16s ease;}
@@ -608,6 +645,7 @@ select.cell-in{appearance:none;cursor:pointer;
 .spend{display:flex;flex-direction:column;gap:12px;position:relative;}
 .spend-bar{display:flex;gap:5px;height:26px;}
 .spend-tip{position:absolute;transform:translate(-50%,-100%);margin-top:-9px;background:var(--dark);color:var(--on-dark);font-size:12px;font-weight:500;padding:6px 10px;border-radius:8px;white-space:nowrap;pointer-events:none;z-index:30;box-shadow:var(--shadow-dark);}
+.spend-tip::after{content:"";position:absolute;top:100%;left:50%;margin-left:-6px;border:6px solid transparent;border-top-color:var(--dark);}
 .spend-seg{min-width:0;height:100%;border:none;cursor:pointer;padding:0;border-radius:10px;overflow:hidden;display:grid;place-items:center;font-family:var(--font-title);font-weight:600;font-size:12px;color:rgba(45,43,30,.6);transition:transform .16s ease,opacity .16s ease,box-shadow .16s ease;}
 .spend-bar[data-on] .spend-seg:not([data-active]){opacity:.42;}
 .spend-seg[data-active]{transform:translateY(-3px);box-shadow:var(--shadow);}
@@ -688,7 +726,9 @@ select.cell-in{appearance:none;cursor:pointer;
 .synth-info{position:relative;display:inline-flex;cursor:help;outline:none;}
 .synth-info > i{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--faint);color:var(--faint);font-size:10px;font-weight:700;font-style:italic;font-family:var(--font-title);line-height:1;}
 .synth-info:hover > i,.synth-info:focus > i,.synth-info:focus-within > i{border-color:var(--ink);color:var(--ink);}
-.synth-info-tip{position:absolute;top:calc(100% + 8px);right:0;width:320px;max-width:78vw;background:var(--card);border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);z-index:25;font-size:12px;line-height:1.55;color:var(--ink-soft);opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .12s ease,transform .12s ease;}
+.synth-info-tip{position:absolute;top:calc(100% + 12px);right:0;width:320px;max-width:78vw;background:#fafbfc;border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);z-index:25;font-size:12px;line-height:1.55;color:var(--ink-soft);opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .12s ease,transform .12s ease;}
+.synth-info-tip::before{content:"";position:absolute;bottom:100%;right:22px;border:8px solid transparent;border-bottom-color:var(--line);}
+.synth-info-tip::after{content:"";position:absolute;bottom:100%;right:23px;border:7px solid transparent;border-bottom-color:#fafbfc;}
 .synth-info:hover .synth-info-tip,.synth-info:focus .synth-info-tip,.synth-info:focus-within .synth-info-tip{opacity:1;visibility:visible;transform:translateY(0);}
 @media(max-width:720px){
   .dash-kpi-row{grid-template-columns:1fr;}
@@ -729,9 +769,9 @@ select.cell-in{appearance:none;cursor:pointer;
 .inv-paid{position:relative;display:inline-flex;align-items:center;gap:6px;cursor:default;outline:none;}
 .inv-clock{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:999px;background:var(--prov-soft);color:var(--prov);}
 .inv-clock svg{width:13px;height:13px;}
-.inv-tip{position:absolute;top:calc(100% + 9px);right:0;background:var(--dark);color:var(--on-dark);border-radius:12px;padding:8px 12px;box-shadow:var(--shadow-dark);white-space:nowrap;z-index:20;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .12s ease,transform .12s ease;}
+.inv-tip{position:absolute;bottom:calc(100% + 9px);right:0;background:var(--dark);color:var(--on-dark);border-radius:12px;padding:8px 12px;box-shadow:var(--shadow-dark);white-space:nowrap;z-index:20;opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .12s ease,transform .12s ease;}
 .inv-paid:hover .inv-tip,.inv-paid:focus .inv-tip,.inv-paid:focus-within .inv-tip{opacity:1;visibility:visible;transform:translateY(0);}
-.inv-tip::after{content:"";position:absolute;bottom:100%;right:26px;border:6px solid transparent;border-bottom-color:var(--dark);}
+.inv-tip::after{content:"";position:absolute;top:100%;right:26px;border:6px solid transparent;border-top-color:var(--dark);}
 .inv-tip-d{display:block;font-size:12.5px;}
 .inv-tip-m{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--prov-soft);margin-top:2px;}
 .inv-tip-m svg{width:13px;height:13px;}
@@ -1311,7 +1351,9 @@ function AnnualBars({ months, max, cats, totalLabel = "HT" }) {
         {[0, 1, 2, 3].map((k) => <span key={"sc" + k} className="annual-scale" style={{ bottom: 30 + k * (INNER / 3) }}>{fmtScale((k / 3) * max)}</span>)}
         {months.map((m, i) => {
           const barH = (m.total / max) * INNER;
-          const side = i <= 1 ? "left" : i >= months.length - 2 ? "right" : "center";
+          const last = months.length - 1;
+          // extrêmes toujours ancrés du bon côté ; le voisinage des bords ne décale qu'en vue Mois (beaucoup de colonnes)
+          const side = i === 0 ? "left" : i === last ? "right" : (months.length > 4 && i === 1) ? "left" : (months.length > 4 && i === last - 1) ? "right" : "center";
           return (
             <div key={i} className="annual-col" data-on={hot !== null ? "" : undefined}
               onMouseEnter={() => setHot(i)} onMouseLeave={() => setHot(null)}>
@@ -1648,7 +1690,7 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
                 const frac = Math.tanh(recPct / 40), up = recPct >= 0;
                 return (
                   <span className="lvl" title={`Recettes ${up ? "+" : ""}${recPct}% vs ${moisLabel(mIndex - 1)}`}>
-                    <span className="lvl-tube" style={{ transform: `rotate(${(-frac * 15).toFixed(1)}deg)`, background: up ? "var(--pos-soft)" : "var(--neg-soft)" }}>
+                    <span className="lvl-tube" style={{ background: up ? "var(--pos-soft)" : "var(--neg-soft)" }}>
                       <span className="lvl-mark" style={{ left: "30%" }}></span>
                       <span className="lvl-mark" style={{ left: "70%" }}></span>
                       <span className="lvl-bubble" style={{ left: (50 + frac * 26) + "%" }}></span>
@@ -1854,14 +1896,44 @@ function DashboardTab({ facturesByMonth, factures, previsions = [], charges, pro
 /* FACTURES — une facture, plusieurs lignes (taux différents) */
 /* ========================================================== */
 // Carte facture en lecture seule. Modification via le crayon (ouvre InvoiceModal).
+// Bouton "Marquer payée" + petit popover de choix de la date d'encaissement (défaut aujourd'hui).
+// Partagé par l'onglet Factures et l'onglet Prévisionnel.
+function MarkPaidButton({ onConfirm }) {
+  const [open, setOpen] = React.useState(false);
+  const [date, setDate] = React.useState(TODAY);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+  return (
+    <span className="inv-pay-wrap" ref={ref} onClick={(e) => e.stopPropagation()}>
+      <button className="btn inv-pay" onClick={(e) => { e.stopPropagation(); setDate(TODAY); setOpen((o) => !o); }}>Marquer payée</button>
+      {open &&
+        <div className="pay-pop">
+          <label className="pay-pop-lab">Date d'encaissement</label>
+          <input className="in" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <div className="pay-pop-act">
+            <button className="btn" onClick={() => setOpen(false)}>Annuler</button>
+            <button className="btn" style={{ background: "var(--ink)", color: "#fff", borderColor: "var(--ink)" }} onClick={() => { onConfirm(date); setOpen(false); }}>Valider</button>
+          </div>
+        </div>}
+    </span>
+  );
+}
+
 function InvoiceCard({ f, profile, mIndex, onEdit, onRemoveInv, onMarkPaid, urssafHistory = {} }) {
   const YEAR = useYear();
   const assujetti = !!profile.tva;
   const t = factureTotals(f, profile, urssafHistory);
   const lines = linesOf(f);
   const attente = !isPaid(f);
+  const [open, setOpen] = React.useState(false);
+  const montant = t.ht;
   const dateLabel = f.date
-    ? new Date(f.date + "T00:00:00").toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+    ? new Date(f.date + "T00:00:00").toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })
     : "Date manquante";
   // date d'encaissement (réelle ou présumée = date d'émission) + repérage d'un encaissement hors du mois affiché
   const dp = f.datePaiement || f.date;
@@ -1871,29 +1943,39 @@ function InvoiceCard({ f, profile, mIndex, onEdit, onRemoveInv, onMarkPaid, urss
   const autreMois = !attente && dp && mIndex != null && dp.slice(0, 7) !== `${YEAR}-${pad2(mIndex)}`;
   const moisEncLabel = autreMois ? MONTHS[parseInt(dp.slice(5, 7), 10) - 1].toLowerCase() : "";
   return (
-    <div className="card invoice">
-      <div className="inv-h">
-        <span style={{ flex: "none", fontWeight: 600, color: f.date ? "var(--ink)" : "#d9534f" }}>{dateLabel}</span>
-        <span style={{ flex: 1, fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {f.client || <em style={{ color: "var(--faint)", fontWeight: 400 }}>Sans client</em>}
+    <div className="card invoice" data-open={open ? "" : undefined}>
+      <div className="inv-h" role="button" tabIndex={0} aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen((o) => !o); } }}>
+        <span className="inv-chevron" aria-hidden="true">
+          <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4l4 4-4 4" /></svg>
         </span>
-        {attente
-          ? <span className="tariff-status future" style={{ flex: "none" }}>En attente de paiement</span>
-          : <span className="inv-paid" style={{ flex: "none" }} tabIndex={0}>
-              <span className="tariff-status current">Payée</span>
-              {autreMois && <span className="inv-clock">{Icon.clock}</span>}
-              {paidLabel &&
-                <span className="inv-tip" role="tooltip">
-                  <span className="inv-tip-d">Encaissée le {paidLabel}</span>
-                  {autreMois && <span className="inv-tip-m">{Icon.clock} comptée en {moisEncLabel}</span>}
-                </span>}
-            </span>}
-        {attente && onMarkPaid &&
-          <button className="btn" style={{ flex: "none", padding: "4px 10px", fontSize: 12 }} onClick={() => onMarkPaid(f.id)}>Marquer payée</button>}
-        <div className="inv-net">Net estimé <b>{eur(t.net)}</b></div>
-        <button className="del" title="Modifier la facture" onClick={() => onEdit(f)}>{Icon.pencil}</button>
-        <button className="del" title="Supprimer la facture" onClick={() => onRemoveInv(f.id)}>{Icon.trash}</button>
+        <span className="inv-date" style={{ color: f.date ? "var(--ink)" : "#d9534f" }}>{dateLabel}</span>
+        <span className="inv-client">{f.client || <em style={{ color: "var(--faint)", fontWeight: 400 }}>Sans client</em>}</span>
+        <span className="inv-status">
+          {attente
+            ? <>
+                <span className="tariff-status future">En attente</span>
+                {onMarkPaid &&
+                  <MarkPaidButton onConfirm={(date) => onMarkPaid(f.id, date)} />}
+              </>
+            : <span className="inv-paid" tabIndex={0} onClick={(e) => e.stopPropagation()}>
+                <span className="tariff-status current">Payée</span>
+                {autreMois && <span className="inv-clock">{Icon.clock}</span>}
+                {paidLabel &&
+                  <span className="inv-tip" role="tooltip">
+                    <span className="inv-tip-d">Encaissée le {paidLabel}</span>
+                    {autreMois && <span className="inv-tip-m">{Icon.clock} comptée en {moisEncLabel}</span>}
+                  </span>}
+              </span>}
+        </span>
+        <span className="inv-amount">{eur(montant)}<span className="inv-amount-u">HT</span></span>
+        <span className="inv-actions">
+          <button className="del" title="Modifier la facture" onClick={(e) => { e.stopPropagation(); onEdit(f); }}>{Icon.pencil}</button>
+          <button className="del" title="Supprimer la facture" onClick={(e) => { e.stopPropagation(); onRemoveInv(f.id); }}>{Icon.trash}</button>
+        </span>
       </div>
+      {open &&
       <div className="inv-b">
         <table className="tbl">
           <thead>
@@ -1925,7 +2007,8 @@ function InvoiceCard({ f, profile, mIndex, onEdit, onRemoveInv, onMarkPaid, urss
             </tr>
           </tfoot>
         </table>
-      </div>
+        <div className="inv-net-line">Net estimé après URSSAF <b>{eur(t.net)}</b></div>
+      </div>}
     </div>);
 }
 
@@ -1938,7 +2021,7 @@ function InvoiceModal({ initial, profile, urssafHistory = {}, tvaConfig, onSave,
     id: (initial && initial.id) || uid(),
     date: (initial && initial.date) || "",
     datePaiement: (initial && initial.datePaiement) || "",
-    statut: (initial && initial.statut) || "paye",
+    statut: initial ? (isPaid(initial) ? "paye" : "attente") : "attente",
     client: (initial && initial.client) || "",
     lines: (initial && initial.lines && initial.lines.length)
       ? initial.lines.map((l) => ({ ...l }))
@@ -2067,7 +2150,7 @@ function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSa
     .sort((a, b) => (a.datePaiement || a.date || "").localeCompare(b.datePaiement || b.date || ""));
   // montant total des factures en attente, tous mois confondus (pour la synthèse)
   const att = totalFacturesEnAttente(facturesByMonth, profile, urssafHistory);
-  const attenteMontant = s.assujetti ? att.ttc : att.ht;
+  const attenteMontant = att.ht;
   // modal : null = fermé ; { inv: null } = nouvelle facture ; { inv: facture } = modification
   const [modal, setModal] = React.useState(null);
 
@@ -2076,30 +2159,39 @@ function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSa
       <datalist id="mef-clients">{allClients.map(c => <option key={c} value={c} />)}</datalist>
       {(encaissees.length > 0 || attenteMontant > 0) &&
       <div className="card" style={{ marginBottom: 14 }}>
-        <div className="card-h"><h2>Synthèse du mois — encaissé en {MONTHS[mIndex].toLowerCase()}</h2></div>
+        <div className="card-h"><h2>Encaissé en {MONTHS[mIndex].toLowerCase()}</h2></div>
         <div className="card-b">
           {encaissees.length > 0 &&
-          <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
-            <div style={{ flex: 1, minWidth: 140 }}>
-              <div className="lab" style={{ fontSize: 12.5, color: "var(--faint)", marginBottom: 4 }}>CA encaissé</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{eur(s.caHT)}{s.assujetti && <span style={{ fontSize: 13, fontWeight: 500, color: "var(--faint)" }}> HT</span>}</div>
-              {s.assujetti && <div style={{ fontSize: 12.5, color: "var(--faint)" }}>{eur(s.caTTC)} TTC</div>}
+          <div className="synth-fac">
+            <div className="sf-row">
+              <span className="sf-lab">CA encaissé</span>
+              <span className="sf-val">{eur(s.caHT)}{s.assujetti && <span className="sf-u"> HT</span>}</span>
             </div>
-            <div style={{ flex: 1, minWidth: 140 }}>
-              <div className="lab" style={{ fontSize: 12.5, color: "var(--faint)", marginBottom: 4 }}>URSSAF estimé</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: "var(--prov)" }}>−{eur(s.totalCotis)}</div>
-              <div style={{ fontSize: 12.5, color: "var(--faint)" }}>sur ce CA</div>
+            {s.assujetti &&
+            <div className="sf-row sf-sub">
+              <span></span>
+              <span className="sf-u">{eur(s.caTTC)} TTC</span>
+            </div>}
+            <div className="sf-row" style={{ marginTop: 4 }}>
+              <span className="sf-lab">
+                URSSAF estimée
+                <span className="itip-wrap" tabIndex={0} aria-label="Pourquoi est-ce une estimation ?">
+                  <i className="itip-i" aria-hidden="true">i</i>
+                  <span className="itip" role="tooltip">Estimation. Les cotisations se calculent sur ton CA HT arrondi à l'euro : le montant ne sera exact qu'une fois le CA HT du mois définitif.</span>
+                </span>
+              </span>
+              <span className="sf-val" style={{ color: "var(--prov)" }}>− {eur(s.totalCotis)}</span>
             </div>
-            <div style={{ flex: 1, minWidth: 140 }}>
-              <div className="lab" style={{ fontSize: 12.5, color: "var(--faint)", marginBottom: 4 }}>Net estimé</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{eur(s.caHT - s.totalCotis)}</div>
-              <div style={{ fontSize: 12.5, color: "var(--faint)" }}>après cotisations URSSAF</div>
+            <div className="sf-rule"></div>
+            <div className="sf-row">
+              <span className="sf-lab sf-lab--total">Net après URSSAF</span>
+              <span className="sf-val sf-total"><span className="big-cit">{eur(s.caHT - s.totalCotis)}</span></span>
             </div>
           </div>}
           {attenteMontant > 0 &&
           <div className="listline" style={{ borderBottom: "none", marginTop: encaissees.length > 0 ? 14 : 0, paddingTop: encaissees.length > 0 ? 12 : 0, borderTop: encaissees.length > 0 ? "1px solid var(--line)" : "none" }}>
             <span className="lab" style={{ color: "var(--prov)" }}>En attente de paiement</span>
-            <b style={{ color: "var(--prov)" }}>{eur(attenteMontant)} · {att.n} facture{att.n !== 1 ? "s" : ""}</b>
+            <b style={{ color: "var(--prov)" }}>{eur(attenteMontant)} HT · {att.n} facture{att.n !== 1 ? "s" : ""}</b>
           </div>}
         </div>
       </div>
@@ -2260,7 +2352,7 @@ function PrevisionnelTab({ previsions, facturesByMonth, profile, onAddPrevision,
                     {f.client || <em style={{ color: "var(--faint)", fontWeight: 400 }}>Sans client</em>}
                   </span>
                   <b style={{ flex: "none", marginRight: 8 }}>{eur(montantFact(f))}</b>
-                  <button className="btn" style={{ flex: "none", padding: "4px 10px", fontSize: 12 }} onClick={() => onMarkPaid(f.id)}>Marquer payée</button>
+                  <MarkPaidButton onConfirm={(date) => onMarkPaid(f.id, date)} />
                 </div>)}
               </div>}
         </div>
@@ -3249,10 +3341,10 @@ function App() {
       : [...(next[targetKey] || []), inv];
     return next;
   });
-  // Marque une facture comme payée (tous mois confondus) et fixe sa date de paiement à aujourd'hui.
-  const markFactPaid = (id) => setFB((p) => {
+  // Marque une facture comme payée (tous mois confondus) ; date d'encaissement choisie (défaut aujourd'hui).
+  const markFactPaid = (id, date) => setFB((p) => {
     const next = {};
-    for (const k of Object.keys(p)) next[k] = (p[k] || []).map((f) => f.id === id ? { ...f, statut: "paye", datePaiement: TODAY } : f);
+    for (const k of Object.keys(p)) next[k] = (p[k] || []).map((f) => f.id === id ? { ...f, statut: "paye", datePaiement: date || TODAY } : f);
     return next;
   });
 
