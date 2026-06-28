@@ -362,7 +362,9 @@ select.cell-in{appearance:none;cursor:pointer;
 .inv-amount{flex:none;width:118px;text-align:right;font-weight:700;font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums;}
 .inv-amount-u{font-size:11px;font-weight:500;color:var(--faint);margin-left:3px;}
 .inv-actions{flex:none;display:flex;align-items:center;gap:2px;}
-.inv-pay{flex:none;padding:4px 10px;font-size:12px;}
+.inv-pay{flex:none;padding:5px 11px;font-size:12px;gap:5px;background:var(--ink);border-color:var(--ink);color:#fff;}
+.inv-pay:hover{background:var(--dark-2);border-color:var(--dark-2);}
+.inv-pay svg{width:13px;height:13px;}
 .inv-pay-wrap{position:relative;flex:none;display:inline-flex;}
 .pay-pop{position:absolute;top:calc(100% + 8px);right:0;z-index:40;background:#fff;border:1px solid var(--line-2);border-radius:12px;box-shadow:var(--shadow);padding:11px 12px;width:212px;display:flex;flex-direction:column;gap:8px;cursor:default;}
 .pay-pop-lab{font-size:11.5px;font-weight:600;color:var(--faint);}
@@ -763,8 +765,8 @@ select.cell-in{appearance:none;cursor:pointer;
 .tariff-entry.past{opacity:.6;}
 .tariff-status{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:999px;white-space:nowrap;}
 .tariff-status.current{background:var(--prov);color:#fff;}
-.tariff-status.future{background:var(--accent);color:var(--accent-ink);}
 .tariff-status.past{background:var(--line-2);color:var(--soft);}
+.tariff-status.attn{background:transparent;color:var(--ink);border:1.5px solid var(--ink);}
 /* badge "Payée" survolable : infobulle date d'encaissement + pastille horloge si encaissé un autre mois */
 .inv-paid{position:relative;display:inline-flex;align-items:center;gap:6px;cursor:default;outline:none;}
 .inv-clock{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:999px;background:var(--prov-soft);color:var(--prov);}
@@ -1219,7 +1221,8 @@ const Icon = {
   down: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flex: "none" }}><path d="M12 5v14M6 13l6 6 6-6" /></svg>,
   lock: <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>,
   chevUp: <svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" /></svg>,
-  chevDown: <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg>
+  chevDown: <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg>,
+  check: <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
 };
 // couleur de pastille par fréquence dans le calendrier
 const FREQ_META = {
@@ -1910,7 +1913,7 @@ function MarkPaidButton({ onConfirm }) {
   }, [open]);
   return (
     <span className="inv-pay-wrap" ref={ref} onClick={(e) => e.stopPropagation()}>
-      <button className="btn inv-pay" onClick={(e) => { e.stopPropagation(); setDate(TODAY); setOpen((o) => !o); }}>Marquer payée</button>
+      <button className="btn inv-pay" onClick={(e) => { e.stopPropagation(); setDate(TODAY); setOpen((o) => !o); }}>{Icon.check}Marquer payée</button>
       {open &&
         <div className="pay-pop">
           <label className="pay-pop-lab">Date d'encaissement</label>
@@ -1955,7 +1958,7 @@ function InvoiceCard({ f, profile, mIndex, onEdit, onRemoveInv, onMarkPaid, urss
         <span className="inv-status">
           {attente
             ? <>
-                <span className="tariff-status future">En attente</span>
+                <span className="tariff-status attn">En attente</span>
                 {onMarkPaid &&
                   <MarkPaidButton onConfirm={(date) => onMarkPaid(f.id, date)} />}
               </>
@@ -2014,7 +2017,7 @@ function InvoiceCard({ f, profile, mIndex, onEdit, onRemoveInv, onMarkPaid, urss
 
 // Modale de création / modification d'une facture. Travaille sur un brouillon local :
 // rien n'est enregistré tant que l'utilisateur n'a pas cliqué sur "Valider".
-function InvoiceModal({ initial, profile, urssafHistory = {}, tvaConfig, onSave, onClose }) {
+function InvoiceModal({ initial, heading, profile, urssafHistory = {}, tvaConfig, onSave, onClose }) {
   const assujetti = !!profile.tva;
   const activeTvaRates = tvaConfig || TVA_RATES;
   const [draft, setDraft] = React.useState(() => ({
@@ -2044,7 +2047,7 @@ function InvoiceModal({ initial, profile, urssafHistory = {}, tvaConfig, onSave,
     <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ width: "min(720px, 100%)" }}>
         <div className="modal-h">
-          <h3>{initial ? "Modifier la facture" : "Nouvelle facture"}</h3>
+          <h3>{heading || (initial ? "Modifier la facture" : "Nouvelle facture")}</h3>
           <button className="x" onClick={onClose}>✕</button>
         </div>
         <div className="modal-b">
@@ -2079,7 +2082,7 @@ function InvoiceModal({ initial, profile, urssafHistory = {}, tvaConfig, onSave,
           <table className="tbl">
             <thead>
               <tr>
-                <th>Description de la prestation</th>
+                <th style={{ whiteSpace: "normal", minWidth: 140 }}>Description de la prestation</th>
                 <th style={{ width: 180 }}>Taux URSSAF</th>
                 <th className="r" style={{ width: 120 }}>Montant HT</th>
                 {assujetti && <th className="c" style={{ width: 96 }}>TVA</th>}
@@ -2092,14 +2095,14 @@ function InvoiceModal({ initial, profile, urssafHistory = {}, tvaConfig, onSave,
               <tr key={l.id}>
                   <td><input className="cell-in" placeholder="Ex : création de contenu" value={l.description} onChange={(e) => setLine(l.id, "description", e.target.value)} /></td>
                   <td>
-                    <select className="cell-in" value={l.categorie} onChange={(e) => setLine(l.id, "categorie", e.target.value)}>
+                    <select className="cell-in" style={{ minWidth: 172 }} value={l.categorie} onChange={(e) => setLine(l.id, "categorie", e.target.value)}>
                       {CATS.map((c) => <option key={c} value={c}>{RATES[c].short} · {pct(RATES[c].social)}</option>)}
                     </select>
                   </td>
                   <td><input className="cell-in num" type="number" step="0.01" placeholder="0,00" value={l.montant} onChange={(e) => setLine(l.id, "montant", e.target.value)} /></td>
                   {assujetti &&
                 <td>
-                      <select className="cell-in" value={l.tva} onChange={(e) => setLine(l.id, "tva", parseFloat(e.target.value))}>
+                      <select className="cell-in" style={{ minWidth: 72 }} value={l.tva} onChange={(e) => setLine(l.id, "tva", parseFloat(e.target.value))}>
                         {activeTvaRates.map((tv) => <option key={tv.v} value={tv.v}>{tv.label}</option>)}
                       </select>
                     </td>
@@ -2235,10 +2238,19 @@ function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSa
 /* ========================================================== */
 // Saisie de revenus supposés (pas encore facturables) + suivi des factures non payées.
 // Aucun détail URSSAF ici : on raisonne en montants bruts attendus.
-function PrevisionnelTab({ previsions, facturesByMonth, profile, onAddPrevision, onUpdatePrevision, onRemovePrevision, onConvert, onMarkPaid, urssafHistory = {} }) {
+function PrevisionnelTab({ previsions, facturesByMonth, profile, onAddPrevision, onUpdatePrevision, onRemovePrevision, onConvert, onMarkPaid, urssafHistory = {}, tvaConfig }) {
   const blank = { client: "", libelle: "", montant: "", categorie: CATS[0], dateAttendue: "", recurrence: "ponctuelle", finRecurrence: "" };
   const [form, setForm] = React.useState(blank);
   const [editId, setEditId] = React.useState(null);
+  // modale de conversion : { initial, prevision } ; null = fermée
+  const [convertModal, setConvertModal] = React.useState(null);
+  const openConvert = (p) => setConvertModal({
+    prevision: p,
+    initial: {
+      id: uid(), date: TODAY, statut: "attente", client: p.client || "",
+      lines: [{ id: uid() + "-l", description: p.libelle || "", categorie: p.categorie || "BNC", montant: p.montant || "", tva: profile.tva ? 0.20 : 0 }],
+    },
+  });
   const setF = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const mensuel = form.recurrence === "mensuelle";
   const canSave = num(form.montant) > 0 && !!form.dateAttendue;
@@ -2318,7 +2330,7 @@ function PrevisionnelTab({ previsions, facturesByMonth, profile, onAddPrevision,
             <div className="empty" style={{ padding: "24px 10px" }}>Aucun revenu prévisionnel. Ajoute un solde à venir ou un client récurrent.</div>}
             {previsions.map((p) =>
             <div key={p.id} className="listline">
-              <span className="tariff-status future" style={{ flex: "none" }}>{p.recurrence === "mensuelle" ? "Mensuel" : "Ponctuel"}</span>
+              <span className="badge cat" style={{ flex: "none", fontSize: 11 }}>{p.recurrence === "mensuelle" ? "Mensuel" : "Ponctuel"}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600 }}>{p.client || <em style={{ color: "var(--faint)", fontWeight: 400 }}>Sans client</em>}{p.libelle ? ` · ${p.libelle}` : ""}</div>
                 <div style={{ fontSize: 12, color: "var(--faint)" }}>
@@ -2327,7 +2339,7 @@ function PrevisionnelTab({ previsions, facturesByMonth, profile, onAddPrevision,
                 </div>
               </div>
               <b style={{ flex: "none", marginRight: 8 }}>{eur(num(p.montant))}</b>
-              <button className="btn" style={{ flex: "none", padding: "4px 10px", fontSize: 12 }} onClick={() => onConvert(p)}>Convertir en facture</button>
+              <button className="btn" style={{ flex: "none", padding: "4px 10px", fontSize: 12 }} onClick={() => openConvert(p)}>Convertir en facture</button>
               <button className="del" title="Modifier" onClick={() => startEdit(p)}>{Icon.pencil}</button>
               <button className="del" title="Supprimer" onClick={() => onRemovePrevision(p.id)}>{Icon.trash}</button>
             </div>)}
@@ -2357,6 +2369,12 @@ function PrevisionnelTab({ previsions, facturesByMonth, profile, onAddPrevision,
               </div>}
         </div>
       </div>
+      {convertModal &&
+      <InvoiceModal initial={convertModal.initial} heading="Nouvelle facture" profile={profile}
+        urssafHistory={urssafHistory} tvaConfig={tvaConfig}
+        onSave={(draft) => { onConvert(draft, convertModal.prevision); setConvertModal(null); }}
+        onClose={() => setConvertModal(null)} />
+      }
     </div>
   );
 }
@@ -2631,7 +2649,7 @@ function TariffHistory({ charge, onAddTariff, onRemoveTariff }) {
           }
           return (
             <div key={t.from} className={"tariff-entry " + st.cls}>
-              <span className={"tariff-status " + st.cls}>{st.label}</span>
+              <span className={"tariff-status " + (st.cls === "future" ? "attn" : st.cls)}>{st.label}</span>
               <span className="tariff-from">{rangeLabel}</span>
               <b className="tariff-val">{eur(t.montant)}</b>
               {pct && <span className={"tariff-pct " + pct.cls}>{pct.label}</span>}
@@ -3352,17 +3370,13 @@ function App() {
   const addPrevision = (pv) => setPrevisions((prev) => [...prev, { ...pv, id: uid(), encaissees: [] }]);
   const updatePrevision = (id, pv) => setPrevisions((prev) => prev.map((x) => x.id === id ? { ...x, ...pv } : x));
   const removePrevision = (id) => setPrevisions((prev) => prev.filter((x) => x.id !== id));
-  // Convertit une prévision en FACTURE EN ATTENTE (sans date de paiement, la date supposée est abandonnée).
-  // Ponctuelle -> supprimée. Mensuelle -> conservée, le mois courant est marqué encaissé.
-  const convertPrevision = (pv) => {
-    const inv = {
-      id: uid(), date: TODAY, statut: "attente", client: pv.client || "",
-      lines: [{ id: uid() + "-l", description: pv.libelle || "", categorie: pv.categorie || "BNC", montant: pv.montant || "", tva: profile.tva ? 0 : 0 }],
-    };
-    const k = (inv.date || TODAY).slice(0, 7);
-    setFB((p) => ({ ...p, [k]: [...(p[k] || []), inv] }));
+  // Convertit une prévision en facture : la modale (InvoiceModal) fournit la facture éditée (draft),
+  // qu'on enregistre via saveInv (statut/date issus de la modale). Puis effet sur la prévision :
+  // ponctuelle -> supprimée ; mensuelle -> conservée, le mois de la facture est marqué encaissé.
+  const convertPrevision = (draft, pv) => {
+    saveInv(draft);
     if (pv.recurrence === "mensuelle") {
-      const mois = TODAY.slice(0, 7);
+      const mois = (draft.date || TODAY).slice(0, 7);
       setPrevisions((prev) => prev.map((x) => x.id === pv.id
         ? { ...x, encaissees: [...(x.encaissees || []), mois] } : x));
     } else {
@@ -3508,7 +3522,7 @@ function App() {
       {ui.tab === "factures" && <FacturesTab factures={factures} facturesByMonth={facturesByMonth} charges={charges} profile={profile} mIndex={m}
         onSaveInv={saveInv} onRemoveInv={removeInv} onMarkPaid={markFactPaid} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />}
       {ui.tab === "previsionnel" && <PrevisionnelTab previsions={previsions} facturesByMonth={facturesByMonth} profile={profile}
-        onAddPrevision={addPrevision} onUpdatePrevision={updatePrevision} onRemovePrevision={removePrevision} onConvert={convertPrevision} onMarkPaid={markFactPaid} urssafHistory={urssafHistory} />}
+        onAddPrevision={addPrevision} onUpdatePrevision={updatePrevision} onRemovePrevision={removePrevision} onConvert={convertPrevision} onMarkPaid={markFactPaid} urssafHistory={urssafHistory} tvaConfig={tvaConfig} />}
       {ui.tab === "frais" && <FraisTab charges={charges} mIndex={m} categories={categories} profile={profile} onAdd={addCharge} onCreate={addChargeFull} onUpdate={updateCharge} onRemove={removeCharge} onAddTariff={addTariff} onRemoveTariff={removeTariff} onAddCategory={addCategory} onRemoveCategory={removeCategory} onMoveCategory={moveCategory} tvaConfig={tvaConfig} />}
       {ui.tab === "prov" && <ChargesProvisionsTab factures={factures} facturesByMonth={facturesByMonth} charges={charges} profile={profile} mIndex={m} cfeData={cfeData[YEAR] || {}} onUpdateCfe={updateCfe} urssafHistory={urssafHistory} />}
       {ui.tab === "calendrier" && <CalendarTab mIndex={m} charges={charges} profile={profile} cfeAnnuel={cfeAnnuel} facturesByMonth={facturesByMonth} urssafHistory={urssafHistory} />}
