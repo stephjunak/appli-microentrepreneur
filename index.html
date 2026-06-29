@@ -122,10 +122,24 @@ input,select{font-family:inherit;font-size:14px;color:var(--ink);}
   min-width:120px;text-align:center;font-weight:600;font-size:16px;letter-spacing:-.2px;font-family:var(--font-title);
   background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-inner);padding:8px 16px;box-shadow:var(--shadow);
 }
-.monthnav .yearnav{display:flex;align-items:center;gap:6px;margin-left:8px;padding-left:12px;border-left:1px solid var(--line);}
-.monthnav .yearsel{font-family:var(--font-title);font-weight:700;font-size:15px;color:var(--ink);background:var(--card);
-  border:1px solid var(--line);border-radius:var(--r-inner);padding:8px 10px;box-shadow:var(--shadow);cursor:pointer;}
-.monthnav .yearsel:hover{border-color:var(--accent);}
+.monthnav .datepick-wrap{position:relative;}
+.monthnav .datepick{display:flex;align-items:center;gap:8px;min-width:150px;justify-content:center;
+  font-family:var(--font-title);font-weight:600;font-size:16px;letter-spacing:-.2px;color:var(--ink);
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-inner);padding:8px 16px;box-shadow:var(--shadow);
+  cursor:pointer;transition:border-color .16s ease;}
+.monthnav .datepick:hover{border-color:var(--line-2);}
+.monthnav .datepick.on{border-color:var(--accent);}
+.monthnav .datepick .dp-cal{width:16px;height:16px;stroke:var(--ink-soft);fill:none;stroke-width:2;flex:none;}
+.monthnav .navpop{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);z-index:30;
+  width:248px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-inner);padding:12px;box-shadow:var(--shadow);}
+.monthnav .navpop-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.monthnav .navpop-y{font-family:var(--font-title);font-weight:700;font-size:15px;color:var(--ink);}
+.monthnav .mbtn.sm{width:30px;height:30px;border-radius:10px;box-shadow:none;}
+.monthnav .mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.monthnav .mcell{font-family:var(--font-title);font-weight:600;font-size:13px;color:var(--ink-soft);text-align:center;
+  padding:9px 0;border:1px solid transparent;border-radius:10px;background:transparent;cursor:pointer;transition:background .14s ease,color .14s ease;}
+.monthnav .mcell:hover{background:var(--grey);color:var(--ink);}
+.monthnav .mcell.on,.monthnav .mcell.on:hover{background:var(--accent);color:var(--accent-ink);}
 .monthnav .today{margin-left:6px;font-size:12px;color:var(--ink-soft);font-weight:600;cursor:pointer;
   border:1px solid var(--line);background:var(--card);border-radius:var(--r-inner);padding:8px 12px;box-shadow:var(--shadow);
   transition:background .16s ease,border-color .16s ease,color .16s ease;}
@@ -325,6 +339,22 @@ select.cell-in{appearance:none;cursor:pointer;
 .field label{font-size:12.5px;font-weight:600;color:var(--soft);}
 .field .in{border:1px solid var(--line-2);border-radius:9px;padding:10px 12px;outline:none;}
 .field .in:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);}
+.inv-lines{display:flex;flex-direction:column;gap:10px;}
+.inv-line{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px;}
+.inv-line .cell-in{background:#fff;border-color:var(--line-2);}
+.inv-line .cell-in:hover{border-color:var(--primary);}
+.inv-line .cell-in:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px var(--primary-soft);}
+.il-desc{display:flex;align-items:flex-end;gap:10px;margin-bottom:12px;}
+.il-grow{flex:1;min-width:0;}
+.il-del{flex:none;margin-bottom:3px;}
+.il-fin{display:grid;grid-template-columns:1.5fr .9fr .8fr .9fr;gap:10px;}
+.il-fin.no-tva{grid-template-columns:1.5fr 1fr;}
+.il-ttc{display:flex;align-items:center;justify-content:flex-end;min-height:34px;
+  background:#fafbfc;color:var(--soft);border-color:var(--line)!important;}
+.inv-total{display:flex;align-items:baseline;gap:16px;padding:13px 2px 0;border-top:2px solid var(--line-2);margin-top:12px;}
+.inv-total .it-lab{font-weight:700;color:var(--ink);font-size:13.5px;margin-right:auto;}
+.inv-total .it-v{font-size:13px;color:var(--soft);}
+.inv-total .it-v b{color:var(--ink);font-size:15px;font-weight:800;}
 .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0;}
 .toggle-row .t-lab{font-size:14px;}
 .toggle-row .t-lab small{display:block;color:var(--faint);font-size:12px;font-weight:400;}
@@ -389,6 +419,12 @@ select.cell-in{appearance:none;cursor:pointer;
 .itip-wrap:hover .itip,.itip-wrap:focus .itip,.itip-wrap:focus-within .itip{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);}
 .itip::before{content:"";position:absolute;top:100%;left:50%;margin-left:-8px;border:8px solid transparent;border-top-color:var(--line);}
 .itip::after{content:"";position:absolute;top:100%;left:50%;margin-left:-7px;border:7px solid transparent;border-top-color:#fafbfc;}
+.itip.itip--right{left:auto;right:0;transform:translateX(0) translateY(4px);}
+.itip-wrap:hover .itip.itip--right,.itip-wrap:focus .itip.itip--right,.itip-wrap:focus-within .itip.itip--right{transform:translateX(0) translateY(0);}
+.itip--right::before{left:auto;right:18px;margin-left:0;}
+.itip--right::after{left:auto;right:19px;margin-left:0;}
+.itip--sm{width:auto;white-space:nowrap;}
+.itip--pre{white-space:pre-line;}
 .inv-h .date-in{width:140px;flex:none;}
 .inv-h .client-in{flex:1;font-weight:600;}
 .inv-h .cell-in{background:#fff;border-color:var(--line-2);box-shadow:0 1px 2px rgba(45,43,30,.06);}
@@ -753,18 +789,18 @@ select.cell-in{appearance:none;cursor:pointer;
   transition:background .12s,border-color .12s;
 }
 .tariff-btn:hover,.tariff-btn.on{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-d);}
-.tariff-btn.pending{border-color:#5cb7b0;background:var(--prov-soft);color:var(--prov);}
+.tariff-btn.pending{border-color:var(--ink);color:var(--ink);background:#fff;}
 .tariff-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.9;}
 .tariff-count{font-size:11px;font-weight:800;color:var(--primary-d);}
 .tariff-panel{padding:14px 0 4px;display:flex;flex-direction:column;gap:12px;}
 .tariff-title{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--soft);}
 .tariff-list{display:flex;flex-direction:column;gap:6px;}
-.tariff-entry{display:flex;align-items:center;gap:10px;font-size:13px;padding:5px 8px;border-radius:7px;}
-.tariff-entry.current{background:var(--grey);}
-.tariff-entry.future{background:var(--prov-soft);}
-.tariff-entry.past{opacity:.6;}
-.tariff-status{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:999px;white-space:nowrap;}
-.tariff-status.current{background:var(--prov);color:#fff;}
+.tariff-entry{display:flex;align-items:center;gap:11px;font-size:13px;padding:7px 2px;}
+.tariff-entry + .tariff-entry{border-top:1px solid var(--line);}
+.tariff-entry.past{opacity:.55;}
+.del-ph{width:28px;flex:none;}
+.tariff-status{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+.tariff-status.current{background:var(--ink);color:#fff;}
 .tariff-status.past{background:var(--line-2);color:var(--soft);}
 .tariff-status.attn{background:transparent;color:var(--ink);border:1.5px solid var(--ink);}
 /* badge "Payée" survolable : infobulle date d'encaissement + pastille horloge si encaissé un autre mois */
@@ -777,12 +813,16 @@ select.cell-in{appearance:none;cursor:pointer;
 .inv-tip-d{display:block;font-size:12.5px;}
 .inv-tip-m{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--prov-soft);margin-top:2px;}
 .inv-tip-m svg{width:13px;height:13px;}
-.tariff-from{color:var(--soft);}
-.tariff-val{font-size:14px;font-weight:700;color:var(--ink);}
-.tariff-pct{font-size:11px;font-weight:700;padding:2px 6px;border-radius:5px;white-space:nowrap;}
-.tariff-pct.up{background:var(--grey);color:var(--soft);}
-.tariff-pct.down{background:var(--prov-soft);color:var(--prov);}
-.cat-group-hd td{background:var(--primary-soft);font-size:12px;font-weight:700;letter-spacing:.03em;color:var(--primary-d);padding:8px 12px;border-top:2px solid var(--line-2);}
+.tariff-from{color:var(--soft);flex:1;}
+.tariff-val{font-size:14px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right;min-width:78px;}
+.tariff-pct{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;white-space:nowrap;background:#eef1f5;color:var(--soft);}
+.frais-tbl tbody tr:nth-child(even){background:transparent;}
+.frais-tbl .cat-group-hd td{background:transparent;border-top:none;border-bottom:1.5px solid var(--line-2);padding:22px 10px 9px;}
+.cat-group-inner{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+.cat-group-lab{font-family:var(--font-title);font-size:13.5px;font-weight:700;color:var(--ink);letter-spacing:.05em;text-transform:uppercase;}
+.cat-group-sub{font-size:12px;color:var(--soft);white-space:nowrap;}
+.cat-group-sub b{color:var(--ink);font-weight:700;margin-left:3px;}
+.frais-tbl .frais-empty td{color:var(--faint);font-size:12.5px;padding:10px;}
 .cat-count{font-weight:400;color:var(--soft);margin-left:8px;font-size:11.5px;}
 .cat-select{font-size:11.5px !important;color:var(--soft) !important;padding:2px 6px !important;margin-top:3px;width:100%;}
 .cat-manage{margin-top:16px;padding:12px 14px;background:var(--primary-soft);border-radius:9px;border:1px solid var(--line-2);}
@@ -801,12 +841,10 @@ select.cell-in{appearance:none;cursor:pointer;
 .cat-chip-lock{display:inline-grid;place-items:center;color:var(--faint);cursor:help;}
 .cat-chip-lock svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;}
 .cat-add-row{display:flex;gap:6px;align-items:center;}
-.cat-subtotal td{font-size:12px;color:var(--soft);text-align:right;padding:4px 12px 10px;border-bottom:2px solid var(--line-2);}
-.cat-subtotal .sub-val{font-weight:700;color:var(--ink);font-size:13px;margin-left:3px;}
-.grand-total-row td{font-weight:700;font-size:13.5px;padding:10px 12px;background:var(--primary-soft);border-top:2px solid var(--line-2);text-align:right;}
+.frais-tbl .grand-total-row td{font-weight:700;font-size:13.5px;padding:16px 10px 2px;background:transparent;border-top:2px solid var(--line-2);text-align:right;}
 .grand-total-row .total-val{color:var(--ink);font-size:22px;margin-left:8px;font-family:var(--font-title);letter-spacing:-.4px;}
-.tariff-add{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;background:var(--primary-soft);border:1px solid var(--line-2);border-radius:9px;}
-.tariff-add-label{font-size:13px;color:var(--primary-d);font-weight:600;white-space:nowrap;}
+.tariff-add{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+.tariff-add-label{font-size:12.5px;color:var(--soft);font-weight:600;white-space:nowrap;}
 .tariff-add .cell-in{background:#fff;border-color:var(--line-2);box-shadow:0 1px 2px rgba(45,43,30,.06);}
 .tariff-add .cell-in:hover{border-color:var(--primary);}
 .tariff-add input.cell-in[type=date]{color:var(--ink);}
@@ -821,12 +859,12 @@ select.cell-in{appearance:none;cursor:pointer;
 .fnn{font-size:12px;color:var(--soft);white-space:nowrap;}
 .fnn b{color:var(--ink);font-weight:700;margin-left:4px;}
 .prix-ttc{font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink);font-size:13px;white-space:nowrap;cursor:help;}
-.prix-ttc--prov{color:var(--ink-soft);font-style:italic;font-weight:500;display:inline-flex;align-items:center;gap:4px;justify-content:flex-end;}
+.prix-ttc--prov{color:var(--soft);font-weight:500;display:inline-flex;align-items:center;gap:4px;justify-content:flex-end;}
 .prix-ttc--prov svg{width:12px;height:12px;opacity:.7;stroke:currentColor;fill:none;}
 .ce-mois{display:inline-flex;align-items:center;gap:5px;justify-content:flex-end;font-variant-numeric:tabular-nums;font-size:12.5px;font-weight:600;white-space:nowrap;cursor:help;}
 .ce-mois svg{width:12px;height:12px;stroke:currentColor;fill:none;flex:none;}
-.ce-mois--out{color:#2f8077;}
-.ce-mois--out svg{stroke:#5cb7b0;stroke-width:2.2;}
+.ce-mois--out{color:var(--ink);}
+.ce-mois--out svg{stroke:var(--soft);stroke-width:2.2;}
 .frais-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
 .frais-toolbar-lab{font-size:12.5px;color:var(--soft);font-weight:600;}
 .frais-hide-empty{display:inline-flex;align-items:center;gap:9px;cursor:pointer;font-size:12.5px;color:var(--soft);font-weight:600;user-select:none;margin-left:6px;}
@@ -2045,7 +2083,7 @@ function InvoiceModal({ initial, heading, profile, urssafHistory = {}, tvaConfig
   const canSave = !!draft.date;
   return (
     <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ width: "min(720px, 100%)" }}>
+      <div className="modal" style={{ width: "min(560px, 100%)" }}>
         <div className="modal-h">
           <h3>{heading || (initial ? "Modifier la facture" : "Nouvelle facture")}</h3>
           <button className="x" onClick={onClose}>✕</button>
@@ -2079,50 +2117,50 @@ function InvoiceModal({ initial, heading, profile, urssafHistory = {}, tvaConfig
                 </div>
             }
           </div>
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th style={{ whiteSpace: "normal", minWidth: 140 }}>Description de la prestation</th>
-                <th style={{ width: 180 }}>Taux URSSAF</th>
-                <th className="r" style={{ width: 120 }}>Montant HT</th>
-                {assujetti && <th className="c" style={{ width: 96 }}>TVA</th>}
-                {assujetti && <th className="r" style={{ width: 120 }}>Montant TTC</th>}
-                <th style={{ width: 36 }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {lines.map((l) =>
-              <tr key={l.id}>
-                  <td><input className="cell-in" placeholder="Ex : création de contenu" value={l.description} onChange={(e) => setLine(l.id, "description", e.target.value)} /></td>
-                  <td>
-                    <select className="cell-in" style={{ minWidth: 172 }} value={l.categorie} onChange={(e) => setLine(l.id, "categorie", e.target.value)}>
+          <div className="inv-lines">
+            {lines.map((l) =>
+              <div className="inv-line" key={l.id}>
+                <div className="il-desc">
+                  <div className="field il-grow">
+                    <label>Description de la prestation</label>
+                    <input className="cell-in" placeholder="Ex : création de contenu pour la campagne d'automne" value={l.description} onChange={(e) => setLine(l.id, "description", e.target.value)} />
+                  </div>
+                  {lines.length > 1 && <button className="del il-del" title="Supprimer la ligne" onClick={() => removeLine(l.id)}>{Icon.trash}</button>}
+                </div>
+                <div className={"il-fin" + (assujetti ? "" : " no-tva")}>
+                  <div className="field">
+                    <label>Taux URSSAF</label>
+                    <select className="cell-in" value={l.categorie} onChange={(e) => setLine(l.id, "categorie", e.target.value)}>
                       {CATS.map((c) => <option key={c} value={c}>{RATES[c].short} · {pct(RATES[c].social)}</option>)}
                     </select>
-                  </td>
-                  <td><input className="cell-in num" type="number" step="0.01" placeholder="0,00" value={l.montant} onChange={(e) => setLine(l.id, "montant", e.target.value)} /></td>
+                  </div>
+                  <div className="field">
+                    <label>Montant HT</label>
+                    <input className="cell-in" type="number" step="0.01" placeholder="0,00" value={l.montant} onChange={(e) => setLine(l.id, "montant", e.target.value)} />
+                  </div>
                   {assujetti &&
-                <td>
-                      <select className="cell-in" style={{ minWidth: 72 }} value={l.tva} onChange={(e) => setLine(l.id, "tva", parseFloat(e.target.value))}>
-                        {activeTvaRates.map((tv) => <option key={tv.v} value={tv.v}>{tv.label}</option>)}
-                      </select>
-                    </td>
-                }
-                  {assujetti && <td className="num ttc-cell">{eur(num(l.montant) * (1 + num(l.tva)))}</td>}
-                  <td className="c">{lines.length > 1 && <button className="del" title="Supprimer la ligne" onClick={() => removeLine(l.id)}>{Icon.trash}</button>}</td>
-                </tr>
-              )}
-            </tbody>
-            <tfoot>
-              <tr className="sumrow">
-                <td colSpan={2} className="sumlab">Total facture</td>
-                <td className="num"><b>{eur(t.ht)}</b></td>
-                {assujetti && <td className="c sum-tva">{eur(t.tva)}</td>}
-                {assujetti && <td className="num"><b>{eur(t.ttc)}</b></td>}
-                <td></td>
-              </tr>
-            </tfoot>
-          </table>
-          <button className="addrow" style={{ marginTop: 8, padding: "7px 12px", fontSize: 12.5 }} onClick={addLine}>{Icon.plus} Ajouter une ligne</button>
+                  <div className="field">
+                    <label>TVA</label>
+                    <select className="cell-in" value={l.tva} onChange={(e) => setLine(l.id, "tva", parseFloat(e.target.value))}>
+                      {activeTvaRates.map((tv) => <option key={tv.v} value={tv.v}>{tv.label}</option>)}
+                    </select>
+                  </div>}
+                  {assujetti &&
+                  <div className="field">
+                    <label>Montant TTC</label>
+                    <div className="cell-in il-ttc">{eur(num(l.montant) * (1 + num(l.tva)))}</div>
+                  </div>}
+                </div>
+              </div>
+            )}
+          </div>
+          <button className="addrow" style={{ marginTop: 10, padding: "7px 12px", fontSize: 12.5 }} onClick={addLine}>{Icon.plus} Ajouter une ligne</button>
+          <div className="inv-total">
+            <span className="it-lab">Total facture</span>
+            <span className="it-v">HT <b>{eur(t.ht)}</b></span>
+            {assujetti && <span className="it-v">TVA {eur(t.tva)}</span>}
+            {assujetti && <span className="it-v">TTC <b>{eur(t.ttc)}</b></span>}
+          </div>
           <div className="inv-result">
             <div className="ir-line"><span>Cotisations URSSAF <em>estimées sur le HT réel</em></span><b className="neg">−{eur(t.urssaf)}</b></div>
             <div className="ir-line net"><span>Net estimé pour vous</span><b>{eur(t.net)}</b></div>
@@ -2238,10 +2276,77 @@ function FacturesTab({ factures, facturesByMonth, charges, profile, mIndex, onSa
 /* ========================================================== */
 // Saisie de revenus supposés (pas encore facturables) + suivi des factures non payées.
 // Aucun détail URSSAF ici : on raisonne en montants bruts attendus.
+// Modale de saisie / édition d'un revenu prévisionnel. Brouillon local : rien n'est enregistré tant qu'on n'a pas validé.
+function PrevisionModal({ initial, profile, onSave, onClose }) {
+  const [form, setForm] = React.useState(() => initial
+    ? { client: initial.client || "", libelle: initial.libelle || "", montant: initial.montant || "",
+        categorie: initial.categorie || CATS[0], dateAttendue: initial.dateAttendue || "",
+        recurrence: initial.recurrence || "ponctuelle", finRecurrence: initial.finRecurrence || "" }
+    : { client: "", libelle: "", montant: "", categorie: CATS[0], dateAttendue: "", recurrence: "ponctuelle", finRecurrence: "" });
+  const setF = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const mensuel = form.recurrence === "mensuelle";
+  const canSave = num(form.montant) > 0 && !!form.dateAttendue;
+  const save = () => { if (!canSave) return; onSave({ ...form, finRecurrence: mensuel ? form.finRecurrence : "" }); };
+  return (
+    <div className="scrim" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{ width: "min(560px, 100%)" }}>
+        <div className="modal-h">
+          <h3>{initial ? "Modifier le revenu prévisionnel" : "Nouveau revenu prévisionnel"}</h3>
+          <button className="x" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-b">
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <div className="field" style={{ flex: "1 1 200px", marginBottom: 0 }}>
+              <label>Client</label>
+              <input className="in" placeholder="Nom du client" value={form.client} list="mef-clients" onChange={(e) => setF("client", e.target.value)} />
+            </div>
+            <div className="field" style={{ flex: "1 1 200px", marginBottom: 0 }}>
+              <label>Libellé</label>
+              <input className="in" placeholder="Ex : solde reportage mariage" value={form.libelle} onChange={(e) => setF("libelle", e.target.value)} />
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 14 }}>
+            <div className="field" style={{ flex: "0 0 140px", marginBottom: 0 }}>
+              <label>Montant</label>
+              <input className="in num" type="number" step="0.01" placeholder="0,00" value={form.montant} onChange={(e) => setF("montant", e.target.value)} />
+            </div>
+            <div className="field" style={{ flex: "1 1 180px", marginBottom: 0 }}>
+              <label>Catégorie URSSAF</label>
+              <select className="in" value={form.categorie} onChange={(e) => setF("categorie", e.target.value)}>
+                {CATS.map((c) => <option key={c} value={c}>{RATES[c].short}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 14, alignItems: "flex-end" }}>
+            <div className="field" style={{ flex: "0 0 180px", marginBottom: 0 }}>
+              <label>Date supposée de paiement</label>
+              <input className={"in" + (!form.dateAttendue ? " field-missing" : "")} type="date" value={form.dateAttendue} onChange={(e) => setF("dateAttendue", e.target.value)} />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Type</label>
+              <div className="viewseg sm">
+                <button type="button" className={!mensuel ? "on" : ""} onClick={() => setF("recurrence", "ponctuelle")}>Ponctuel</button>
+                <button type="button" className={mensuel ? "on" : ""} onClick={() => setF("recurrence", "mensuelle")}>Mensuel</button>
+              </div>
+            </div>
+            {mensuel &&
+            <div className="field" style={{ flex: "0 0 180px", marginBottom: 0 }}>
+              <label>Jusqu'au (optionnel)</label>
+              <input className="in" type="date" value={form.finRecurrence} onChange={(e) => setF("finRecurrence", e.target.value)} />
+            </div>}
+          </div>
+        </div>
+        <div className="modal-f">
+          <button className="btn ghost" onClick={onClose}>Annuler</button>
+          <button className="btn pri" disabled={!canSave} style={{ marginLeft: "auto" }} onClick={save}>{initial ? "Enregistrer" : "Valider"}</button>
+        </div>
+      </div>
+    </div>);
+}
+
 function PrevisionnelTab({ previsions, facturesByMonth, profile, onAddPrevision, onUpdatePrevision, onRemovePrevision, onConvert, onMarkPaid, urssafHistory = {}, tvaConfig }) {
-  const blank = { client: "", libelle: "", montant: "", categorie: CATS[0], dateAttendue: "", recurrence: "ponctuelle", finRecurrence: "" };
-  const [form, setForm] = React.useState(blank);
-  const [editId, setEditId] = React.useState(null);
+  // modale de saisie d'une prévision : null = fermée ; {} = nouveau ; { prevision } = édition
+  const [modal, setModal] = React.useState(null);
   // modale de conversion : { initial, prevision } ; null = fermée
   const [convertModal, setConvertModal] = React.useState(null);
   const openConvert = (p) => setConvertModal({
@@ -2251,22 +2356,10 @@ function PrevisionnelTab({ previsions, facturesByMonth, profile, onAddPrevision,
       lines: [{ id: uid() + "-l", description: p.libelle || "", categorie: p.categorie || "BNC", montant: p.montant || "", tva: profile.tva ? 0.20 : 0 }],
     },
   });
-  const setF = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-  const mensuel = form.recurrence === "mensuelle";
-  const canSave = num(form.montant) > 0 && !!form.dateAttendue;
-
-  const reset = () => { setForm(blank); setEditId(null); };
-  const submit = () => {
-    if (!canSave) return;
-    const payload = { ...form, montant: form.montant, finRecurrence: mensuel ? form.finRecurrence : "" };
-    if (editId) onUpdatePrevision(editId, payload); else onAddPrevision(payload);
-    reset();
-  };
-  const startEdit = (p) => {
-    setEditId(p.id);
-    setForm({ client: p.client || "", libelle: p.libelle || "", montant: p.montant || "",
-      categorie: p.categorie || CATS[0], dateAttendue: p.dateAttendue || "",
-      recurrence: p.recurrence || "ponctuelle", finRecurrence: p.finRecurrence || "" });
+  const savePrevision = (payload) => {
+    if (modal && modal.prevision) onUpdatePrevision(modal.prevision.id, payload);
+    else onAddPrevision(payload);
+    setModal(null);
   };
 
   // factures émises mais pas encore payées, tous mois confondus
@@ -2281,51 +2374,12 @@ function PrevisionnelTab({ previsions, facturesByMonth, profile, onAddPrevision,
       <div className="card">
         <div className="card-h">
           <h2>Revenus prévisionnels</h2>
-          <span className="sub">revenus supposés, non encore facturés — n'entrent pas dans tes chiffres</span>
+          <span className="sub">Revenus supposés, pas encore facturés</span>
         </div>
         <div className="card-b">
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
-            <div className="field" style={{ flex: "1 1 180px", marginBottom: 0 }}>
-              <label>Client</label>
-              <input className="in" placeholder="Nom du client" value={form.client} onChange={(e) => setF("client", e.target.value)} />
-            </div>
-            <div className="field" style={{ flex: "1 1 200px", marginBottom: 0 }}>
-              <label>Libellé</label>
-              <input className="in" placeholder="Ex : solde reportage mariage" value={form.libelle} onChange={(e) => setF("libelle", e.target.value)} />
-            </div>
-            <div className="field" style={{ flex: "0 0 130px", marginBottom: 0 }}>
-              <label>Montant</label>
-              <input className="in num" type="number" step="0.01" placeholder="0,00" value={form.montant} onChange={(e) => setF("montant", e.target.value)} />
-            </div>
-            <div className="field" style={{ flex: "0 0 180px", marginBottom: 0 }}>
-              <label>Catégorie URSSAF</label>
-              <select className="in" value={form.categorie} onChange={(e) => setF("categorie", e.target.value)}>
-                {CATS.map((c) => <option key={c} value={c}>{RATES[c].short}</option>)}
-              </select>
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end", marginTop: 12 }}>
-            <div className="field" style={{ flex: "0 0 180px", marginBottom: 0 }}>
-              <label>Date supposée de paiement</label>
-              <input className="in" type="date" value={form.dateAttendue} onChange={(e) => setF("dateAttendue", e.target.value)} />
-            </div>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label>Type</label>
-              <div className="viewseg sm">
-                <button type="button" className={!mensuel ? "on" : ""} onClick={() => setF("recurrence", "ponctuelle")}>Ponctuel</button>
-                <button type="button" className={mensuel ? "on" : ""} onClick={() => setF("recurrence", "mensuelle")}>Mensuel</button>
-              </div>
-            </div>
-            {mensuel &&
-            <div className="field" style={{ flex: "0 0 180px", marginBottom: 0 }}>
-              <label>Jusqu'au (optionnel)</label>
-              <input className="in" type="date" value={form.finRecurrence} onChange={(e) => setF("finRecurrence", e.target.value)} />
-            </div>}
-            <button className="btn pri" style={{ flex: "none" }} disabled={!canSave} onClick={submit}>{editId ? "Mettre à jour" : "Ajouter"}</button>
-            {editId && <button className="btn ghost" style={{ flex: "none" }} onClick={reset}>Annuler</button>}
-          </div>
+          <button className="addrow accent" style={{ marginBottom: 14 }} onClick={() => setModal({})}>{Icon.plus} Ajouter un revenu prévisionnel</button>
 
-          <div className="stack" style={{ marginTop: 16 }}>
+          <div className="stack">
             {previsions.length === 0 &&
             <div className="empty" style={{ padding: "24px 10px" }}>Aucun revenu prévisionnel. Ajoute un solde à venir ou un client récurrent.</div>}
             {previsions.map((p) =>
@@ -2340,7 +2394,7 @@ function PrevisionnelTab({ previsions, facturesByMonth, profile, onAddPrevision,
               </div>
               <b style={{ flex: "none", marginRight: 8 }}>{eur(num(p.montant))}</b>
               <button className="btn" style={{ flex: "none", padding: "4px 10px", fontSize: 12 }} onClick={() => openConvert(p)}>Convertir en facture</button>
-              <button className="del" title="Modifier" onClick={() => startEdit(p)}>{Icon.pencil}</button>
+              <button className="del" title="Modifier" onClick={() => setModal({ prevision: p })}>{Icon.pencil}</button>
               <button className="del" title="Supprimer" onClick={() => onRemovePrevision(p.id)}>{Icon.trash}</button>
             </div>)}
           </div>
@@ -2369,6 +2423,9 @@ function PrevisionnelTab({ previsions, facturesByMonth, profile, onAddPrevision,
               </div>}
         </div>
       </div>
+      {modal &&
+      <PrevisionModal initial={modal.prevision || null} profile={profile}
+        onSave={savePrevision} onClose={() => setModal(null)} />}
       {convertModal &&
       <InvoiceModal initial={convertModal.initial} heading="Nouvelle facture" profile={profile}
         urssafHistory={urssafHistory} tvaConfig={tvaConfig}
@@ -2651,9 +2708,11 @@ function TariffHistory({ charge, onAddTariff, onRemoveTariff }) {
             <div key={t.from} className={"tariff-entry " + st.cls}>
               <span className={"tariff-status " + (st.cls === "future" ? "attn" : st.cls)}>{st.label}</span>
               <span className="tariff-from">{rangeLabel}</span>
-              <b className="tariff-val">{eur(t.montant)}</b>
               {pct && <span className={"tariff-pct " + pct.cls}>{pct.label}</span>}
-              {i > 0 && <button className="del" title="Supprimer ce tarif" onClick={() => onRemoveTariff(charge.id, t.from)}>{Icon.trash}</button>}
+              <b className="tariff-val">{eur(t.montant)}</b>
+              {i > 0
+                ? <button className="del" title="Supprimer ce tarif" onClick={() => onRemoveTariff(charge.id, t.from)}>{Icon.trash}</button>
+                : <span className="del-ph" aria-hidden="true"></span>}
             </div>
           );
         })}
@@ -2811,11 +2870,14 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
     return (
       <React.Fragment key={ch.id}>
         <tr style={imp.active ? null : { opacity: .55 }}>
-          <td><span style={{ fontWeight: 600 }}>{ch.libelle || <em style={{ color: "var(--faint)", fontWeight: 400 }}>Sans libellé</em>}</span></td>
+          <td><span style={{ fontWeight: 500 }}>{ch.libelle || <em style={{ color: "var(--faint)", fontWeight: 400 }}>Sans libellé</em>}</span></td>
           <td><span className="badge cat" style={{ fontSize: 11 }}>{freqLabels[ch.frequence] || ch.frequence}</span></td>
           <td className="num">
             <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
-              <span className="prix-ttc" style={{ cursor: "help" }} title={histTip}>{eur(tarifMois)}{PERIODE[ch.frequence] && <span style={{ color: "var(--faint)", fontWeight: 400 }}>{PERIODE[ch.frequence]}</span>}</span>
+              <span className="itip-wrap" tabIndex={0}>
+                <span className="prix-ttc">{eur(tarifMois)}{PERIODE[ch.frequence] && <span style={{ color: "var(--faint)", fontWeight: 400 }}>{PERIODE[ch.frequence]}</span>}</span>
+                <span className="itip itip--right itip--pre" role="tooltip">{histTip}</span>
+              </span>
               {!isPonctuel &&
                 <button className={"tariff-btn" + (tarifsOpen[ch.id] ? " on" : "") + (hasFuture ? " pending" : "")}
                   title={hasFuture ? "Changement de tarif à venir" : "Historique des tarifs et date de début"}
@@ -2823,10 +2885,20 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
             </div>
           </td>
           <td className="num">
-            {!imp.active ? <span className="ce-mois" style={{ color: "var(--faint)" }} title={startLabel ? `Pas encore actif · démarre en ${startLabel}` : "Pas encore actif"}>{eur0(0)}</span>
+            {!imp.active
+              ? <span className="itip-wrap" tabIndex={0}>
+                  <span className="ce-mois" style={{ color: "var(--faint)" }}>{eur0(0)}</span>
+                  <span className="itip itip--right itip--sm" role="tooltip">{startLabel ? `Pas encore actif · démarre en ${startLabel}` : "Pas encore actif"}</span>
+                </span>
               : imp.decaisse > 0
-                ? <span className="ce-mois ce-mois--out" title={`prélevé le ${parseInt(imp.dueDay, 10)} ${MONTHS[mIndex].toLowerCase()}`}>{Icon.down}prélevé · {eur0(imp.decaisse)}</span>
-                : <span className="ce-mois prix-ttc--prov" title={nextLabel || "provision mise de côté ce mois"}>{Icon.clock}provision · {eur0(imp.provision)}</span>}
+                ? <span className="itip-wrap" tabIndex={0}>
+                    <span className="ce-mois ce-mois--out">{Icon.down}prélevé · {eur0(imp.decaisse)}</span>
+                    <span className="itip itip--right itip--sm" role="tooltip">{`prélevé le ${parseInt(imp.dueDay, 10)} ${MONTHS[mIndex].toLowerCase()}`}</span>
+                  </span>
+                : <span className="itip-wrap" tabIndex={0}>
+                    <span className="ce-mois prix-ttc--prov">{Icon.clock}provision · {eur0(imp.provision)}</span>
+                    <span className="itip itip--right itip--sm" role="tooltip">{nextLabel || "provision mise de côté ce mois"}</span>
+                  </span>}
           </td>
           <td className="c" style={{ whiteSpace: "nowrap" }}>
             <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
@@ -2837,7 +2909,7 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
         </tr>
         {!isPonctuel && tarifsOpen[ch.id] && (
           <tr key={ch.id + "-t"}>
-            <td colSpan={5} style={{ padding: "0 14px 14px", background: "var(--primary-soft)", borderBottom: "1px solid var(--line)" }}>
+            <td colSpan={5} style={{ padding: "0 14px 14px", background: "#f7f7f3", borderBottom: "1px solid var(--line)" }}>
               <TariffHistory charge={ch} onAddTariff={onAddTariff} onRemoveTariff={onRemoveTariff} />
             </td>
           </tr>
@@ -2923,7 +2995,7 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
             )}
             <button className="btn cat-manage-btn" style={{ marginLeft: "auto" }} onClick={() => setCatModalOpen(true)}>{Icon.tag} Gérer les catégories</button>
           </div>
-          <table className="tbl">
+          <table className="tbl frais-tbl">
             <thead>
               <tr>
                 <th>Libellé</th>
@@ -2941,14 +3013,16 @@ function FraisTab({ charges, mIndex, categories, profile, onAdd, onCreate, onUpd
                 }, 0);
                 return (
                   <React.Fragment key={g.key}>
-                    <tr className="cat-group-hd"><td colSpan={5}>{g.label}</td></tr>
+                    <tr className="cat-group-hd"><td colSpan={5}>
+                      <div className="cat-group-inner">
+                        <span className="cat-group-lab">{g.label}</span>
+                        <span className="cat-group-sub">{g.items.length} frais · sous-total <b>{eur(gTotal)}</b></span>
+                      </div>
+                    </td></tr>
                     {g.items.length === 0 && (
-                      <tr><td colSpan={5} style={{ padding: "6px 14px" }}><span style={{ color: "var(--soft)", fontSize: 12.5 }}>Aucun frais dans cette catégorie</span></td></tr>
+                      <tr className="frais-empty"><td colSpan={5}>Aucun frais dans cette catégorie</td></tr>
                     )}
                     {g.items.map(renderRow)}
-                    <tr className="cat-subtotal">
-                      <td colSpan={5}>{g.items.length} frais · sous-total <span className="sub-val">{eur(gTotal)}</span></td>
-                    </tr>
                   </React.Fragment>
                 );
               })}
@@ -3286,6 +3360,14 @@ function App() {
   const [charges, setCharges] = React.useState(() => migrateCharges(load("mef2:charges", SEED_CHARGES)));
   const [ui, setUi] = React.useState(() => load("mef2:ui", { tab: "dashboard", month: 3, year: REAL_YEAR }));
   const [profileOpen, setProfileOpen] = React.useState(false);
+  const [navOpen, setNavOpen] = React.useState(false);
+  const navRef = React.useRef(null);
+  React.useEffect(() => {
+    if (!navOpen) return;
+    const onDoc = (e) => { if (navRef.current && !navRef.current.contains(e.target)) setNavOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [navOpen]);
   const [urssafHistory, setUrssafHistory] = React.useState(() => load("mef2:urssaf_history", {
     "BIC_VENTE":  [{ from: "2026-01-01", social: 0.123, lib: 0.010 }],
     "BIC_PRESTA": [{ from: "2026-01-01", social: 0.212, lib: 0.017 }],
@@ -3417,6 +3499,7 @@ function App() {
   const cfeAnnuel = num((cfeData[YEAR] || {}).montant) || 0;
 
   // ----- nav -----
+  const MONTHS_SHORT = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
   const goMonth = (delta) => setUi((u) => {
     let month = u.month + delta;
     let year = u.year || REAL_YEAR;
@@ -3425,7 +3508,6 @@ function App() {
     return { ...u, month, year };
   });
   const goYear = (delta) => setUi((u) => ({ ...u, year: (u.year || REAL_YEAR) + delta }));
-  const setYear = (year) => setUi((u) => ({ ...u, year }));
   const goToday = () => setUi((u) => ({ ...u, year: REAL_YEAR, month: new Date().getMonth() }));
   const setTab = (tab) => setUi((u) => ({ ...u, tab }));
 
@@ -3459,15 +3541,6 @@ function App() {
   };
 
   const initiales = (profile.nom || "ME").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "ME";
-
-  // années proposées dans le sélecteur : année réelle, année affichée, + toutes celles ayant des données
-  const yearOptions = (() => {
-    const ys = new Set([REAL_YEAR, YEAR]);
-    Object.keys(facturesByMonth || {}).forEach((k) => { const y = parseInt(k.slice(0, 4), 10); if (y) ys.add(y); });
-    Object.keys(cfeData || {}).forEach((k) => { const y = parseInt(k, 10); if (y) ys.add(y); });
-    Object.keys((profile.prevYears) || {}).forEach((k) => { const y = parseInt(k, 10); if (y) ys.add(y); });
-    return [...ys].sort((a, b) => a - b);
-  })();
 
   const TABS = [
     ["dashboard",    "Tableau de bord",                TabIcon.dashboard],
@@ -3505,15 +3578,27 @@ function App() {
 
       <div className="monthnav">
         <button className="mbtn" onClick={() => goMonth(-1)} title="Mois précédent">{Chev("M15 18l-6-6 6-6")}</button>
-        <div className="mlabel">{MONTHS[m]}</div>
-        <button className="mbtn" onClick={() => goMonth(1)} title="Mois suivant">{Chev("M9 18l6-6-6-6")}</button>
-        <div className="yearnav">
-          <button className="mbtn" onClick={() => goYear(-1)} title="Année précédente">{Chev("M15 18l-6-6 6-6")}</button>
-          <select className="yearsel" value={YEAR} onChange={(e) => setYear(parseInt(e.target.value, 10))}>
-            {yearOptions.map((y) => <option key={y} value={y}>{y}</option>)}
-          </select>
-          <button className="mbtn" onClick={() => goYear(1)} title="Année suivante">{Chev("M9 18l6-6-6-6")}</button>
+        <div className="datepick-wrap" ref={navRef}>
+          <button className={"datepick" + (navOpen ? " on" : "")} onClick={() => setNavOpen((o) => !o)}>
+            <svg className="dp-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 3v3M16 3v3" /></svg>
+            {MONTHS[m]} {YEAR}
+          </button>
+          {navOpen &&
+            <div className="navpop">
+              <div className="navpop-head">
+                <button className="mbtn sm" onClick={() => goYear(-1)} title="Année précédente">{Chev("M15 18l-6-6 6-6")}</button>
+                <span className="navpop-y">{YEAR}</span>
+                <button className="mbtn sm" onClick={() => goYear(1)} title="Année suivante">{Chev("M9 18l6-6-6-6")}</button>
+              </div>
+              <div className="mgrid">
+                {MONTHS_SHORT.map((mo, i) => (
+                  <button key={i} className={"mcell" + (i === m ? " on" : "")}
+                    onClick={() => { setUi((u) => ({ ...u, month: i })); setNavOpen(false); }}>{mo}</button>
+                ))}
+              </div>
+            </div>}
         </div>
+        <button className="mbtn" onClick={() => goMonth(1)} title="Mois suivant">{Chev("M9 18l6-6-6-6")}</button>
         {!(YEAR === REAL_YEAR && m === new Date().getMonth()) &&
           <button className="today" onClick={goToday}>Aujourd'hui</button>}
       </div>
